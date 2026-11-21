@@ -14,10 +14,6 @@
   <a href="docs/assets/pibot-intro-60s.mp4"><img src="docs/assets/pibot-intro-15s.gif" width="800" alt="15 秒看 Pi Bot（点开看 60 秒有声完整版）"></a>
 </p>
 
-<p align="center">
-  <img src="docs/guide/images/zh/group-chat.png" width="860" alt="Pi Bot：一群 AI Bot 在群聊里做计划、交付任务">
-</p>
-
 <p align="center">▶ <a href="docs/assets/pibot-intro-60s.mp4">看 60 秒视频</a> · <a href="https://pibot.space">下载</a> · <a href="docs/guide/README.md">使用指南</a></p>
 
 [English](README.md) · [中文](README.zh-CN.md)

@@ -17,10 +17,6 @@ agent kernel.
   <a href="docs/assets/pibot-intro-60s.mp4"><img src="docs/assets/pibot-intro-15s.gif" width="800" alt="Pi Bot in 15 seconds (click for the 60-second video with sound)"></a>
 </p>
 
-<p align="center">
-  <img src="docs/guide/images/en/group-chat.png" width="860" alt="Pi Bot: a group chat where a team of AI Bots plans and delivers a task">
-</p>
-
 <p align="center">▶ <a href="docs/assets/pibot-intro-60s.mp4">Watch the 60-second video</a> · <a href="https://pibot.space">Download</a> · <a href="docs/guide/README.md">User guide</a></p>
 
 [English](README.md) · [中文](README.zh-CN.md)
