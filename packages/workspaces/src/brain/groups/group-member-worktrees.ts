@@ -9,6 +9,7 @@ import {
   createGitReader,
   createManagedFolders,
   createManagedGit,
+  ExecError,
   isManagedFolderRepository,
 } from "@pibot/execution";
 import {
@@ -232,9 +233,11 @@ export class GroupMemberWorktrees {
             code:
               error instanceof RpcError && /^[a-z0-9_.-]{1,80}$/i.test(error.message)
                 ? error.message
-                : error instanceof Error
-                  ? error.name
-                  : "unknown",
+                : error instanceof ExecError
+                  ? `exec_${error.code}`
+                  : error instanceof Error
+                    ? error.name
+                    : "unknown",
           }),
         );
       this.stages.delete(context.runId);
