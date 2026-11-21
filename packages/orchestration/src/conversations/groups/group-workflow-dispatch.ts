@@ -23,6 +23,7 @@ import {
 import { checkMethodFolderInputs } from "./group-method-inputs.ts";
 import { stepMerged, workspaceFolder, workspaceSteps } from "./group-plan-step-workspaces.ts";
 import { assertPlanWorkplace } from "./group-plan-workplace.ts";
+import type { GroupService } from "./group-service.ts";
 import { resumeSummary, resumeSummaryCounts } from "./group-step-resume-summary.ts";
 import { stepHandoff, stepInstructions } from "./group-workflow-brief.ts";
 import { reviewPrompt, reviewRequirements, summaryStep } from "./group-workflow-delivery-review.ts";
@@ -287,6 +288,11 @@ export class GroupWorkflowDispatcher {
       continued && marker
         ? await this.resumeSummary(marker, place.cwd, previousTaskId, !kept, access, signal)
         : undefined;
+    // Retest 2026-11-21: the command the pause cut off was journaled "unknown", and the plan shares
+    // one journal root, so the rerun's identical command was refused as possibly-already-run and
+    // the step looped asking the user. The person stopped it; its brief says so. Only commands,
+    // so a rerun re-runs them under the same policy and approvals.
+    if (continued && marker) settleStoppedCommands(service, marker.runId);
     // A redone step starts from the latest merged base; its earlier workspace is never merged
     // (a kept one is the new task's from the transaction below).
     if (previousTaskId) {
@@ -571,4 +577,12 @@ export class GroupWorkflowDispatcher {
     this.retryTimers.clear();
     this.capacityRetries.clear();
   }
+}
+
+const STOPPED_COMMANDS = new Set(["run_command", "write_stdin"]);
+function settleStoppedCommands(service: GroupService, runId: string) {
+  const repo = service.deps.local.toolJournal.repo;
+  for (const entry of repo.uncertain(runId))
+    if (STOPPED_COMMANDS.has(entry.tool))
+      repo.finish(entry.id, "failed", { digest: null, summary: "stopped by the group pause" });
 }
