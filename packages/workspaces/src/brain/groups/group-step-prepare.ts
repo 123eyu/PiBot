@@ -1,5 +1,11 @@
 import type { PlanStepWorkspace, ToolRunContext } from "@pibot/brain/kit";
-import { ExecError, findGit, ManagedFolderError, managedFolderRepository } from "@pibot/execution";
+import {
+  ExecError,
+  findGit,
+  ManagedExecError,
+  ManagedFolderError,
+  managedFolderRepository,
+} from "@pibot/execution";
 import { type Group, RpcError } from "@pibot/workspaces-contract/full";
 import { isManagedCleanupFailure } from "../managed/managed-failure.ts";
 import type { groupWorkplace } from "../runtime.ts";
@@ -35,11 +41,14 @@ const CLEANUP_PENDING = "group_workspace_cleanup_pending";
 export function prepareFailureCode(error: unknown) {
   return error instanceof RpcError && /^[a-z0-9_.-]{1,80}$/i.test(error.message)
     ? error.message
-    : error instanceof ExecError
-      ? `exec_${error.code}${error.reason ? `.${error.reason}` : ""}`
-      : error instanceof Error
-        ? error.name
-        : "unknown";
+    : // Its ExecError code is always invalid_input; the managed code says which check refused.
+      error instanceof ManagedExecError
+      ? `exec_${error.code}.${error.managedCode}`
+      : error instanceof ExecError
+        ? `exec_${error.code}${error.reason ? `.${error.reason}` : ""}`
+        : error instanceof Error
+          ? error.name
+          : "unknown";
 }
 
 /**
