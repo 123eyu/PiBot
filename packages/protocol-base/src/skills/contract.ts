@@ -97,22 +97,31 @@ export const AcceptanceSchema = z
       });
   });
 
+/**
+ * File kinds a content check can read; a check not listed reads any file. One table for the
+ * validator below and the plan hints that tell a coordinator which kind a check needs.
+ */
+export const ACCEPTANCE_CHECK_KINDS: Partial<
+  Record<z.infer<typeof AcceptanceCheckSchema>, readonly string[]>
+> = {
+  verdict: ["md"],
+  tableColumns: ["md", "xlsx"],
+  hasChart: ["md", "docx", "xlsx"],
+  minCitations: ["md", "docx"],
+  sectionsSourced: ["md", "docx"],
+  gbt7714: ["md", "docx"],
+};
+/** A deliverable's kind, from its extension when it is declared "any". */
+export function deliverableKind(target: Pick<Deliverable, "kind" | "path">) {
+  return target.kind === "any" ? target.path.split(".").at(-1)?.toLowerCase() : target.kind;
+}
+
 /** Shared by saved contracts, dynamic plans and model-draft filtering. */
 export function acceptanceTargetIssue(item: Acceptance, target: Deliverable): string | undefined {
   if ((item.check === "sections" || item.check === "sectionsSourced") && !target.sections?.length)
     return "sections_missing";
-  const kind = target.kind === "any" ? target.path.split(".").at(-1)?.toLowerCase() : target.kind;
-  if (item.check === "verdict" && kind !== "md") return "type_mismatch";
-  if (item.check === "tableColumns" && kind !== "md" && kind !== "xlsx") return "type_mismatch";
-  if (item.check === "hasChart" && !["md", "docx", "xlsx"].includes(kind ?? ""))
-    return "type_mismatch";
-  if (
-    (item.check === "minCitations" ||
-      item.check === "sectionsSourced" ||
-      item.check === "gbt7714") &&
-    !["md", "docx"].includes(kind ?? "")
-  )
-    return "type_mismatch";
+  const kinds = ACCEPTANCE_CHECK_KINDS[item.check];
+  if (kinds && !kinds.includes(deliverableKind(target) ?? "")) return "type_mismatch";
   return undefined;
 }
 export const WorkflowStepOwnerSchema = z.union([

@@ -1,3 +1,9 @@
+import {
+  ACCEPTANCE_CHECK_KINDS,
+  AcceptanceCheckSchema,
+  DeliverableSchema,
+  deliverableKind,
+} from "@pibot/protocol-base";
 import type { z } from "zod";
 
 /**
@@ -73,7 +79,51 @@ const unknownField = (path: readonly PropertyKey[], keys: readonly string[]): Is
   };
 };
 
-export function planFieldHint(issue: z.core.$ZodIssue): IssueHint | undefined {
+const record = (value: unknown): Record<string, unknown> | undefined =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+const at = (value: unknown, index: unknown) =>
+  Array.isArray(value) && typeof index === "number" ? value[index] : undefined;
+
+/**
+ * Names the check that did not fit and the kinds it needs. Only enum values and a short
+ * extension are echoed back; the old hint listed other checks and the coordinator resubmitted
+ * the same plan until the format limit (Linux acceptance 2026-11-21, verdict on calc.sh).
+ */
+function typeMismatchHint(input: unknown, stepIndex: unknown, index: unknown): IssueHint {
+  const plan = record(input);
+  const stepValue = record(at(plan?.steps, stepIndex));
+  const item = record(at(stepValue?.acceptance, index));
+  const check = AcceptanceCheckSchema.safeParse(item?.check);
+  const kinds = check.success ? ACCEPTANCE_CHECK_KINDS[check.data] : undefined;
+  const target = DeliverableSchema.safeParse(
+    Array.isArray(stepValue?.deliverables)
+      ? stepValue.deliverables.find((entry) => record(entry)?.id === item?.deliverable)
+      : undefined,
+  );
+  const kind = target.success ? deliverableKind(target.data) : undefined;
+  const shown = kind && /^[a-z0-9]{1,8}$/.test(kind) ? kind : undefined;
+  const where = `${step(stepIndex)}的${nth("验收项", index)}`;
+  const whereEn = `${stepEn(stepIndex)} ${nthEn("acceptance", index)}`;
+  if (!check.success || !kinds)
+    return {
+      message: `${where}的检查类型不适用于这个交付物：换成 exists，或指向能检查的文件 / ${whereEn} does not fit its deliverable: use exists, or point it at a file it can read`,
+      example: CHECK_EXAMPLE,
+    };
+  const need = kinds.join(" / ");
+  const file = shown ? `（这里是 ${shown}）` : "";
+  const fileEn = shown ? ` (this one is ${shown})` : "";
+  return {
+    message: `${where}用了 check:"${check.data}"，它只能检查 ${need} 文件${file}：把它指向 ${need} 交付物，或这个文件改用 exists / ${whereEn} uses check:"${check.data}", which only reads ${need} files${fileEn}: point it at a ${need} deliverable, or use exists for this file`,
+    example:
+      check.data === "verdict"
+        ? '{"id":"v1","check":"verdict","deliverable":"review"} + {"id":"review","path":"review.md","kind":"md"}'
+        : CHECK_EXAMPLE,
+  };
+}
+
+export function planFieldHint(issue: z.core.$ZodIssue, input?: unknown): IssueHint | undefined {
   const path = issue.path;
   const [, stepIndex, field, index, leaf] = path;
   if (issue.code === "unrecognized_keys") return unknownField(path, issue.keys);
@@ -102,12 +152,7 @@ export function planFieldHint(issue: z.core.$ZodIssue): IssueHint | undefined {
           example: DELIVERABLE_EXAMPLE,
         };
       case "plan_type_mismatch":
-        return {
-          message:
-            "这个检查类型不适用于该交付物：tableColumns 只用于 md / xlsx；sectionsSourced、minCitations、gbt7714 只用于 md / docx / This check type does not fit the file: tableColumns needs md / xlsx; sectionsSourced, minCitations and gbt7714 need md / docx",
-          example:
-            '{"id":"e1","check":"tableColumns","deliverable":"data","columns":["维度","数值"]}',
-        };
+        return typeMismatchHint(input, stepIndex, index);
       case "plan_manual_text_required":
         return {
           message:

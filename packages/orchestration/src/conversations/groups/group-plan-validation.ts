@@ -54,7 +54,9 @@ export function validateGroupPlan(
     const [first] = flattenInputIssues(parsed.error.issues);
     return {
       ok: false,
-      issues: first ? [describeIssue(first)] : [{ code: "plan_schema_invalid", path: [] }],
+      issues: first
+        ? [describeIssue(first, repaired.value)]
+        : [{ code: "plan_schema_invalid", path: [] }],
     };
   }
   const issues: PlanIssue[] = [];
@@ -120,8 +122,8 @@ export function validateGroupPlan(
       };
 }
 
-function describeIssue(issue: z.core.$ZodIssue): PlanIssue {
-  const hint = planFieldHint(issue);
+function describeIssue(issue: z.core.$ZodIssue, input: unknown): PlanIssue {
+  const hint = planFieldHint(issue, input);
   return {
     code:
       issue.code === "custom" && /^plan_[a-z_]+$/.test(issue.message)
