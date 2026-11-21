@@ -43,6 +43,7 @@ export * from "./chat/topics.ts";
 export * from "./chat/user-question.ts";
 export * from "./computer/apps.ts";
 export * from "./computer/computer.ts";
+export * from "./computer/computer-input.ts";
 export * from "./computer/host.ts";
 export * from "./computer/host-guard.ts";
 export * from "./connectors/apps.ts";

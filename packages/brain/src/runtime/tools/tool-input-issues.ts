@@ -141,7 +141,7 @@ function baseIssueText(issue: z.core.$ZodIssue): string {
         "Choose ref or screenshotId/x/y":
           "只用一种方式：要么 ref（来自最新的 browser_snapshot），要么 screenshotId 加 x、y（来自最新的 browser_screenshot），不要同时给 / Use one target: either ref from the latest browser_snapshot, or screenshotId with x and y from the latest browser_screenshot, not both",
         keys_text_and_combo:
-          "text 和 combo 只能给一个：text 输入文字，combo 按快捷键；先输入再按键就分两次调用 keys / Give text or combo, not both: text types characters, combo presses a shortcut; to type and then press keys, make two keys calls",
+          'text 和 combo 只能给一个：text 输入文字，combo 按快捷键；快捷键里的字母也放进 combo（如 ["cmd","shift","g"]）；先输入再按键就分两次调用 keys / Give text or combo, not both: text types characters, combo presses a shortcut, and a shortcut\'s letter goes in combo too (e.g. ["cmd","shift","g"]); to type and then press keys, make two keys calls',
         keys_text_or_combo_required:
           '需要 text（要输入的文字）或 combo（快捷键，如 ["cmd","s"]）其中一个 / Provide exactly one of text (characters to type) or combo (a shortcut, e.g. ["cmd","s"])',
         ui_action_batch_actions_required:

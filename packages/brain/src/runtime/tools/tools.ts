@@ -18,6 +18,7 @@ import {
   MemoryNoteSchema,
   MemorySchema,
   MemoryScopeSchema,
+  normalizeComputerInput,
   normalizeTodoPauseInput,
   PersonalTodoToolDeclarationSchema,
   PersonalTodoToolSchema,
@@ -513,7 +514,10 @@ export function parseTool(call: LocalToolCall, registry: CapabilityToolRegistry)
   )
     throw new Error("Office input exceeds bounded content limit");
   const tool = call.tool as keyof typeof schemas;
-  const input = tool === "todo_pause" ? normalizeTodoPauseInput(call.input) : call.input;
+  const input =
+    tool === "todo_pause"
+      ? normalizeTodoPauseInput(call.input)
+      : normalizeComputerInput(tool, call.input);
   return { tool, args: kernelSchema(tool, registry)?.parse(input) } as ToolInput;
 }
 /**
@@ -566,7 +570,11 @@ export function toolInputFailure(
     };
   const parsed = validationError
     ? { success: false as const, error: validationError }
-    : schema.safeParse(tool === "todo_pause" ? normalizeTodoPauseInput(input) : input);
+    : schema.safeParse(
+        tool === "todo_pause"
+          ? normalizeTodoPauseInput(input)
+          : normalizeComputerInput(tool, input),
+      );
   if (parsed.success) return undefined;
   // Arguments that arrive as {} for a tool with required fields usually mean the reply hit the
   // output-token limit mid-call. Size the recovery chunk from the actual model budget instead of

@@ -1,5 +1,5 @@
 import type { ExtensionFactory } from "@earendil-works/pi-coding-agent";
-import { normalizeTodoPauseInput } from "@pibot/protocol-base";
+import { normalizeComputerInput, normalizeTodoPauseInput } from "@pibot/protocol-base";
 import { Type } from "typebox";
 import { PARALLEL_READS } from "../core/tool-effects.ts";
 import type { LocalToolPorts } from "../core/types.ts";
@@ -54,12 +54,19 @@ export function toolsExtension(
               prepareArguments: (args: unknown) =>
                 normalizeTodoPauseInput(args) as Record<string, unknown>,
             }
-          : tool.jsonTextArguments?.length
+          : tool.name === "keys" || tool.name === "ui_action"
             ? {
+                // Placeholder fields from strict-mode providers; authorization and the permit
+                // below both see the normalised call.
                 prepareArguments: (args: unknown) =>
-                  parseJsonTextArguments(args, tool.jsonTextArguments ?? []),
+                  normalizeComputerInput(tool.name, args) as Record<string, unknown>,
               }
-            : {}),
+            : tool.jsonTextArguments?.length
+              ? {
+                  prepareArguments: (args: unknown) =>
+                    parseJsonTextArguments(args, tool.jsonTextArguments ?? []),
+                }
+              : {}),
         async execute(id, input, sdkSignal, update, ctx) {
           const signal = sdkSignal ? AbortSignal.any([sdkSignal, ports.signal]) : ports.signal;
           const permit = permits.get(id);
