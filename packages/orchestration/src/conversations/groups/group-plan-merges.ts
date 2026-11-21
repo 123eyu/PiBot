@@ -323,6 +323,12 @@ function turnsReason(reason: string, zh: boolean) {
       return zh
         ? "这台电脑没有安装 Git，建不了独立工作区"
         : "Git is not installed on this computer, so steps cannot have own workspaces";
+    case "group_workspace_setup_failed":
+      return zh ? "这次建独立工作区没有成功" : "setting up its own workspace failed this time";
+    case "group_workspace_cleanup_pending":
+      return zh
+        ? "之前的独立工作区还没清理完，重启 Pi Bot 后才能再建"
+        : "an earlier workspace here is still being cleaned up; restart Pi Bot to use own workspaces again";
     case "worktree_quota":
       return zh
         ? "这个仓库的独立工作区已达上限"

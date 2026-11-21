@@ -9,9 +9,9 @@ import {
   createGitReader,
   createManagedFolders,
   createManagedGit,
-  ExecError,
   isManagedFolderRepository,
 } from "@pibot/execution";
+import { containsPath } from "@pibot/policy";
 import {
   actualRootReferences,
   type GroupMemberWorkspace,
@@ -35,7 +35,8 @@ import {
 } from "./group-step-cleanup.ts";
 import { mergeStep } from "./group-step-merge.ts";
 import { isPlanStepWorkspace } from "./group-step-output.ts";
-import { prepareStepWorktree } from "./group-step-prepare.ts";
+import { prepareFailureCode, prepareStepWorktree, SETUP_FAILED } from "./group-step-prepare.ts";
+import { StepTurns } from "./group-step-turns.ts";
 import { createMemberWorktree } from "./group-worktree-create.ts";
 import { localWorktreeHost, remoteWorktreeHost, type WorktreeHost } from "./group-worktree-host.ts";
 import { integrateMemberWorktree } from "./group-worktree-integrate.ts";
@@ -62,11 +63,17 @@ export class GroupMemberWorktrees {
   private readonly timer: ReturnType<typeof setInterval>;
   private flushing?: Promise<void>;
   private uncertain: unknown;
+  /** Paths an uncertain cleanup still holds; only work there waits for a restart. */
+  private readonly uncertainPaths: string[] = [];
   private readonly chains = new Map<string, Promise<void>>();
   /** Plan step runs whose prepare took turns in the shared folder, with the fixed reason. */
   private readonly fallbacks = new Map<string, string>();
+  readonly turns: StepTurns;
   constructor(readonly service: GroupService) {
     const local = service.deps.local;
+    this.turns = new StepTurns((groupId) =>
+      local.deps.peer.emit("groups.changed", { groupId, reason: "updated" }),
+    );
     this.repo = new GroupMemberWorkspacesRepo(local.deps.db);
     this.registry = new ManagedWorktreesRepo(local.deps.db);
     this.repo.interrupted();
@@ -97,8 +104,10 @@ export class GroupMemberWorktrees {
     }, 5000);
     this.timer.unref();
   }
+  /** A step whose workspace setup failed took turns instead: its task has no workspace. */
   workspace(taskId: string) {
-    return this.repo.get(taskId);
+    const member = this.repo.get(taskId);
+    return member?.state === "removed" && member.errorCode === SETUP_FAILED ? undefined : member;
   }
   serial<T>(key: string, signal: AbortSignal, operation: () => Promise<T>): Promise<T> {
     const prior = this.chains.get(key) ?? Promise.resolve();
@@ -140,7 +149,10 @@ export class GroupMemberWorktrees {
       return await operation();
     } catch (error) {
       retained = isManagedCleanupFailure(error);
-      if (retained) this.uncertain = error;
+      if (retained) {
+        this.uncertain = error;
+        this.uncertainPaths.push(...paths);
+      }
       throw error;
     } finally {
       if (!retained) locks.release(id);
@@ -149,8 +161,20 @@ export class GroupMemberWorktrees {
   signal(signal: AbortSignal) {
     return AbortSignal.any([signal, this.stop.signal, AbortSignal.timeout(120000)]);
   }
+  /**
+   * Whether an uncertain cleanup still holds any of `paths`. Its lock stays until a restart; work
+   * in other folders and repositories goes on (it used to stop every group's workspaces).
+   */
+  cleanupPending(paths: readonly string[]) {
+    const platform = this.service.deps.local.deps.platform;
+    return this.uncertainPaths.some((held) =>
+      paths.some(
+        (path) => containsPath(held, path, platform) || containsPath(path, held, platform),
+      ),
+    );
+  }
   current(context: ToolRunContext, member: GroupMemberWorkspace) {
-    if (this.uncertain) fail("group_workspace_cleanup_pending");
+    if (this.cleanupPending([member.integrationPath])) fail("group_workspace_cleanup_pending");
     const group = this.service.active(member.groupId, context.botId, context.conversationId);
     if (group.conversationId !== member.sourceConversationId) fail("group_workspace_changed");
     const primary = group.folders?.find((f) => f.id === group.primaryFolderId);
@@ -208,6 +232,9 @@ export class GroupMemberWorktrees {
   stage(runId: string, name: string) {
     this.stages.set(runId, name);
   }
+  stageOf(runId: string) {
+    return this.stages.get(runId) ?? "start";
+  }
   async prepare(
     context: ToolRunContext,
     group: Group,
@@ -229,15 +256,8 @@ export class GroupMemberWorktrees {
             event: "worktree_prepare_failed",
             groupId: group.id,
             runId: context.runId,
-            stage: this.stages.get(context.runId) ?? "start",
-            code:
-              error instanceof RpcError && /^[a-z0-9_.-]{1,80}$/i.test(error.message)
-                ? error.message
-                : error instanceof ExecError
-                  ? `exec_${error.code}${error.reason ? `.${error.reason}` : ""}`
-                  : error instanceof Error
-                    ? error.name
-                    : "unknown",
+            stage: this.stageOf(context.runId),
+            code: prepareFailureCode(error),
           }),
         );
       this.stages.delete(context.runId);
@@ -245,14 +265,25 @@ export class GroupMemberWorktrees {
       throw error;
     }
   }
-  /** A plan step that cannot have its own workspace takes turns; the reason is shown to people. */
-  takeTurns(context: ToolRunContext, taskId: string, reason: string) {
+  /**
+   * A plan step that cannot have its own workspace takes turns; the reason is shown to people.
+   * With `folder` it also joins that folder's line, and its run waits there (waitTurn).
+   */
+  takeTurns(context: ToolRunContext, taskId: string, reason: string, folder?: string) {
     const serialTask = this.service.tasks.serialFallback(taskId);
     if (serialTask) this.service.taskChanged(serialTask);
     this.fallbacks.set(context.runId, reason);
+    if (folder) this.turns.join(context.runId, taskId, context.groupId, folder, reason);
     this.service.deps.local.deps.logger.info(
       JSON.stringify({ module: "group", event: "step_workspace_fallback", taskId, reason }),
     );
+  }
+  /** Waits until the steps ahead of this run in its folder's line have ended. */
+  waitTurn(context: ToolRunContext, signal: AbortSignal) {
+    return this.turns.wait(context.runId, signal);
+  }
+  waitingTurn(taskId: string) {
+    return this.turns.waiting(taskId);
   }
   private async prepareWorktree(
     context: ToolRunContext,
@@ -362,6 +393,7 @@ export class GroupMemberWorktrees {
     return state === "preparing" || state === "working" || state === "integrating";
   }
   async settled(record: Run) {
+    this.turns.release(record.id);
     const active = this.active.get(record.id);
     this.active.delete(record.id);
     if (
@@ -518,6 +550,7 @@ export class GroupMemberWorktrees {
   cancel() {
     this.stop.abort();
     clearInterval(this.timer);
+    this.turns.dispose();
   }
   async dispose() {
     this.cancel();

@@ -781,7 +781,11 @@ export class GroupService implements CollaborationPort {
     if (!frozen) {
       const step = this.planStep(context);
       const prepared = await this.memberWorktrees.prepare(context, group, signal, step);
-      if (prepared?.fallback && step) this.workflows.merges.tookTurns(context, prepared.fallback);
+      if (prepared?.fallback && step) {
+        this.workflows.merges.tookTurns(context, prepared.fallback);
+        // Taking turns means the run starts only after the sibling ahead of it in the folder.
+        await this.memberWorktrees.waitTurn(context, signal);
+      }
     }
     const workplace = frozen
       ? await this.deps.local.tasks.workplace(context, signal)

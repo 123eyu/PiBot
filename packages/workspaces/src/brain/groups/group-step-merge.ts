@@ -90,7 +90,9 @@ export async function mergeStep(
   parent: AbortSignal,
 ): Promise<StepMerge> {
   const member = owner.repo.get(taskId);
-  if (!member || member.state === "integrated") return { state: "merged" };
+  // A step whose setup failed took turns: its work is already in the shared folder.
+  if (!member || member.state === "integrated" || !owner.workspace(taskId))
+    return { state: "merged" };
   if (member.state === "removed") return { state: "failed", code: "group_workspace_removed" };
   if (!owner.idle(member)) return { state: "pending" };
   const tree = owner.registry.get(member.worktreeId);

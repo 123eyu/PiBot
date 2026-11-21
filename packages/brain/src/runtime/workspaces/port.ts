@@ -154,6 +154,10 @@ export interface GroupWorktreesPort {
     signal: AbortSignal,
     step?: PlanStepWorkspace,
   ): Promise<StepWorkspaceFallback | undefined>;
+  /** After a fallback: waits until the steps ahead in the same shared folder have ended. */
+  waitTurn(context: ToolRunContext, signal: AbortSignal): Promise<void>;
+  /** Whether this task's run is still waiting for its turn (it has not started working). */
+  waitingTurn(taskId: string): boolean;
   /** A task's isolated checkout and the primary folder it mirrors, for checks inside it. */
   isolated(taskId: string): { root: string; primary: string } | undefined;
   integratedRoot?(taskId: string): { root: string; primary: string } | undefined;

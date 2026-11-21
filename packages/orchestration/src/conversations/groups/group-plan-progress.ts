@@ -65,10 +65,15 @@ function facts(service: GroupService, record: GroupWorkflowRunRecord): GroupPlan
   const steps = states.map((step) => {
     const workspace = workspaceOf(service, step, own);
     const files = workspace === "conflict" ? merges[step.stepId]?.files : undefined;
+    const taskId =
+      step.status === "running" && own.has(step.stepId) ? stepTaskId(service, step) : undefined;
+    // A step waiting for its turn in the shared folder has not started: it reads as waiting, so
+    // the bar never counts it among the steps running at once.
+    const waiting = !!taskId && service.memberWorktrees.waitingTurn(taskId);
     return {
       stepId: step.stepId,
       executionRunId: step.executionRunId,
-      status: step.status,
+      status: waiting ? ("ready" as const) : step.status,
       attempt: step.attempt,
       verdictResolution: verdictResolution(progressOf(record), step.stepId),
       ...(progressOf(record).verdicts[step.stepId]
