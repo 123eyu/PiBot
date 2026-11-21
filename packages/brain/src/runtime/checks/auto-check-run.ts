@@ -104,9 +104,10 @@ export class AutoCheckRun {
     let commands = this.service.folders.get(folder.key);
     if (commands === null) {
       // Retest 2026-11-21: a group step's proposal card lands in its task thread, which nobody
-      // watches during a plan, so the step sat out the whole wait. The plan's own checks verify
+      // watches during a plan, so the step sat out the whole wait. Plan dispatch carries the group
+      // task id (`taskId`), not `executionTaskId` (see taskSession in chat-run.ts). The plan's own checks verify
       // the step; skipping the proposal ends the same way the unanswered card did.
-      if (!allowProposal || (context.groupId && context.executionTaskId)) {
+      if (!allowProposal || (context.groupId && (context.taskId || context.executionTaskId))) {
         this.halted = true;
         return result;
       }
