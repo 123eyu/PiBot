@@ -90,6 +90,20 @@ export class GroupMemberWorkspacesRepo {
       );
     return row;
   }
+  /**
+   * Maintainers 2026-11-21: a plan step the group's pause stopped continues in the workspace it had,
+   * but its rerun is a new task, so the row moves to that task. False when the row no longer holds
+   * this tree in use (the caller then starts the rerun fresh).
+   */
+  rekey(fromTaskId: string, toTaskId: string, worktreeId: string) {
+    return (
+      this.db
+        .prepare(
+          "UPDATE group_member_workspaces SET task_id=?,updated_at=? WHERE task_id=? AND worktree_id=? AND state='working'",
+        )
+        .run(toTaskId, new Date().toISOString(), fromTaskId, worktreeId).changes === 1
+    );
+  }
   interrupted() {
     // A fully returned task can be reviewed after restart, never silently merged.
     this.db

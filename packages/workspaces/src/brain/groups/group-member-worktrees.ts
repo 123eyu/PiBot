@@ -1,6 +1,7 @@
 import type {
   WorkspaceGroups as GroupService,
   PlanStepWorkspace,
+  StepKeep,
   StepWorkspaceFallback,
   ToolRunContext,
 } from "@pibot/brain/kit";
@@ -33,6 +34,7 @@ import {
   managedPlanKeys,
   stepWorkspaceRoot,
 } from "./group-step-cleanup.ts";
+import { adoptedStepWorkspace, adoptStepWorkspace, keepStepWorkspace } from "./group-step-keep.ts";
 import { mergeStep } from "./group-step-merge.ts";
 import { isPlanStepWorkspace } from "./group-step-output.ts";
 import { prepareFailureCode, prepareStepWorktree, SETUP_FAILED } from "./group-step-prepare.ts";
@@ -537,6 +539,15 @@ export class GroupMemberWorktrees {
   }
   discardStep(taskId: string, signal: AbortSignal) {
     return discardStepWorkspace(this, taskId, this.signal(signal));
+  }
+  keepStep(taskId: string, botId: string, signal: AbortSignal) {
+    return keepStepWorkspace(this, taskId, botId, this.signal(signal));
+  }
+  adoptStep(fromTaskId: string, toTaskId: string, kept: Extract<StepKeep, { state: "kept" }>) {
+    return adoptStepWorkspace(this, fromTaskId, toTaskId, kept);
+  }
+  adoptedStep(fromTaskId: string, toTaskId: string) {
+    return adoptedStepWorkspace(this, fromTaskId, toTaskId);
   }
   endPlan(primaryPath: string, planKey: string) {
     return endPlanWorkspaces(this, primaryPath, planKey);

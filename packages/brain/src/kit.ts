@@ -234,6 +234,7 @@ export type {
   ChangesScope,
   PlanStepWorkspace,
   RunChangesPort,
+  StepKeep,
   StepMerge,
   StepWorkspaceFallback,
   TurnFileSource,

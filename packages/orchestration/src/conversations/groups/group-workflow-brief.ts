@@ -2,6 +2,7 @@ import { deliveryCorrectionText } from "@pibot/brain/orchestration-kit";
 import type { GroupExecutionPlan, HandoffSpec, WorkflowStep } from "@pibot/protocol-base";
 import type { HandoffRecord } from "@pibot/storage";
 import { handoffBrief } from "./group-handoff-text.ts";
+import { groupWorkflowBriefPrompts } from "./prompts/group-workflow-brief.ts";
 
 export function stepHandoff(step: WorkflowStep, workflowRunId: string): HandoffSpec {
   return {
@@ -30,6 +31,11 @@ export function stepInstructions(
   review?: string,
   /** Maintainers 2026-11-14: the member writes in its own workspace; paths are relative to it. */
   ownWorkspace = false,
+  /**
+   * Maintainers 2026-11-21: the rerun of a step the group's pause stopped. Fixed lines at the end,
+   * so every other brief keeps its text; `lost` when its unmerged workspace could not be kept.
+   */
+  continued?: { lost: boolean },
 ): string | undefined {
   const failed = previous?.result?.items.filter((item) => item.status === "fail") ?? [];
   const text = redact(
@@ -48,6 +54,8 @@ export function stepInstructions(
         ? "报告必须有独立结论行「结论：通过」或「结论：不通过」（Verdict: PASS / Verdict: FAIL）；不通过项逐条列在结论之后。请如实报告，不要为通过交付检查而改结论。 / Include a standalone Verdict: PASS or Verdict: FAIL line and list failures below it. Report actual findings; never change a verdict just to satisfy delivery checks."
         : "",
       review ?? "",
+      continued ? groupWorkflowBriefPrompts.resumed : "",
+      continued?.lost ? groupWorkflowBriefPrompts.resumedLost : "",
     ]
       .filter(Boolean)
       .join("\n\n"),

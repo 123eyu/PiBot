@@ -146,6 +146,14 @@ export type StepMerge =
   | { state: "pending" }
   | { state: "conflict"; code: string; files: string[] }
   | { state: "failed"; code: string };
+/**
+ * Whether a plan step the group's pause stopped can go on in its own workspace (maintainers
+ * 2026-11-21): `none` it had none or never started in it; `lost` it had one that cannot be kept.
+ */
+export type StepKeep =
+  | { state: "none" }
+  | { state: "lost" }
+  | { state: "kept"; worktreeId: string; version: number };
 /** Group routing asks only about its current run; it never sees the worktree owner/registry. */
 export interface GroupWorktreesPort {
   prepare(
@@ -165,6 +173,16 @@ export interface GroupWorktreesPort {
   mergeStep(taskId: string, signal: AbortSignal): Promise<StepMerge>;
   /** Removes a step's unmerged workspace, keeping its branch (plan ended or step redone). */
   discardStep(taskId: string, signal: AbortSignal): Promise<void>;
+  /** Pause-continue: whether the stopped step's workspace, unmerged work intact, can go on. */
+  keepStep(taskId: string, botId: string, signal: AbortSignal): Promise<StepKeep>;
+  /** Moves a kept workspace to the rerun's task, inside the transaction creating that task. */
+  adoptStep(
+    fromTaskId: string,
+    toTaskId: string,
+    kept: Extract<StepKeep, { state: "kept" }>,
+  ): boolean;
+  /** After adoptStep committed: the workspace's output record follows it (never throws). */
+  adoptedStep(fromTaskId: string, toTaskId: string): Promise<void>;
   /** Removes the plan's managed folder repository once no step workspace needs it. */
   endPlan(primaryPath: string, planKey: string): Promise<void>;
   /** Workspaces not yet merged or removed (bounded), for the cleanup sweep. */

@@ -15,6 +15,11 @@ interface Hold {
  * only stopped the second at its first write (10 min wait), after it had read the folder while
  * the first was changing it. The turn is taken when prepare decides to take turns and is given
  * back when that run settles, so the order is the order the steps prepared in.
+ *
+ * The group's pause stops every run in a line: a waiter leaves at once (its wait is aborted), the
+ * step working in the folder when its run settles. On continue each stopped step is a new run
+ * that joins the line anew when it prepares (the reruns are dispatched one after another in plan
+ * order); a hold whose old run is still stopping stays ahead of them until that run settles.
  */
 export class StepTurns {
   private readonly folders = new Map<string, { tail: Promise<void>; reason: string }>();

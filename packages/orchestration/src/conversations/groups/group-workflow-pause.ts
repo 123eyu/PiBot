@@ -33,7 +33,8 @@ export class GroupWorkflowPause {
       )
         return false;
       // The stopped run stays the step's execution, so the rerun gets its hand-back as context
-      // and a fresh trigger key (dispatch); the task is replaced like a retry's.
+      // and a fresh trigger key (dispatch); the task is replaced like a retry's, but its own
+      // workspace, if it had one, moves to the new task on continue (resume, dispatch).
       repo.updateStep(record.id, step.stepId, { status: "ready", taskId: null });
       const ledger = progressOf(latestRun);
       progress.save(latestRun, { ...ledger, paused: { ...ledger.paused, [step.stepId]: true } });
@@ -131,18 +132,30 @@ export class GroupWorkflowPause {
         const ledger = progressOf(latest);
         const ids = Object.keys(ledger.paused ?? {});
         if (!ids.length) return [];
-        progress.save(latest, { ...ledger, paused: undefined });
+        const ready = new Map(
+          repo
+            .steps(latest.id)
+            .filter((state) => state.status === "ready")
+            .map((s) => [s.stepId, s]),
+        );
+        const picked = ids.filter((id) => ready.has(id));
+        // The rerun of each is told files may have changed and keeps the workspace it had
+        // (dispatch); the marker names the stopped run, so only that rerun reads it.
+        const resumed = { ...ledger.resumed };
+        for (const stepId of picked) {
+          const state = ready.get(stepId);
+          if (state?.executionRunId)
+            resumed[stepId] = { runId: state.executionRunId, attempt: state.attempt };
+        }
+        progress.save(latest, {
+          ...ledger,
+          paused: undefined,
+          ...(Object.keys(resumed).length ? { resumed } : {}),
+        });
         // Messages sent while paused may have started a new cycle; the plan follows it, as a retry.
         const cycleId = service.cycles.get(groupId).cycleId ?? service.cycles.reset(groupId);
         if (latest.cycleId !== cycleId) repo.rebindCycle(latest.id, cycleId);
         const titles = new Map(workflowOf(latest).contract.steps?.map((s) => [s.id, s.title]));
-        const ready = new Set(
-          repo
-            .steps(latest.id)
-            .filter((state) => state.status === "ready")
-            .map((s) => s.stepId),
-        );
-        const picked = ids.filter((id) => ready.has(id));
         for (const stepId of picked)
           this.engine.audit(
             latest,

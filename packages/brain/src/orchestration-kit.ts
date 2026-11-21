@@ -129,5 +129,6 @@ export { restoreWorkflow } from "./runtime/workflows/workflow-recovery.ts";
 export type {
   GroupWorktreesPort,
   PlanStepWorkspace,
+  StepKeep,
   StepMerge,
 } from "./runtime/workspaces/port.ts";

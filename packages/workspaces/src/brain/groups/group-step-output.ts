@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { lstat, mkdir, opendir, readFile, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdir, opendir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { WorkspaceLocal as LocalService } from "@pibot/brain/kit";
 import { RpcError, type WorkspaceSnapshot } from "@pibot/workspaces-contract/full";
@@ -204,4 +204,9 @@ export async function writeStepOutput(
 
 export async function forgetStepOutput(local: LocalService, taskId: string) {
   await rm(seedFile(local, taskId), { force: true });
+}
+
+/** A kept workspace moved to its rerun's task (pause-continue): what it started from moves too. */
+export async function moveStepOutput(local: LocalService, fromTaskId: string, toTaskId: string) {
+  await rename(seedFile(local, fromTaskId), seedFile(local, toTaskId));
 }

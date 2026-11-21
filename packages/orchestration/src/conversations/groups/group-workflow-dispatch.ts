@@ -268,9 +268,24 @@ export class GroupWorkflowDispatcher {
     const previousTaskId = state.executionRunId
       ? service.runs.get(state.executionRunId)?.taskId
       : undefined;
-    // A redone step starts from the latest merged base; its earlier workspace is never merged.
+    const ownFolder = workspaceSteps(record, workflow, states).has(definition.id)
+      ? workspaceFolder(workflow, definition)
+      : undefined;
+    // Maintainers 2026-11-21: the rerun of a step the group's pause stopped (not a user's retry,
+    // which is a new attempt) is told files may have changed and goes on in the workspace it had.
+    const marker = ledger.resumed?.[definition.id];
+    const continued =
+      !!marker && marker.runId === state.executionRunId && marker.attempt === state.attempt;
+    const keep =
+      continued && previousTaskId
+        ? await service.memberWorktrees.keepStep(previousTaskId, bot.id, signal)
+        : undefined;
+    const kept = keep?.state === "kept" && ownFolder ? keep : undefined;
+    const lost = keep?.state === "lost" || (keep?.state === "kept" && !ownFolder);
+    // A redone step starts from the latest merged base; its earlier workspace is never merged
+    // (a kept one is the new task's from the transaction below).
     if (previousTaskId) {
-      void this.discard(previousTaskId);
+      if (!kept) void this.discard(previousTaskId);
       // Maintainers 2026-11-20: the replaced task must not stay 待接续 beside the new one
       // after a continue or retry. Only an open task with nothing running is closed.
       const previous = service.tasks.get(previousTaskId);
@@ -280,9 +295,6 @@ export class GroupWorkflowDispatcher {
         service.taskChanged(closed);
       }
     }
-    const ownFolder = workspaceSteps(record, workflow, states).has(definition.id)
-      ? workspaceFolder(workflow, definition)
-      : undefined;
     let review = isSupplement
       ? state.ownerBotId === record.coordinatorBotId && state.ownerBotId === group.coordinatorBotId
         ? ledger.review
@@ -300,6 +312,7 @@ export class GroupWorkflowDispatcher {
         (value) => service.deps.redactor.redact(value),
         text,
         !!ownFolder,
+        continued ? { lost } : undefined,
       );
     const reviewText =
       review && reviewPrompt(service, review, workflow.contract.steps ?? [], states);
@@ -330,6 +343,15 @@ export class GroupWorkflowDispatcher {
       const latest = repo.steps(record.id).find((item) => item.stepId === state.stepId);
       if (latest?.status !== "ready" || service.pausedFor(record.groupId)) return undefined;
       if (review && isSummary) this.engine.progress.save(active, { ...progressOf(active), review });
+      if (marker) {
+        // Whatever run this dispatch starts consumes the continue; a later one starts fresh.
+        const current = progressOf(repo.get(record.id) ?? active);
+        const { [definition.id]: _consumed, ...rest } = current.resumed ?? {};
+        this.engine.progress.save(active, {
+          ...current,
+          resumed: Object.keys(rest).length ? rest : undefined,
+        });
+      }
       const created = service.tasks.create({
         groupId: group.id,
         assigneeBotId: bot.id,
@@ -341,6 +363,14 @@ export class GroupWorkflowDispatcher {
       });
       service.cycles.bind(created.id, record.cycleId, record.sourceMessageId, record.id);
       const bound = service.tasks.bindUserSource(created.id, record.sourceMessageId);
+      // The kept workspace belongs to the new task from here; if it changed since the check,
+      // nothing is created and the dispatch retries (its check then starts the step fresh).
+      if (
+        kept &&
+        previousTaskId &&
+        !service.memberWorktrees.adoptStep(previousTaskId, created.id, kept)
+      )
+        throw new RpcError(RpcErrorCodes.busy, "group_workspace_changed");
       service.handoffs.repo.create({
         taskId: created.id,
         spec,
@@ -414,6 +444,19 @@ export class GroupWorkflowDispatcher {
     if (!task) return;
     service.deps.chat.queue.publish(task.queued, task.input);
     service.taskChanged(task.task);
+    if (continued)
+      service.deps.logger.info(
+        JSON.stringify({
+          module: "group-workflow",
+          event: "step_continued",
+          workflowRunId: record.id,
+          stepId: definition.id,
+          workspace: kept ? "kept" : lost ? "lost" : "none",
+        }),
+      );
+    // Only needed by the step's merge, long after its run started.
+    if (kept && previousTaskId)
+      await service.memberWorktrees.adoptedStep(previousTaskId, task.task.id);
   }
 
   private async discard(taskId: string) {

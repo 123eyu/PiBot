@@ -85,6 +85,18 @@ const Progress = z.strictObject({
     .refine((items) => Object.keys(items).length <= 20)
     .optional(),
   /**
+   * Maintainers 2026-11-21: steps the group's continue released, with the stopped run and attempt.
+   * Their rerun is told files may have changed and goes on in the workspace it had; a user's
+   * retry (a new attempt) or any later run starts fresh as before.
+   */
+  resumed: z
+    .record(
+      z.string(),
+      z.strictObject({ runId: z.string().max(64), attempt: z.number().int().nonnegative() }),
+    )
+    .refine((items) => Object.keys(items).length <= 20)
+    .optional(),
+  /**
    * Steps the program already ran once more after the member's run stopped in a repeated-action
    * loop. A second loop goes to the user as before.
    */
