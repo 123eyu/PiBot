@@ -96,6 +96,7 @@ import { createBrainController } from "./runtime/startup/create-brain-controller
 import { createKernelStorage } from "./runtime/startup/create-kernel-storage.ts";
 import { deferredMaintenance } from "./runtime/startup/deferred-maintenance.ts";
 import { firstRpcDiagnostics } from "./runtime/startup/first-rpcs.ts";
+import { watchBrainLoop } from "./runtime/startup/loop-stall-watch.ts";
 import { registerAcpRpc } from "./runtime/startup/register-acp-rpc.ts";
 import { registerAppRpc } from "./runtime/startup/register-app-rpc.ts";
 import { registerCapabilities } from "./runtime/startup/register-capabilities.ts";
@@ -309,6 +310,7 @@ export async function startBrain(opts: {
   let modelPort: ModelProvidersPort | undefined;
   let runRetention: RunRetention | undefined;
   let startupDiagnostics: ReturnType<typeof firstRpcDiagnostics> | undefined;
+  let loopWatch: ReturnType<typeof watchBrainLoop> | undefined;
   let maintenance: ReturnType<typeof deferredMaintenance> | undefined;
   const sessionTailController = new AbortController();
   let sessionTailReconciliation: Promise<void> | undefined;
@@ -376,6 +378,9 @@ export async function startBrain(opts: {
         interactiveAttached = value;
       },
       stopSessionRecovery,
+      get loopWatch() {
+        return loopWatch;
+      },
       get startupDiagnostics() {
         return startupDiagnostics;
       },
@@ -529,6 +534,7 @@ export async function startBrain(opts: {
     };
     const { settings, bots, redactor, logger, secrets } = createKernelStorage(startup);
     startupDiagnostics = firstRpcDiagnostics(logger);
+    loopWatch = watchBrainLoop(logger);
     const recoveryEvents = new RunEventsRepo(db);
     const recoveryRunRowId = recoveryEvents.latestRunRowId();
     timing.mark("kernel_storage");
@@ -655,8 +661,14 @@ export async function startBrain(opts: {
     const agent: AgentRuntime = {
       ...contentRuntime,
       async openSession(input) {
+        loopWatch?.mark("open.start");
         await waitForSessionRecovery(input.signal);
-        return contentRuntime.openSession(input);
+        const session = await contentRuntime.openSession({
+          ...input,
+          phase: (name) => loopWatch?.mark(`open.${name}`),
+        });
+        loopWatch?.mark("open.done");
+        return session;
       },
       ...(compactHistory && {
         async compactHistory(input) {
@@ -1020,6 +1032,7 @@ export async function startBrain(opts: {
   } catch (error) {
     progress?.stop();
     startupDiagnostics?.stop();
+    loopWatch?.stop();
     await maintenance?.stop();
     await stopSessionRecovery();
     let drained = false;

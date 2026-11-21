@@ -15,6 +15,7 @@ import type { BrainSleep } from "../queue/brain-sleep.ts";
 
 interface StartupContext {
   startupDiagnostics?: ReturnType<typeof import("./first-rpcs.ts").firstRpcDiagnostics>;
+  loopWatch?: { mark(phase: string): void };
   stopping: boolean;
   waitForContent(signal: AbortSignal): Promise<void>;
   opts?: { requestSource?: () => "acp" | undefined };
@@ -82,6 +83,8 @@ export function registerBusinessRpc<K extends keyof typeof KernelMethods>(
     if (ctx.stopping) throw new RpcError(-32001, "Brain stopping");
     ctx.sleep?.assertAdmission();
     const finishTiming = ctx.startupDiagnostics?.begin(method);
+    // Method names are fixed protocol identifiers; parameters never reach the stall log.
+    ctx.loopWatch?.mark(method);
     const request = Promise.resolve().then(async () => {
       context.signal.throwIfAborted();
       if (!ctx.interactiveAttached && !ctx.offlineAllowed.has(method))

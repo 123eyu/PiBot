@@ -35,6 +35,7 @@ interface StartupContext {
   interactiveAttached: boolean;
   stopSessionRecovery(): Promise<void>;
   stopStartupMaintenance(): Promise<void>;
+  loopWatch?: { stop(): void };
   chat: ChatService;
   groups: GroupOrchestrationPort;
   clientChange: Promise<void>;
@@ -232,6 +233,7 @@ export function createBrainController(ctx: StartupContext): Awaited<ReturnType<t
         const steps = [
           () => ctx.peer.dispose(),
           () => ctx.logger.info("Brain stopped"),
+          () => ctx.loopWatch?.stop(),
           () => ctx.db.close(),
         ];
         for (const step of steps) {

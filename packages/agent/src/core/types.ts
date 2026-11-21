@@ -48,6 +48,11 @@ export interface OpenSessionOptions {
   signal?: AbortSignal;
   unattended?: boolean;
   onCompaction?(event: CompactionActivity): void;
+  /**
+   * Diagnostics only: called as each opening step starts, so a brain stall can be pinned to the
+   * step that held the thread. Names are fixed; nothing about the session is passed.
+   */
+  phase?(name: "runtime" | "model" | "session_load" | "extensions" | "create" | "bind"): void;
   /** The Bot's enabled skills, listed after the system prompt. */
   skills?: { entries: SkillPromptEntry[]; language: "zh" | "en" };
   /**

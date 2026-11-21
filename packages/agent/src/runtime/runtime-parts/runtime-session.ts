@@ -39,7 +39,9 @@ export function createSessionOperations({
         throw new AgentError("chatgpt_reconnect_required");
       try {
         opts.signal?.throwIfAborted();
+        opts.phase?.("runtime");
         const { pi, runtime, custom } = await buildRuntime();
+        opts.phase?.("model");
         opts.signal?.throwIfAborted();
         // A workflow's `cheap` tier runs on the auxiliary model when one is usable.
         const model =
@@ -58,6 +60,8 @@ export function createSessionOperations({
         opts.signal?.throwIfAborted();
         const sessionFile = await sessionPaths(dataDir, opts);
         opts.signal?.throwIfAborted();
+        // pi reads and parses the whole JSONL synchronously here; it grows with the session.
+        opts.phase?.("session_load");
         const manager = sessionFile
           ? pi.SessionManager.open(sessionFile, opts.sessionDir, opts.homeDir)
           : pi.SessionManager.create(opts.homeDir, opts.sessionDir);
@@ -249,6 +253,7 @@ export function createSessionOperations({
           entries: () => manager.getEntries(),
         };
         if (opts.context && !opts.localTools) throw new AgentError("internal");
+        opts.phase?.("extensions");
         const extensions = await loadLocalExtensions(
           opts.homeDir,
           join(dataDir, "pi"),
@@ -270,6 +275,7 @@ export function createSessionOperations({
         if (compaction)
           compaction.estimateHistory = (messages) =>
             historyTokens(messages, extensions.loadout?.synchronize());
+        opts.phase?.("create");
         const { session } = await pi.createAgentSession({
           cwd: opts.homeDir,
           agentDir: join(dataDir, "pi"),
@@ -293,6 +299,7 @@ export function createSessionOperations({
         // A restored JSONL can name another model. Explicit caller selection wins.
         try {
           opts.signal?.throwIfAborted();
+          opts.phase?.("bind");
           if (opts.localTools) await session.bindExtensions({});
           // Tool groups the transcript still declares stay loaded when still allowed.
           extensions.loadout?.reset(session.messages);
