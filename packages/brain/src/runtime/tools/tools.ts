@@ -420,6 +420,21 @@ const descriptions = {
   ...browserDescriptions,
   browser_login: browserLoginDescription,
 };
+/**
+ * GitHub #2: Unicode property classes (\p{Cc}) are ECMA-262 but not in the regex dialects some
+ * OpenAI-compatible gateways validate tool schemas with, and those refuse the whole request. Such
+ * patterns are dropped from the model-facing schema only; the zod parser still enforces them.
+ */
+function portablePatterns(node: unknown): void {
+  if (Array.isArray(node)) {
+    for (const item of node) portablePatterns(item);
+    return;
+  }
+  if (!node || typeof node !== "object") return;
+  const record = node as Record<string, unknown>;
+  if (typeof record.pattern === "string" && /\\[pP]\{/.test(record.pattern)) delete record.pattern;
+  for (const value of Object.values(record)) portablePatterns(value);
+}
 function definitions(
   entries: Readonly<Record<string, z.ZodType>>,
   descriptions: Readonly<Record<string, string>>,
@@ -434,6 +449,7 @@ function definitions(
       ? compactOfficeSchema(declared, name === "office_edit", name === "office_create")
       : declared;
     delete parameters.$schema;
+    portablePatterns(parameters);
     const tool = {
       name,
       description,
