@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/assets/pibot-intro-60s.mp4"><img src="docs/assets/pibot-intro-poster.jpg" width="860" alt="60 秒看懂 Pi Bot：点开看视频"></a>
+  <a href="docs/assets/pibot-intro-60s.mp4"><img src="docs/assets/pibot-intro-15s.gif" width="800" alt="15 秒看 Pi Bot（点开看 60 秒有声完整版）"></a>
 </p>
 
 <p align="center">

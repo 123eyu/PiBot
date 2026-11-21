@@ -14,7 +14,7 @@ agent kernel.
 </p>
 
 <p align="center">
-  <a href="docs/assets/pibot-intro-60s.mp4"><img src="docs/assets/pibot-intro-poster.jpg" width="860" alt="Pi Bot in 60 seconds: watch the video"></a>
+  <a href="docs/assets/pibot-intro-60s.mp4"><img src="docs/assets/pibot-intro-15s.gif" width="800" alt="Pi Bot in 15 seconds (click for the 60-second video with sound)"></a>
 </p>
 
 <p align="center">
