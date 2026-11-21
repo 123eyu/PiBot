@@ -1,4 +1,5 @@
 import { win32 } from "node:path";
+import { bundledGit } from "./bundled-git.ts";
 
 /**
  * Repository configuration can name programs (fsmonitor, hooks, pagers, external diff, transports).
@@ -89,11 +90,10 @@ export function gitPrograms(
       )
       .concat(
         // Packaged Windows builds ship MinGit (most Windows computers have no Git). It is last so
-        // the user's own Git, with their credential manager and LFS, wins. It lives inside Pi Bot's
-        // own install, so whoever could replace it could replace Pi Bot. Dev runs have none.
-        resourcesDir && win32.isAbsolute(resourcesDir) && !/[\0\r\n]/.test(resourcesDir)
-          ? [win32.join(resourcesDir, "bin", "git", "cmd", "git.exe")]
-          : [],
+        // the user's own Git, with their credential manager and LFS, wins. It is unpacked from
+        // the install's verified zip into Pi Bot's own cache (bundled-git.ts), a per-user folder
+        // like the LOCALAPPDATA Git above. Dev runs have none.
+        bundledGit(platform, env, resourcesDir)?.program ?? [],
       );
   }
   return ["/usr/bin/git", "/usr/local/bin/git", "/bin/git"];

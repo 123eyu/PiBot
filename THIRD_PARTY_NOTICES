@@ -62,10 +62,11 @@ Bundled binaries and assets
    apps/desktop/resources/licenses/
 
 8. MinGit (Git for Windows) 2.56.1 (bundled unmodified in the Windows desktop
-   app only, as resources/bin/git/)
+   app only, as the release zip in resources/bin/mingit/)
    Source:  https://github.com/git-for-windows/git/releases/tag/v2.56.1.windows.1
    License: GNU General Public License, version 2 (Git), plus the licenses of
-            its bundled components; full texts ship in resources/bin/git/LICENSE.txt.
+            its bundled components; full texts ship in resources/bin/mingit/LICENSE.txt
+            and inside the zip.
    Pi Bot runs it as a separate program; the GPL does not apply to the rest of
    Pi Bot. Details and corresponding source: apps/desktop/resources/licenses/mingit.md
 

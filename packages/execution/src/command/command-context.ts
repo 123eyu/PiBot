@@ -10,6 +10,7 @@ import type {
 import { ExecError } from "../core/types.ts";
 import { dockerArguments, verifyDockerConnection } from "../docker/docker.ts";
 import { dockerProgram } from "../docker/docker-program.ts";
+import { findGit } from "../git/git-process.ts";
 import type { createSandboxProfiles } from "../sandbox/sandbox-profiles.ts";
 import type { NetworkProxy } from "../web/network-proxy.ts";
 import type { BackgroundProcessRecord, createBackgroundJobs } from "./background.ts";
@@ -130,6 +131,22 @@ export async function commandResources(
     throw new ExecError("invalid_input");
   // Only an issued permit leads to an unsandboxed spawn (command-run consumes it first).
   const outside = "outsideSandbox" in input && input.outsideSandbox !== undefined;
+  // Windows packages unpack their MinGit on first need (bundled-git.ts). A command that names Git
+  // waits for it so `git` resolves on its PATH; any other command only starts the unpack.
+  if (options.platform === "win32" && !input.docker) {
+    const unpack = findGit(options);
+    if (/\bgit\b/i.test(input.command))
+      await new Promise<void>((resolve, reject) => {
+        const stop = () => reject(signal.reason);
+        if (signal.aborted) stop();
+        signal.addEventListener("abort", stop, { once: true });
+        // findGit settles undefined on any failure; the command then runs without bundled Git.
+        void unpack.then(() => {
+          signal.removeEventListener("abort", stop);
+          resolve();
+        });
+      });
+  }
   const env = mergeSecretEnv(
     outside
       ? userTerminalEnvironment(

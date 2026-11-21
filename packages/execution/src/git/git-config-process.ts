@@ -3,7 +3,8 @@ import { constants } from "node:fs";
 import { access } from "node:fs/promises";
 import { delimiter, dirname, isAbsolute, join } from "node:path";
 import { ExecError } from "../core/types.ts";
-import { killGit } from "./git-process.ts";
+import { bundledGit } from "./bundled-git.ts";
+import { killGit, unpackBundledGit } from "./git-process.ts";
 import { gitPrograms } from "./git-program.ts";
 
 export interface GitConfigurationProcessOptions {
@@ -34,7 +35,10 @@ export async function configurationGitProgram(
         throw error;
     }
   }
-  return undefined;
+  const bundled = bundledGit(options.platform, options.env, options.resourcesDir)?.program;
+  return bundled && (requested === "git" || requested === bundled)
+    ? unpackBundledGit(options)
+    : undefined;
 }
 
 /** Fixed Git config operations only, against a disposable file, with no ambient configuration. */

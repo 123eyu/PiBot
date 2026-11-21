@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { extractFile, listPackage } from "@electron/asar";
+import { unzipSync } from "fflate";
 import { appRun, linuxLauncher } from "./linux-launcher.mjs";
 import { packagedElectron, verifyPackageFuses } from "./package-fuses.ts";
 import {
@@ -10,6 +13,7 @@ import {
   type PackageArch,
   type PackageMode,
 } from "./package-options.ts";
+import { MINGIT_DIGESTS } from "./prepare-mingit.mjs";
 import { verifyChildNode } from "./verify-child-node.ts";
 import { verifyNativePrebuilds } from "./verify-native-prebuilds.ts";
 import { verifyCodeMapGrammars, verifySemanticLibraries } from "./verify-semantic-libraries.ts";
@@ -65,9 +69,7 @@ export async function verifyTargetPackage(
   verifyTargetBinary(join(resources, "bin", win ? "rg.exe" : "rg"), platform, arch);
   verifyChildNode(resources, platform, arch);
   if (win) {
-    // Bundled MinGit: runtime resolves bin/git/cmd/git.exe after any installed Git.
-    verifyTargetBinary(join(resources, "bin", "git", "cmd", "git.exe"), platform, arch);
-    assert(existsSync(join(resources, "bin", "git", "LICENSE.txt")), "Missing MinGit licence");
+    verifyBundledMinGit(resources, arch);
     assert(existsSync(join(resources, "licenses", "mingit.md")), "Missing MinGit notice");
   }
   verifyCodeMapGrammars(join(resources, "wasm", "codemap"));
@@ -96,4 +98,36 @@ export async function verifyTargetPackage(
   console.info(
     `Verified packaged entries and resources: ${platform}-${arch}. Target OS runtime acceptance is still required.`,
   );
+}
+
+/**
+ * Windows ships MinGit as its pinned release zip (bin/mingit), unpacked by the app on first need
+ * (packages/execution/src/git/bundled-git.ts). The manifest must name the pinned digest, the zip
+ * must match it, and its git.exe must be the target CPU; the licence ships beside and inside it.
+ */
+function verifyBundledMinGit(resources: string, arch: PackageArch) {
+  const folder = join(resources, "bin", "mingit");
+  assert(!existsSync(join(resources, "bin", "git")), "Unpacked MinGit tree must not ship");
+  const manifest = JSON.parse(readFileSync(join(folder, "mingit.json"), "utf8"));
+  const pinned = MINGIT_DIGESTS[arch];
+  assert(pinned, `No pinned MinGit for win-${arch}`);
+  assert.equal(manifest.archive, pinned[0], "Wrong MinGit archive");
+  assert.equal(manifest.sha256, pinned[1], "Wrong MinGit digest");
+  const archive = readFileSync(join(folder, manifest.archive));
+  assert.equal(archive.length, manifest.size, "Wrong MinGit archive size");
+  assert.equal(createHash("sha256").update(archive).digest("hex"), pinned[1], "MinGit zip altered");
+  assert(existsSync(join(folder, "LICENSE.txt")), "Missing MinGit licence");
+  const entries = unzipSync(archive, {
+    filter: (file) => file.name === "cmd/git.exe" || file.name === "LICENSE.txt",
+  });
+  assert(entries["LICENSE.txt"], "MinGit zip lacks its licence");
+  const git = entries["cmd/git.exe"];
+  assert(git, "MinGit zip lacks cmd/git.exe");
+  const temporary = mkdtempSync(join(tmpdir(), "pibot-verify-mingit-"));
+  try {
+    writeFileSync(join(temporary, "git.exe"), git);
+    verifyTargetBinary(join(temporary, "git.exe"), "win32", arch);
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
 }

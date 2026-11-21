@@ -1,6 +1,7 @@
 import { statSync } from "node:fs";
 import { posix, win32 } from "node:path";
 import { ExecError } from "../core/types.ts";
+import { bundledGit, bundledGitReady } from "../git/bundled-git.ts";
 import { commandPaths } from "./command-paths.ts";
 
 /**
@@ -35,20 +36,18 @@ function windowsUserPath(original: Readonly<NodeJS.ProcessEnv>, taken: readonly 
 }
 
 /**
- * Windows builds ship MinGit (resources/bin/git); most Windows computers have no Git. Its `cmd`
+ * Windows builds ship MinGit (bundled-git.ts); most Windows computers have no Git. Its `cmd`
  * folder goes after everything else on PATH, so an installed Git always wins and the bundled copy
- * only fills the gap. Nothing is added on other platforms, in dev runs, or for an odd path.
+ * only fills the gap. Only a fully unpacked copy is added (command-context unpacks it first).
+ * Nothing is added on other platforms, in dev runs, or for an odd path.
  */
-function bundledGitPath(platform: NodeJS.Platform, resourcesDir: string | undefined) {
-  if (platform !== "win32" || !resourcesDir) return [];
-  if (!win32.isAbsolute(resourcesDir) || /[\0\r\n;%"]/.test(resourcesDir)) return [];
-  const directory = win32.join(resourcesDir, "bin", "git", "cmd");
-  try {
-    return statSync(directory).isDirectory() ? [directory] : [];
-  } catch {
-    // No bundled Git (dev run, non-Windows build): commands see only the user's own PATH.
-    return [];
-  }
+function bundledGitPath(
+  platform: NodeJS.Platform,
+  original: Readonly<NodeJS.ProcessEnv>,
+  resourcesDir: string | undefined,
+) {
+  const git = bundledGit(platform, original, resourcesDir);
+  return git && bundledGitReady(git) ? [win32.dirname(git.program)] : [];
 }
 
 export function commandEnvironment(
@@ -80,7 +79,7 @@ export function commandEnvironment(
   // Explicit choices and the launcher environment select the user's Node/toolchain on Unix.
   // Windows retains System32 precedence. No variables other than PATH are imported here.
   const search = windows
-    ? [...paths, ...additions, ...user, ...bundledGitPath(platform, resourcesDir)]
+    ? [...paths, ...additions, ...user, ...bundledGitPath(platform, original, resourcesDir)]
     : [...additions, ...user, ...paths];
   return {
     PATH: [...new Set(search)].join(delimiter),

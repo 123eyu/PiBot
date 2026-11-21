@@ -3,6 +3,7 @@ import { constants } from "node:fs";
 import { access } from "node:fs/promises";
 import { posix, win32 } from "node:path";
 import { ExecError } from "../core/types.ts";
+import { bundledGit, prepareBundledGit } from "./bundled-git.ts";
 import { gitPrograms } from "./git-program.ts";
 
 /** Shared by the read-only runner and the Windows user-write path: no shell, ever. */
@@ -35,7 +36,20 @@ export async function findGit(
       // Missing candidates are expected; the next fixed location is checked.
     }
   }
-  return undefined;
+  return unpackBundledGit(options);
+}
+
+/**
+ * No installed Git and no unpacked copy yet: unpack the bundled MinGit (Windows packages only).
+ * A failure is the same as having no Git, so callers fall back as before (git_unavailable, take
+ * turns); the next need after the failure backoff tries again.
+ */
+export async function unpackBundledGit(
+  options: Pick<GitProcessOptions, "platform" | "env" | "resourcesDir">,
+) {
+  const git = bundledGit(options.platform, options.env, options.resourcesDir);
+  if (!git) return undefined;
+  return prepareBundledGit(git).catch(() => undefined);
 }
 
 export function gitEnvironment(options: GitProcessOptions, executable: string): NodeJS.ProcessEnv {

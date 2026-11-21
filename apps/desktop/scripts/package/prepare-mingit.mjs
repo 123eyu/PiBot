@@ -2,19 +2,24 @@
 // and group parallel steps, the changes panel, commits and review all need it. System Git still
 // wins at runtime (packages/execution/src/git/git-program.ts lists the bundled copy last).
 //
+// It ships as the release zip itself, not unpacked: the unpacked tree is ~380 files, ~190 of them
+// executables and DLLs (89 MB), which the installer had to decompress and Windows Defender had to
+// scan one by one; installs went from 47 s to 108-143 s. Pi Bot unpacks the zip once, on first
+// need, into its own cache (packages/execution/src/git/bundled-git.ts), after checking the digest
+// this script writes into mingit.json.
+//
 // Official Git for Windows release, exact version, SHA-256 pinned here (the release notes' table
 // and GitHub's asset digest agree) and checked before anything is unpacked. Shipped unmodified
 // under GPLv2; the source link is in apps/desktop/resources/licenses/mingit.md.
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { access, cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { chmod, copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
 
 export const MINGIT_VERSION = "2.56.1";
 const RELEASE = "v2.56.1.windows.1";
-const DIGESTS = {
+export const MINGIT_DIGESTS = {
   x64: [
     "MinGit-2.56.1-64-bit.zip",
     "4a92850b6e917da4fd010669b614b55dccf5b0ec333a534cc4be4700dfefdafd",
@@ -29,10 +34,10 @@ const run = promisify(execFile);
 
 /**
  * Downloads (or reuses from .cache) and verifies MinGit for one Windows architecture, then
- * replaces `<binDirectory>/git` with the unpacked tree; `git/cmd/git.exe` is what runtime looks for.
+ * replaces `<binDirectory>/mingit` with the verified zip, its manifest and the licence text.
  */
 export async function prepareMinGit(desktop, arch, binDirectory) {
-  const entry = DIGESTS[arch];
+  const entry = MINGIT_DIGESTS[arch];
   if (!entry) throw new Error(`No pinned MinGit for win-${arch}`);
   const [name, expected] = entry;
   const cache = join(desktop, "../../.cache/pibot-mingit", RELEASE);
@@ -61,29 +66,32 @@ export async function prepareMinGit(desktop, arch, binDirectory) {
     throw new Error(`MinGit checksum mismatch for win-${arch}`);
   }
   if (downloaded) await writeFile(archive, bytes, { mode: 0o600 });
-  const temporary = await mkdtemp(join(tmpdir(), "pibot-mingit-"));
-  try {
-    await run("unzip", ["-q", archive, "-d", temporary]);
-    // The launcher and the licence must exist before the previous copy is replaced.
-    await Promise.all([
-      access(join(temporary, "cmd", "git.exe")),
-      access(join(temporary, "LICENSE.txt")),
-    ]);
-    const target = join(binDirectory, "git");
-    await rm(target, { recursive: true, force: true });
-    await mkdir(binDirectory, { recursive: true });
-    await cp(temporary, target, { recursive: true });
-    console.info(
-      JSON.stringify({
-        event: "package.mingit",
-        version: MINGIT_VERSION,
-        release: RELEASE,
-        target: `win-${arch}`,
-        sha256: actual,
-      }),
-    );
-    return join(target, "cmd", "git.exe");
-  } finally {
-    await rm(temporary, { recursive: true, force: true });
-  }
+  // The launcher must be in the archive; the licence travels beside it as well as inside it.
+  const { stdout: listing } = await run("unzip", ["-Z1", archive], { maxBuffer: 4 * 1024 * 1024 });
+  const names = new Set(listing.split(/\r?\n/));
+  if (!names.has("cmd/git.exe") || !names.has("LICENSE.txt"))
+    throw new Error(`MinGit archive for win-${arch} lacks cmd/git.exe or LICENSE.txt`);
+  const { stdout: licence } = await run("unzip", ["-p", archive, "LICENSE.txt"], {
+    encoding: "buffer",
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  // Builds before the zip layout left the unpacked tree in the same output folder.
+  await rm(join(binDirectory, "git"), { recursive: true, force: true });
+  const target = join(binDirectory, "mingit");
+  await rm(target, { recursive: true, force: true });
+  await mkdir(target, { recursive: true });
+  await copyFile(archive, join(target, name));
+  // The cache copy is private to the builder; the shipped one is an ordinary resource file.
+  await chmod(join(target, name), 0o644);
+  await writeFile(join(target, "LICENSE.txt"), licence);
+  const manifest = {
+    release: RELEASE,
+    version: MINGIT_VERSION,
+    archive: name,
+    sha256: actual,
+    size: bytes.byteLength,
+  };
+  await writeFile(join(target, "mingit.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+  console.info(JSON.stringify({ event: "package.mingit", ...manifest, target: `win-${arch}` }));
+  return join(target, name);
 }
