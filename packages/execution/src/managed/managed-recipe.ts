@@ -6,11 +6,13 @@ import { dirname, join, relative, sep } from "node:path";
 import { commandEnvironment } from "../command/environment.ts";
 import { executeHostedCommand } from "../command/foreground-host.ts";
 import { executeProcess } from "../command/process.ts";
+import { within } from "../core/paths.ts";
 import { ExecError, type ExecOptions } from "../core/types.ts";
 import { gitDefaultWriteDenies } from "../git/git-init-sandbox.ts";
 import { createSandboxConfig } from "../sandbox/sandbox-config.ts";
 import { sensitiveReadBoundary } from "../sandbox/sensitive-paths.ts";
 import { holdManagedPaths, type ManagedPathIdentity } from "./managed-boundary.ts";
+import { createRecipeDirectories, removeRecipeDirectories } from "./managed-directories.ts";
 import { managedIdentityStrategy } from "./managed-identity.ts";
 
 export interface ManagedRecipe {
@@ -29,6 +31,11 @@ export interface ManagedRecipe {
   network?: import("../core/types.ts").NetworkSettings;
   returnFailure?: boolean;
   writePaths: string[];
+  /**
+   * Write paths that are directories the command itself would create (a new worktree, a branch
+   * namespace). Linux makes the absent ones first, because bubblewrap binds only existing paths.
+   */
+  createDirectories?: string[];
   readPaths?: string[];
   denyPaths?: string[];
   removedPaths?: string[];
@@ -42,7 +49,11 @@ export interface ManagedRecipe {
 export async function runManagedRecipe(options: ExecOptions, input: ManagedRecipe) {
   if (!["darwin", "linux", "win32"].includes(options.platform))
     throw new ExecError("isolation_unavailable");
-  if (typeof input.assertAuthorized !== "function" || !input.identities.length)
+  if (
+    typeof input.assertAuthorized !== "function" ||
+    !input.identities.length ||
+    input.createDirectories?.some((path) => !input.writePaths.includes(path))
+  )
     throw new ExecError("invalid_input");
   if (input.privateRecovery) {
     const recoveryParent = dirname(input.privateRecovery);
@@ -143,55 +154,79 @@ export async function runManagedRecipe(options: ExecOptions, input: ManagedRecip
         if (!result) throw new ExecError("invalid_input");
         return result;
       }
-      const sandbox = createSandboxConfig(options);
-      const config = await sandbox.config(
-        input.identities.map((value) => value.path),
-        input.network ?? { allowAll: false, domains: [] },
-        signal,
-        { botHome: input.home, dataDir: input.dataDir },
-      );
-      // Replace the broad setup roots with exact recipe capabilities. Never expose this profile to runCommand.
-      config.filesystem.allowWrite = [
-        ...input.writePaths,
-        ...(input.privateJournal ? [input.privateJournal] : []),
-        ...(input.privateRecovery ? [input.privateRecovery] : []),
-      ].map((path) => ({ path, literal: true }));
-      // The fixed recipe replaced the ordinary command roots; no broad manifest class survives.
-      config.filesystem.gitManifestWriteRoots = [];
-      config.filesystem.allowRead ??= [];
-      config.filesystem.allowRead.push(
-        ...[
-          ...(input.readPaths ?? []),
+      // Seatbelt grants an absent literal path as is; only bubblewrap needs it made first.
+      const created =
+        options.platform === "linux"
+          ? await createRecipeDirectories(
+              input.createDirectories ?? [],
+              input.identities.map((value) => value.path),
+            )
+          : [];
+      let succeeded = false;
+      try {
+        const sandbox = createSandboxConfig(options);
+        const config = await sandbox.config(
+          input.identities.map((value) => value.path),
+          input.network ?? { allowAll: false, domains: [] },
+          signal,
+          { botHome: input.home, dataDir: input.dataDir },
+        );
+        // Replace the broad setup roots with exact recipe capabilities. Never expose this profile to runCommand.
+        config.filesystem.allowWrite = [
+          ...input.writePaths,
+          ...(input.privateJournal ? [input.privateJournal] : []),
           ...(input.privateRecovery ? [input.privateRecovery] : []),
-        ].map((path) => ({ path, literal: true as const })),
-      );
-      config.filesystem.denyWrite.push(
-        ...[...(input.denyPaths ?? []), ...(await gitDefaultWriteDenies(input.writePaths))].map(
-          (path) => ({ path, literal: true as const }),
-        ),
-      );
-      const env = commandEnvironment(options.platform, options.env, input.home, options.tempDir);
-      const result = await executeHostedCommand({
-        options,
-        config,
-        allowAll: false,
-        command: input.command,
-        commandText: input.label,
-        commandId: id,
-        cwd: input.cwd,
-        env,
-        signal,
-        log,
-        dispatch: input.assertAuthorized,
-        prepared: async () => {
-          await held.check();
-          await input.beforeDispatch?.();
-          await held.check();
-        },
-      });
-      await held.check(new Set(input.removedPaths));
-      if (result.exitCode !== 0 && !input.returnFailure) throw new ExecError("command_failed");
-      return result;
+        ].map((path) => ({ path, literal: true }));
+        // The fixed recipe replaced the ordinary command roots; no broad manifest class survives.
+        config.filesystem.gitManifestWriteRoots = [];
+        config.filesystem.allowRead ??= [];
+        config.filesystem.allowRead.push(
+          ...[
+            ...(input.readPaths ?? []),
+            ...(input.privateRecovery ? [input.privateRecovery] : []),
+          ].map((path) => ({ path, literal: true as const })),
+        );
+        // Linux scans every root for `.git` entries and pins each with a bind mount (or a
+        // placeholder for an absent one). Inside a tree this fixed recipe deletes, those mounts
+        // make the deletion fail with EBUSY; the tree goes as a whole, so pinning it guards nothing.
+        if (options.platform === "linux" && input.removedPaths?.length) {
+          const removed = input.removedPaths;
+          config.filesystem.denyWrite = config.filesystem.denyWrite.filter(
+            (entry) =>
+              typeof entry === "string" || !removed.some((root) => within(root, entry.path)),
+          );
+        }
+        config.filesystem.denyWrite.push(
+          ...[...(input.denyPaths ?? []), ...(await gitDefaultWriteDenies(input.writePaths))].map(
+            (path) => ({ path, literal: true as const }),
+          ),
+        );
+        const env = commandEnvironment(options.platform, options.env, input.home, options.tempDir);
+        const result = await executeHostedCommand({
+          options,
+          config,
+          allowAll: false,
+          command: input.command,
+          commandText: input.label,
+          commandId: id,
+          cwd: input.cwd,
+          env,
+          signal,
+          log,
+          dispatch: input.assertAuthorized,
+          prepared: async () => {
+            await held.check();
+            await input.beforeDispatch?.();
+            await held.check();
+          },
+        });
+        await held.check(new Set(input.removedPaths));
+        if (result.exitCode !== 0 && !input.returnFailure) throw new ExecError("command_failed");
+        succeeded = result.exitCode === 0;
+        return result;
+      } finally {
+        if (!succeeded) await removeRecipeDirectories(created);
+      }
     } finally {
       log.end();
     }

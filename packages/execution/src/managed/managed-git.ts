@@ -295,6 +295,7 @@ export function createManagedGit(options: ExecOptions) {
       cwd: string,
       identities: ManagedPathIdentity[],
       writes: string[],
+      creates: string[] = [],
       denies: string[] = [];
     if (operation.kind === "create") {
       if (
@@ -338,6 +339,8 @@ export function createManagedGit(options: ExecOptions) {
         join(source.common.path, "logs", "refs", "heads", "pibot"),
         join(source.common.path, "packed-refs.lock"),
       ];
+      // packed-refs.lock is a file Git takes only to delete a packed ref; it stays absent.
+      creates = writes.slice(0, 4);
     } else if (operation.kind === "integrate") {
       const target = operation.target;
       if (operation.allowMerge) {
@@ -382,6 +385,7 @@ export function createManagedGit(options: ExecOptions) {
         join(source.common.path, "refs", "heads"),
         join(source.common.path, "logs", "refs", "heads"),
       ];
+      creates = [join(source.common.path, "logs", "refs", "heads")];
     } else {
       const target = operation.worktree;
       if (
@@ -429,10 +433,12 @@ export function createManagedGit(options: ExecOptions) {
           ? [operation.integratedInto.root, operation.integratedInto.git]
           : []),
       ];
+      // bubblewrap makes every write path its own bind mount, and a mount point cannot be
+      // deleted (EBUSY). On Linux the tree and its admin folder are writable through their parents
+      // only; the capability is the same, since parent and `worktrees` already hold them.
       writes = [
         operation.parent.path,
-        target.root.path,
-        target.git.path,
+        ...(options.platform === "linux" ? [] : [target.root.path, target.git.path]),
         join(source.common.path, "worktrees"),
       ];
     }
@@ -486,6 +492,7 @@ export function createManagedGit(options: ExecOptions) {
       cwd: join(options.tempDir, "managed-operations"),
       identities,
       writePaths: writes,
+      createDirectories: creates,
       denyPaths: denies,
       command,
       ...(options.platform === "win32"
@@ -665,6 +672,12 @@ export function createManagedGit(options: ExecOptions) {
               join(repository.common.path, "shallow.lock"),
             ]
           : []),
+      ],
+      // `git pack-refs` (gc) removes emptied loose-ref directories; the branch may need them back.
+      createDirectories: [
+        join(repository.common.path, "refs", "heads", "pibot"),
+        join(repository.common.path, "logs", "refs", "heads", "pibot"),
+        ...(syncing ? [join(repository.common.path, "refs", "pibot-sync")] : []),
       ],
       denyPaths: [join(repository.common.path, "config"), join(repository.common.path, "hooks")],
       command,
