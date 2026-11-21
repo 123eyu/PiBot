@@ -58,19 +58,27 @@ export const computerSchemas = {
         .max(10)
         .optional(),
     })
-    .refine(
-      (v) =>
-        v.action === "batch"
-          ? v.actions !== undefined &&
-            v.elementId === undefined &&
-            v.path === undefined &&
-            v.value === undefined
-          : v.actions === undefined &&
-            (v.action === "menu"
-              ? v.path !== undefined && v.elementId === undefined && v.value === undefined
-              : v.elementId !== undefined && v.path === undefined),
-      'Provide elementId, or menu path, or action="batch" with 1–10 element actions in one window',
-    ),
+    .superRefine((v, ctx) => {
+      // One issue per offending field with a fixed code (tool-input-issues.ts words it): a bare
+      // "custom" left models re-sending the same mixed shape.
+      const flag = (field: string, message: string) =>
+        ctx.addIssue({ code: "custom", path: [field], message });
+      if (v.action === "batch") {
+        if (v.actions === undefined) flag("actions", "ui_action_batch_actions_required");
+        for (const field of ["elementId", "path", "value"] as const)
+          if (v[field] !== undefined) flag(field, "ui_action_batch_forbids_field");
+        return;
+      }
+      if (v.actions !== undefined) flag("actions", "ui_action_single_forbids_actions");
+      if (v.action === "menu") {
+        if (v.path === undefined) flag("path", "ui_action_menu_path_required");
+        for (const field of ["elementId", "value"] as const)
+          if (v[field] !== undefined) flag(field, "ui_action_menu_forbids_field");
+        return;
+      }
+      if (v.elementId === undefined) flag("elementId", "ui_action_element_id_required");
+      if (v.path !== undefined) flag("path", "ui_action_element_forbids_path");
+    }),
   pointer: z.strictObject({
     app,
     window: window.optional(),
@@ -90,7 +98,12 @@ export const computerSchemas = {
       text: z.string().min(1).max(10_000).optional(),
       combo: z.array(z.string().min(1).max(20)).min(1).max(5).optional(),
     })
-    .refine((v) => (v.text === undefined) !== (v.combo === undefined), "Provide text or combo"),
+    .superRefine((v, ctx) => {
+      if (v.text !== undefined && v.combo !== undefined)
+        ctx.addIssue({ code: "custom", path: ["combo"], message: "keys_text_and_combo" });
+      else if (v.text === undefined && v.combo === undefined)
+        ctx.addIssue({ code: "custom", path: [], message: "keys_text_or_combo_required" });
+    }),
   open_app: z.strictObject({ app: z.string().trim().min(1).max(200) }),
   open_file: z.strictObject({ path: z.string().min(1).max(32_768), app }),
 };

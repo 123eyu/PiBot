@@ -205,6 +205,8 @@ export function createMacDriver(options: {
         "/System/Applications",
         join(homedir(), "Applications"),
         "/System/Library/CoreServices/Applications",
+        // Finder sits directly in CoreServices, next to hundreds of agents that are not targets.
+        "/System/Library/CoreServices/Finder.app",
       ];
       return worker.call<{ apps: InstalledApp[]; truncated: boolean }>(
         "installed",

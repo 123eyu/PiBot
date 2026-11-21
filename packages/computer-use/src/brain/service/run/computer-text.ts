@@ -207,6 +207,12 @@ const details: [prefix: string, text: string][] = [
       "The window is almost entirely covered by other windows, so a screenshot shows nothing. Read it with ui_tree (works in the background), or ask the user to bring the window to the front",
   ],
   [
+    // The vaguer window_not_found text left the model retrying instead of telling the user.
+    "window_on_other_space",
+    "这个窗口在另一个桌面（空间）上，或当前桌面是一个全屏应用，Pi Bot 看不到也操作不了它。不要重试同样的调用，也不要自己切换桌面：直接告诉用户切换到这个窗口所在的桌面，或先退出全屏，然后再继续 / " +
+      "The window is on another desktop (Space), or the current desktop is a full-screen app, so Pi Bot can neither see nor operate it. Do not retry the same call or switch desktops yourself: tell the user plainly to switch to the desktop that window is on, or exit full screen, then continue",
+  ],
+  [
     "window_not_capturable",
     "窗口在屏幕上，但系统没有给出它的截图。改用 ui_tree 读界面，不要重试截图 / " +
       "The window is on screen but the system returned no picture of it. Read it with ui_tree instead; do not retry the screenshot",

@@ -33,7 +33,8 @@ export const computerHandoffZh = {
   "computerHandoff.say.window_minimized.darwin": "请把「{app}」的窗口从程序坞里恢复出来。",
   "computerHandoff.say.window_minimized.win32": "请把「{app}」的窗口从任务栏里恢复出来。",
   "computerHandoff.say.window_minimized.linux": "请恢复「{app}」的窗口。",
-  "computerHandoff.say.window_other_space.darwin": "请把「{app}」的窗口移到你现在用的这个桌面。",
+  "computerHandoff.say.window_other_space.darwin":
+    "「{app}」的窗口在另一个桌面，或被全屏应用挡住了。请切换到那个桌面，或先退出全屏。",
   "computerHandoff.say.window_other_space.win32": "请把「{app}」的窗口移到你现在用的这个虚拟桌面。",
   "computerHandoff.say.window_other_space.linux": "请恢复「{app}」的窗口。",
   "computerHandoff.say.window_covered": "「{app}」的窗口被其他窗口挡住了，请把它露出来一部分。",
@@ -95,7 +96,7 @@ export const computerHandoffEn: Record<keyof typeof computerHandoffZh, string> =
     "Please restore the “{app}” window from the taskbar.",
   "computerHandoff.say.window_minimized.linux": "Please restore the “{app}” window.",
   "computerHandoff.say.window_other_space.darwin":
-    "Please move the “{app}” window to the desktop you're using now.",
+    "The “{app}” window is on another desktop or behind a full-screen app. Please switch to that desktop, or exit full screen.",
   "computerHandoff.say.window_other_space.win32":
     "Please move the “{app}” window to the virtual desktop you're using now.",
   "computerHandoff.say.window_other_space.linux": "Please restore the “{app}” window.",

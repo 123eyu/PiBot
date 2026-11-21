@@ -140,6 +140,24 @@ function baseIssueText(issue: z.core.$ZodIssue): string {
           "tableColumns 必须提供 columns（1–20 个不重复列名） / tableColumns requires columns (1–20 unique names)",
         "Choose ref or screenshotId/x/y":
           "只用一种方式：要么 ref（来自最新的 browser_snapshot），要么 screenshotId 加 x、y（来自最新的 browser_screenshot），不要同时给 / Use one target: either ref from the latest browser_snapshot, or screenshotId with x and y from the latest browser_screenshot, not both",
+        keys_text_and_combo:
+          "text 和 combo 只能给一个：text 输入文字，combo 按快捷键；先输入再按键就分两次调用 keys / Give text or combo, not both: text types characters, combo presses a shortcut; to type and then press keys, make two keys calls",
+        keys_text_or_combo_required:
+          '需要 text（要输入的文字）或 combo（快捷键，如 ["cmd","s"]）其中一个 / Provide exactly one of text (characters to type) or combo (a shortcut, e.g. ["cmd","s"])',
+        ui_action_batch_actions_required:
+          'action "batch" 需要 actions:[{elementId,action,value?}]（1–10 个） / action "batch" requires actions:[{elementId,action,value?}] (1–10)',
+        ui_action_batch_forbids_field:
+          'action "batch" 只接受 actions:[{elementId,action,value?}]，删除顶层的这个字段 / action "batch" takes only actions:[{elementId,action,value?}]; remove this top-level field',
+        ui_action_single_forbids_actions:
+          'actions 只用于 action "batch"；单个操作给 elementId（菜单给 path），删除 actions / actions is only for action "batch"; a single action gives elementId (path for menu), so remove actions',
+        ui_action_menu_path_required:
+          'action "menu" 需要 path（菜单标题），如 ["Edit","Delete"] / action "menu" requires path (menu titles), e.g. ["Edit","Delete"]',
+        ui_action_menu_forbids_field:
+          'action "menu" 只用 path，删除这个字段（elementId / value） / action "menu" uses only path; remove this field (elementId / value)',
+        ui_action_element_id_required:
+          '元素操作需要 ui_tree 里的 elementId；菜单项改用 action "menu" 加 path / Element actions require elementId from ui_tree; for a menu item use action "menu" with path',
+        ui_action_element_forbids_path:
+          'path 只用于 action "menu"；元素操作只给 elementId，删除 path / path is only for action "menu"; element actions take elementId, so remove path',
         acceptance_columns_forbidden:
           "此检查不接受 columns，请删除；只有 tableColumns 使用 columns / Omit columns; only tableColumns accepts it",
       };

@@ -52,11 +52,23 @@ function unwrapStr(v) {
   return undefined;
 }
 
+// A display name resolves through LaunchServices by name; a reverse-DNS bundle ID resolves by ID
+// (Finder lives outside the scanned folders). Either way the answer is the bundle LaunchServices
+// actually holds, never the raw string, so an ID that names no installed app stays unresolved.
 function resolveAppName(m) {
-  var path = $.NSWorkspace.sharedWorkspace.fullPathForApplication(m.name);
-  if (!unwrapStr(path)) return null;
+  var ws = $.NSWorkspace.sharedWorkspace;
+  var path = unwrapStr(ws.fullPathForApplication(m.name));
+  var byId = false;
+  if (!path && /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/.test(m.name)) {
+    var url = ws.URLForApplicationWithBundleIdentifier(m.name);
+    path = url && !url.isNil() ? unwrapStr(url.path) : undefined;
+    byId = true;
+  }
+  if (!path) return null;
   var bundle = $.NSBundle.bundleWithPath(path);
-  return bundle ? (unwrapStr(bundle.bundleIdentifier) || null) : null;
+  var id = bundle ? unwrapStr(bundle.bundleIdentifier) : undefined;
+  if (!id) return null;
+  return byId && id.toLowerCase() !== m.name.toLowerCase() ? null : id;
 }
 
 function appInfo(a) {
@@ -120,7 +132,11 @@ function installed(m) {
       else if (depth > 0) scan(path, depth - 1);
     }
   }
-  for (var d = 0; d < m.dirs.length && !truncated; d++) scan(m.dirs[d], 1);
+  // An entry naming a bundle itself (Finder.app) is added as is; folders are scanned.
+  for (var d = 0; d < m.dirs.length && !truncated; d++) {
+    if (/\.app$/.test(m.dirs[d])) add(m.dirs[d]);
+    else scan(m.dirs[d], 1);
+  }
   return { apps: out, truncated: truncated };
 }
 
