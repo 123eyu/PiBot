@@ -45,6 +45,9 @@ export function planSupplement(
       cycleId: cycle.cycleId,
       note: [
         `本群的计划正在由程序执行。下面是用户在主对话里的补充或提问：回答进度、记下补充；不要重新提交计划或另行分派，计划会继续。 / The program is executing this group's plan. Below is the user's supplement or question: answer progress or note it; do not resubmit the plan or assign work. The plan continues.`,
+        // Windows acceptance 2026-11-21: asked to make two steps sequential, the coordinator
+        // resubmitted, got the running card back and claimed 「已修改并启动」.
+        `用户要改计划（增删步骤、改顺序或分工）时，运行中的计划不能直接改：如实说明，请用户先在计划卡上或「任务」里点「停止计划」，再提出新要求；不要声称已修改。 / If the user asks to change the plan (add or remove steps, reorder, reassign), a running plan cannot be changed in place: say so and ask them to tap Stop plan on the plan card or under Tasks first, then make the new request; never claim it was changed.`,
         `计划进度（程序记录） / Plan progress (program facts): ${JSON.stringify(progress)}`,
       ].join("\n"),
     };

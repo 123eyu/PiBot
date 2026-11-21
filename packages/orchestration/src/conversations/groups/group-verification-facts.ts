@@ -73,11 +73,15 @@ export function changedCodeFiles(
   root: string,
   isolated?: Isolated,
 ) {
-  return changedFiles(rows, paths, root, isolated).filter(
-    (file) =>
-      CODE.has(paths.extname(file).toLowerCase()) ||
-      BUILD.has(paths.basename(file).toLowerCase()) ||
-      /\.(?:html?|ipynb)$/iu.test(file),
+  return changedFiles(rows, paths, root, isolated).filter((file) => isCodeFile(file, paths));
+}
+
+/** Source, build and page files: what a code change touches, as opposed to a document. */
+export function isCodeFile(file: string, paths: Pick<Paths, "extname" | "basename">) {
+  return (
+    CODE.has(paths.extname(file).toLowerCase()) ||
+    BUILD.has(paths.basename(file).toLowerCase()) ||
+    /\.(?:html?|ipynb)$/iu.test(file)
   );
 }
 

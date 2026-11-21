@@ -28,6 +28,7 @@ import {
   GroupExecutionLimitsRepo,
   GroupPlansRepo,
   GroupVerificationRulesRepo,
+  MessagesRepo,
   transaction,
 } from "@pibot/storage";
 import { planConfirmationRequired } from "./group-plan-confirmation.ts";
@@ -58,6 +59,8 @@ export class GroupDynamicPlans {
   private engine?: GroupPlanEngine;
   private closed = false;
   private readonly jobs = new Map<string, Promise<GroupPlanCard>>();
+  /** Runs already told, with a group line, that their plan submission changed nothing. */
+  private readonly unchangedNotices = new Set<string>();
   constructor(private readonly service: GroupService) {
     this.repo = new GroupPlansRepo(service.deps.db);
   }
@@ -225,7 +228,8 @@ export class GroupDynamicPlans {
       const recovered = await this.start(existing.message.id, signal);
       return { text: JSON.stringify({ status: recovered.status, planId: recovered.id }) };
     }
-    if (existing && !failed && (!replacing || existing.card.originRunId === context.runId))
+    if (existing && !failed && (!replacing || existing.card.originRunId === context.runId)) {
+      if (existing.card.originRunId !== context.runId) return this.unchanged(run, existing.card);
       return {
         text: JSON.stringify({
           status: existing.card.status,
@@ -233,6 +237,7 @@ export class GroupDynamicPlans {
           ...this.deliveryNote(existing.card),
         }),
       };
+    }
     this.service.planAttempts.guard(context, "group_plan");
     if (this.service.planAttempts.remaining(context) === 0) {
       this.service.planAttempts.hold(context);
@@ -253,6 +258,14 @@ export class GroupDynamicPlans {
     );
     input = retained.value;
     const members = this.members(group.id);
+    const completed = new Set(
+      replacing
+        ? this.service.workflows.repo
+            .steps(replacing.id)
+            .filter((step) => step.status === "passed" || step.status === "skipped")
+            .map((step) => step.stepId)
+        : [],
+    );
     const expanded = await expandPlanMethods(
       input,
       members,
@@ -262,14 +275,7 @@ export class GroupDynamicPlans {
         return (keys ?? []).filter((key) => this.service.deps.redactor.redact(key) === key);
       },
       !!replacing,
-      new Set(
-        replacing
-          ? this.service.workflows.repo
-              .steps(replacing.id)
-              .filter((step) => step.status === "passed" || step.status === "skipped")
-              .map((step) => step.stepId)
-          : [],
-      ),
+      completed,
     );
     if (!expanded.ok) return reject(expanded.issues);
     const workplace = await groupWorkplace(this.service.deps.local, context.botId, group, signal);
@@ -288,6 +294,7 @@ export class GroupDynamicPlans {
           })
         : undefined,
       access,
+      completed,
     );
     if (normalized.issues) return reject(normalized.issues);
     const agentReady = this.service.deps.local.externalAgentProvider?.stepReadiness;
@@ -488,6 +495,52 @@ export class GroupDynamicPlans {
     if (!saved) return;
     this.changed(saved.id, card);
     await this.start(saved.id, signal);
+  }
+  /**
+   * Windows acceptance 2026-11-21: the user asked to re-plan a running plan's test and review as
+   * sequential steps; the coordinator called group_plan, got this cycle's running card back as
+   * {status:"started"} with "registered and scheduling steps", and told the user 「已按你的要求修改
+   * 并启动」 while nothing had changed. A later run's submission never replaces the cycle's plan, so
+   * the result says so as a failure, and a run answering the user's own message also gets a fixed
+   * program line, so the user learns the truth even if the reply claims otherwise.
+   */
+  private unchanged(run: Run, card: GroupPlanCard): LocalToolResult {
+    const waiting = card.status === "pending" || card.status === "ready";
+    if (run.kind === "chat" && !this.unchangedNotices.has(run.id)) {
+      if (this.unchangedNotices.size >= 200) this.unchangedNotices.clear();
+      this.unchangedNotices.add(run.id);
+      const group = this.service.groups.get(card.groupId);
+      const zh = this.service.deps.chat.currentLanguage() === "zh";
+      if (group) {
+        new MessagesRepo(this.service.deps.db).create({
+          conversationId: group.conversationId,
+          botId: group.coordinatorBotId,
+          role: "assistant",
+          content: waiting
+            ? zh
+              ? "计划没有改动：计划卡还在等你点「开始」或「修改」。要改计划，请点卡片上的「修改」。"
+              : "The plan was not changed: its card is still waiting for Start or Modify. To change the plan, tap Modify on the card."
+            : zh
+              ? "计划没有改动：正在进行的计划不会被新提交替换。要改步骤，请先在计划卡上或「任务」里点「停止计划」，再说要怎么改。"
+              : "The plan was not changed: a running plan is never replaced by a new submission. To change its steps, tap Stop plan on the plan card or under Tasks first, then say how to change it.",
+          status: "done",
+          usage: { groupProgramNotice: { kind: "plan_unchanged" } },
+        });
+        this.service.changed(group.id, "updated");
+      }
+    }
+    return {
+      isError: true,
+      text: JSON.stringify({
+        code: "group_plan_unchanged",
+        changed: false,
+        status: card.status,
+        planId: card.id,
+        instruction: waiting
+          ? "本次提交没有生效：本轮的计划卡仍在等用户点「开始 / 修改」，程序没有改它。不要说已修改或已开始；如实告诉用户计划没变，要改请点卡片上的「修改」。 / This submission did not take effect: this round's plan card still awaits the user's Start / Modify and the program did not change it. Do not claim it was changed or started; tell the user the plan is unchanged and that Modify on the card changes it."
+          : "本次提交没有生效：本轮已有计划在执行（或已登记），程序没有修改、替换或重新开始它，原计划照旧进行。不要说已修改或已重新启动；如实告诉用户计划没变，要改步骤须先在计划卡上或「任务」里点「停止计划」，再提出新要求。 / This submission did not take effect: this round's plan is already running (or registered) and the program did not change, replace or restart it; the original plan continues. Do not claim it was changed or restarted; tell the user the plan is unchanged and that changing its steps needs Stop plan on the plan card or under Tasks first, then a new request.",
+      }),
+    };
   }
   /** Repairs are already applied to the saved plan; repeating them only wastes attempts. */
   private correctionNote(corrections: string[]) {

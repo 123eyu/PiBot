@@ -12,6 +12,7 @@ import {
   type PlanDelivery,
   SkillContractSchema,
 } from "@pibot/protocol-base";
+import { isCodeFile } from "./group-verification-facts.ts";
 
 const period = /^\d{4}-(?:\d{2}-\d{2}|W\d{2}|\d{2})(?:-\d{1,3})?$/;
 
@@ -67,6 +68,45 @@ export function relativeDeliveryPath(
   return canonicalPath(path, name, folder, paths);
 }
 
+/**
+ * Windows acceptance 2026-11-21: a plan to fix calc.ps1 listed calc.ps1 and test.ps1 as the
+ * implement step's deliverables. Deliverables are always written into the output folder, so the
+ * member wrote fixed copies there and the project's own calc.ps1 never changed. A source file
+ * that exists in the working folder, or sits in one of its existing folders, is the project's:
+ * the step edits it in place and delivers a change note instead.
+ */
+async function projectSource(
+  path: string,
+  workspaceRoot: string,
+  access: WorkspaceFileAccess,
+  signal: AbortSignal,
+) {
+  const { resolve, dirname } = access.paths;
+  if (!isCodeFile(path, access.paths)) return false;
+  const kind = async (target: string) => {
+    try {
+      return (await access.probe(target, signal))?.kind;
+    } catch (error) {
+      if (signal.aborted) throw error;
+      // Best effort: a folder the probe cannot read (an older runner) keeps the plan as written.
+      return undefined;
+    }
+  };
+  if ((await kind(resolve(workspaceRoot, path))) === "file") return true;
+  const parent = dirname(path);
+  return parent !== "." && (await kind(resolve(workspaceRoot, parent))) === "directory";
+}
+
+function projectSourceIssue(path: string, at: (string | number)[]) {
+  return {
+    code: "plan_deliverable_project_file",
+    path: at,
+    expected:
+      "A new artifact such as 改动说明.md; project files are edited in place / 新产物，如 改动说明.md；项目文件原地修改",
+    message: `「${path}」是工作文件夹里的项目文件。交付物只会写进产物目录，列它只会得到一份副本，项目本身不变。请在 task 里写明直接修改项目里的这个文件（新增的源码和测试也直接写进项目），交付物改为改动说明，例如 改动说明.md。 / ${path} is a project file in the working folder. Deliverables are written only to the output folder, so listing it yields a copy and leaves the project unchanged. Say in task to edit this project file in place (write new source and test files into the project too) and list a change note such as 改动说明.md as the deliverable.`,
+  };
+}
+
 /** Plan validation chooses without creating directories, so confirmation and execution refer to one folder. */
 export async function preparePlanDelivery(
   value: unknown,
@@ -74,10 +114,12 @@ export async function preparePlanDelivery(
   signal: AbortSignal,
   previous?: PlanDelivery,
   access?: WorkspaceFileAccess,
+  /** Passed or skipped steps of the plan being replaced: their accepted contract is kept as is. */
+  completed: ReadonlySet<string> = new Set(),
 ): Promise<{
   value: unknown;
   delivery?: PlanDelivery;
-  issues?: { code: string; path: (string | number)[]; expected: string }[];
+  issues?: { code: string; path: (string | number)[]; expected: string; message?: string }[];
 }> {
   const { relative, isAbsolute, sep } = access?.paths ?? pathApi;
   signal.throwIfAborted();
@@ -113,7 +155,8 @@ export async function preparePlanDelivery(
     return wrongRoot();
   const delivery: PlanDelivery = { workspaceRoot, folder: place.folder, rewrites: [] };
   signal.throwIfAborted();
-  const issues: { code: string; path: (string | number)[]; expected: string }[] = [];
+  const issues: { code: string; path: (string | number)[]; expected: string; message?: string }[] =
+    [];
   const steps = input.steps.map((step, index) => ({
     ...step,
     deliverables: step.deliverables.map((item, n) => {
@@ -137,6 +180,19 @@ export async function preparePlanDelivery(
       return { ...item, path };
     }),
   }));
+  if (access && !issues.length) {
+    const checks = steps.flatMap((step, index) =>
+      completed.has(step.id)
+        ? []
+        : step.deliverables.map(async (item, n) =>
+            (await projectSource(item.path, workspaceRoot, access, signal))
+              ? projectSourceIssue(item.path, ["steps", index, "deliverables", n, "path"])
+              : undefined,
+          ),
+    );
+    for (const issue of await Promise.all(checks)) if (issue) issues.push(issue);
+    signal.throwIfAborted();
+  }
   const key = (stepId: string, id: string) => `${stepId}/${id}`;
   const paths = new Map(
     steps.flatMap((step) =>
