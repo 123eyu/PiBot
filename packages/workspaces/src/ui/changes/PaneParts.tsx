@@ -35,7 +35,13 @@ export function RepoBar({
     comboText = useComboboxText();
   if (!status) return <div className={styles.repo} />;
   const rootName = (root: ChangesStatus["root"]) =>
-    root.id === "home" ? t("changes.repo.ownFolder") : root.name;
+    root.id === "home"
+      ? t(
+          target?.conversationKey.startsWith("group:")
+            ? "changes.repo.groupFolder"
+            : "changes.repo.ownFolder",
+        )
+      : root.name;
   const git = status.git,
     roots = status.roots.filter((root) => root.kind !== "worktree"),
     primary = roots.find((root) => root.role === "primary"),
