@@ -323,6 +323,10 @@ function turnsReason(reason: string, zh: boolean) {
       return zh
         ? "这台电脑没有安装 Git，建不了独立工作区"
         : "Git is not installed on this computer, so steps cannot have own workspaces";
+    case "readonly_commands_unsupported":
+      return zh
+        ? "这个系统上独立工作区里还不能运行命令"
+        : "commands cannot run in own workspaces on this system yet";
     case "group_workspace_setup_failed":
       return zh ? "这次建独立工作区没有成功" : "setting up its own workspace failed this time";
     case "group_workspace_cleanup_pending":

@@ -100,6 +100,10 @@ export async function prepareStepWorktree(
   const sharing = owner.turns.reason(folder);
   if (sharing) return turns(sharing);
   if (owner.cleanupPending([primary])) return turns(CLEANUP_PENDING);
+  // Retest 2026-11-21: an own workspace keeps the group folder as a read-only reference, and only
+  // the macOS sandbox can run commands beside one (local-run-authorization refuses elsewhere), so
+  // a test step there could never run its test. Taking turns in the folder keeps commands working.
+  if (!remote && local.deps.platform !== "darwin") return turns("readonly_commands_unsupported");
   // Without Git nothing below can work. Checked first, so a step never waits for a folder lock
   // another step holds only to learn that Git is missing (B2: the 120 s prepare limit).
   if (
@@ -126,14 +130,21 @@ export async function prepareStepWorktree(
     if (remote) return turns(repository ? "runner_folder_dirty" : "runner_folder_not_git");
     const managed = managedFolderRepository(primary, step.planKey);
     owner.stage(context.runId, "managed_folder");
-    const authority = await groupWorktreeAuthority(
-      local,
-      context,
-      baseline.boundary,
-      [managed],
-      signal,
-      "create",
-    );
+    let authority: Awaited<ReturnType<typeof groupWorktreeAuthority>>;
+    try {
+      authority = await groupWorktreeAuthority(
+        local,
+        context,
+        baseline.boundary,
+        [managed],
+        signal,
+        "create",
+      );
+    } catch (error) {
+      // Windows retest 2026-11-21: the policy check's own 10 s limit fired right after a brain
+      // stall and interrupted the step; setupFailed still rethrows stops and the person's answers.
+      return setupFailed(error);
+    }
     try {
       await owner.exclusive(`folder:${managed}`, context.botId, [managed], signal, async () => {
         authority.assertAuthorized();
