@@ -340,7 +340,12 @@ export class LocalService {
             };
             if (event.phase === "recovered") deps.logger.info(JSON.stringify(fields));
             else deps.logger.warn(JSON.stringify(fields));
-            if (event.phase !== "retrying") this.reportCommandPause(event, botId, row?.runId);
+            if (event.phase !== "retrying")
+              this.reportCommandPause(
+                { phase: event.phase, runId: event.runId },
+                botId,
+                row?.runId,
+              );
           },
           platform: deps.platform,
           proxy: deps.proxy,

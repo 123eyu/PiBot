@@ -7,7 +7,7 @@ import { useCommandPause } from "../../app/command-pause.ts";
  * Commands are paused because Pi Bot could not confirm a previous command stopped. The brain
  * releases the pause only with proof, so "Check again" asks for one more check and never forces it.
  */
-export function CommandPauseBanner({ className }: { className: string }) {
+export function CommandPauseBanner({ className }: { className?: string }) {
   const pause = useCommandPause();
   if (!pause.paused) return null;
   // Keyed by state: an earlier "still paused" answer belongs to that state only.
@@ -26,7 +26,7 @@ function PausedBanner({
   paused,
   update,
 }: {
-  className: string;
+  className?: string;
   paused: NonNullable<CommandPause["paused"]>;
   update?: (next: CommandPause) => void;
 }) {
