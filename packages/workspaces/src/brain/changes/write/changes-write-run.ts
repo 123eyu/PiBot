@@ -10,7 +10,7 @@ import {
 } from "@pibot/execution";
 import { type ChangesScope, changesError } from "../changes-scope.ts";
 import type { ChangesService } from "../changes-service.ts";
-import { probeRepo } from "../git/changes-repo.ts";
+import { notRepoError, probeRepo } from "../git/changes-repo.ts";
 
 export type WriteMode = "sandbox" | "direct";
 
@@ -39,7 +39,7 @@ async function run(
   const root = scope.root.path;
   const { deps } = service.local;
   const probe = await probeRepo(service.reader, root, service.platform, signal);
-  if (probe.state !== "repo") throw changesError("changes_not_repo");
+  if (probe.state !== "repo") throw notRepoError(probe);
   if (probe.state === "repo" && !probe.info.layoutOk) {
     const managed = service.managedLayout;
     if (!managed || !(await managed.allows(scope, signal)))
@@ -99,7 +99,7 @@ export async function executeWrite(
   signal: AbortSignal,
 ) {
   const probe = await probeRepo(service.reader, scope.root.path, service.platform, signal);
-  if (probe.state !== "repo") throw changesError("changes_not_repo");
+  if (probe.state !== "repo") throw notRepoError(probe);
   if (probe.info.layoutOk) {
     if (!service.userWriteLease) throw changesError("changes_busy");
     return service.userWriteLease(scope, signal, (bound, assertAuthorized) =>

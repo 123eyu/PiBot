@@ -84,7 +84,7 @@ export function GitRemoteToolbar({
             label={t(state.error)}
             title={t(state.error)}
             disabled={state.busy || state.loading}
-            onClick={() => void state.reload()}
+            onClick={state.recheck}
           >
             <Icon name="warning" size={16} />
           </IconButton>
@@ -105,11 +105,7 @@ export function GitRemoteToolbar({
       {state.error && !state.dialog && (
         <p className={styles.error} role="alert">
           {t(state.error)}{" "}
-          <Button
-            variant="ghost"
-            disabled={state.busy || state.loading}
-            onClick={() => void state.reload()}
-          >
+          <Button variant="ghost" disabled={state.busy || state.loading} onClick={state.recheck}>
             {t("changes.remote.refresh")}
           </Button>
         </p>

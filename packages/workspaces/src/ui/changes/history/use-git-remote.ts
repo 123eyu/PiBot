@@ -42,7 +42,8 @@ export function useGitRemote(target: ChangesTarget, status: ChangesStatus, refre
   const key = JSON.stringify(target),
     lifetime = useRef(new AbortController()),
     lock = useRef(false),
-    generation = useRef(0);
+    generation = useRef(0),
+    reprobed = useRef(false);
   const [data, setData] = useState<RemoteSnapshot>(),
     [loading, setLoading] = useState(true),
     [busy, setBusy] = useState(false),
@@ -73,8 +74,17 @@ export function useGitRemote(target: ChangesTarget, status: ChangesStatus, refre
         if (generation.current === current && !owner.signal.aborted) setData(value);
       })
       .catch((failure) => {
-        if (!owner.signal.aborted && generation.current === current)
-          setError(remoteErrorKey(failure));
+        if (!owner.signal.aborted && generation.current === current) {
+          const key = remoteErrorKey(failure);
+          setError(key);
+          // Git went away under an open repository view: the panel's own status re-probes and
+          // shows the install card instead of a stale branch.
+          // Once per view, so a status that still says "repo" cannot loop.
+          if (key === "changes.error.changes_git_unavailable" && !reprobed.current) {
+            reprobed.current = true;
+            refresh?.();
+          }
+        }
       })
       .finally(() => {
         if (!owner.signal.aborted && generation.current === current) setLoading(false);
@@ -108,6 +118,11 @@ export function useGitRemote(target: ChangesTarget, status: ChangesStatus, refre
     dialog,
     setDialog,
     reload,
+    /** 「刷新状态」 re-reads the panel too: a failed remote read can mean Git itself went away. */
+    recheck: () => {
+      refresh?.();
+      void reload();
+    },
     open: async (action: RemoteAction) => {
       const snapshot = await reload();
       if (snapshot && !lifetime.current.signal.aborted)

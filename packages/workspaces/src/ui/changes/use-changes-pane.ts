@@ -298,11 +298,17 @@ export function useChangesPane(options: ChangesPaneOptions) {
   };
   const commitNow = async (message: string, author?: GitIdentity) => {
     const paths = files.filter((entry) => !excluded.has(entry.key)).map((entry) => entry.key);
-    const result = await peer.call(
-      "changes.commit",
-      { ...target, paths, message, ...(author ? { author } : {}) },
-      { timeoutMs: 200_000 },
-    );
+    const result = await peer
+      .call(
+        "changes.commit",
+        { ...target, paths, message, ...(author ? { author } : {}) },
+        { timeoutMs: 200_000 },
+      )
+      .catch((error: unknown) => {
+        // Git removed under an open view: re-probe so the panel switches to the install card.
+        if (changesErrorKey(error) === "changes.error.changes_git_unavailable") source?.refresh();
+        throw error;
+      });
     setCommitted({ oid: result.commit, subject: message.split("\n")[0] ?? "" });
     setExcluded(new Set());
     setSelected(undefined);

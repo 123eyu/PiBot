@@ -25,6 +25,16 @@ export type RepoProbe =
   | { state: "none"; reason: "not_repo" | "git_unavailable" };
 type Platform = "darwin" | "linux" | "win32";
 
+/**
+ * The error for a write or read that needs a repository. Git missing is its own code, so the
+ * panel offers the install card instead of calling a known repository "not a repository".
+ */
+export function notRepoError(probe: Extract<RepoProbe, { state: "none" }>) {
+  return changesError(
+    probe.reason === "git_unavailable" ? "changes_git_unavailable" : "changes_not_repo",
+  );
+}
+
 const emptyTrees: Record<string, string> = {
   sha1: "4b825dc642cb6eb9a060e54bf8d69288fbee4904",
   sha256: "6ef19b41225c5369f1c104d45d8d85efa9b057b53b14b4b9b939dd74decc5321",

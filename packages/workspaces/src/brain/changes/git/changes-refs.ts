@@ -5,7 +5,7 @@ import type { ChangesService } from "../changes-service.ts";
 import { prepare } from "../write/changes-write.ts";
 import { executeWrite } from "../write/changes-write-run.ts";
 import { parseStatus } from "./changes-git.ts";
-import { probeRepo, read, repoOperation } from "./changes-repo.ts";
+import { notRepoError, probeRepo, read, repoOperation } from "./changes-repo.ts";
 
 export async function listRefs(
   service: ChangesService,
@@ -14,7 +14,7 @@ export async function listRefs(
 ) {
   const scope = await service.scope(params, signal);
   const probe = await probeRepo(service.reader, scope.root.path, service.platform, signal);
-  if (probe.state !== "repo") throw changesError("changes_not_repo");
+  if (probe.state !== "repo") throw notRepoError(probe);
   const result = await read(() =>
     service.reader.run(
       { op: "refs", kind: params.kind, after: params.after },
@@ -53,7 +53,7 @@ export async function writeRef(
 ) {
   const scope = await service.scope(params, signal);
   const probe = await probeRepo(service.reader, scope.root.path, service.platform, signal);
-  if (probe.state !== "repo") throw changesError("changes_not_repo");
+  if (probe.state !== "repo") throw notRepoError(probe);
   if (service.platform === "win32" || !probe.info.layoutOk)
     throw changesError("changes_ref_unavailable");
   const prepared = await prepare(service, scope, signal);

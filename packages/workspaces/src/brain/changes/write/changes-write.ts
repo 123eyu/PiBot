@@ -7,7 +7,7 @@ import { resolveRunWorkplace } from "../../runtime.ts";
 import { type ChangesScope, changesError, writeMode } from "../changes-scope.ts";
 import type { ChangesService } from "../changes-service.ts";
 import { parseDiff, parseStatus, type StatusEntry } from "../git/changes-git.ts";
-import { probeRepo, read, readIdentity, repoOperation } from "../git/changes-repo.ts";
+import { notRepoError, probeRepo, read, readIdentity, repoOperation } from "../git/changes-repo.ts";
 import { executeWrite } from "./changes-write-run.ts";
 
 /**
@@ -36,8 +36,12 @@ export function coAuthorTrailer(botName: string) {
 export async function prepare(service: ChangesService, scope: ChangesScope, signal: AbortSignal) {
   const root = scope.root;
   if (root.role === "readonly") throw changesError("changes_readonly_root");
+  // Without Git the probe cannot recognise the repository either: asking first lets the panel
+  // offer the Git install card instead of calling a known repository "not a repository".
+  const program = await service.reader.program();
+  if (!program) throw changesError("changes_git_unavailable");
   const probe = await probeRepo(service.reader, root.path, service.platform, signal);
-  if (probe.state !== "repo") throw changesError("changes_not_repo");
+  if (probe.state !== "repo") throw notRepoError(probe);
   // The repository's .git is above the folder, outside the write boundary.
   if (probe.info.subdirectory) throw changesError("changes_repo_above_folder");
   if (
@@ -64,8 +68,6 @@ export async function prepare(service: ChangesService, scope: ChangesScope, sign
     )
       throw changesError("changes_busy");
   }
-  const program = await service.reader.program();
-  if (!program) throw changesError("changes_git_unavailable");
   return { info: probe.info, program, mode };
 }
 

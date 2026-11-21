@@ -3,7 +3,7 @@ import type { MethodParams } from "@pibot/workspaces-contract/full";
 import { type ChangesScope, changesError } from "../changes-scope.ts";
 import type { ChangesService } from "../changes-service.ts";
 import { parseStatus } from "./changes-git.ts";
-import { probeRepo, read } from "./changes-repo.ts";
+import { notRepoError, probeRepo, read } from "./changes-repo.ts";
 
 export async function remoteSnapshot(
   service: ChangesService,
@@ -11,7 +11,7 @@ export async function remoteSnapshot(
   signal: AbortSignal,
 ) {
   const probe = await probeRepo(service.reader, scope.root.path, service.platform, signal);
-  if (probe.state !== "repo") throw changesError("changes_not_repo");
+  if (probe.state !== "repo") throw notRepoError(probe);
   const run = (operation: Parameters<typeof service.reader.run>[0]) =>
     read(() =>
       service.reader.run(operation, { cwd: scope.root.path, signal, maxBytes: 256 * 1024 }),

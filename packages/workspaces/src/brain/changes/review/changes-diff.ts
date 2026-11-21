@@ -13,7 +13,7 @@ import {
   parseNumstat,
   parseStatus,
 } from "../git/changes-git.ts";
-import { probeRepo, read } from "../git/changes-repo.ts";
+import { notRepoError, probeRepo, read } from "../git/changes-repo.ts";
 import { turnPreviewable, visibleTurn } from "./changes-file.ts";
 
 /** One file's diff text is capped; beyond it only the counts are returned. */
@@ -23,7 +23,7 @@ const TURN_COUNTED = 200;
 
 export async function repo(service: ChangesService, scope: ChangesScope, signal: AbortSignal) {
   const probe = await probeRepo(service.reader, scope.root.path, service.platform, signal);
-  if (probe.state !== "repo") throw changesError("changes_not_repo");
+  if (probe.state !== "repo") throw notRepoError(probe);
   return probe.info;
 }
 
