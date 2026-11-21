@@ -103,7 +103,10 @@ export class AutoCheckRun {
     const folder = this.service.folderOf(cwd, context.runWorkplace?.boundary.primaryId === "home");
     let commands = this.service.folders.get(folder.key);
     if (commands === null) {
-      if (!allowProposal) {
+      // Retest 2026-11-21: a group step's proposal card lands in its task thread, which nobody
+      // watches during a plan, so the step sat out the whole wait. The plan's own checks verify
+      // the step; skipping the proposal ends the same way the unanswered card did.
+      if (!allowProposal || (context.groupId && context.executionTaskId)) {
         this.halted = true;
         return result;
       }
