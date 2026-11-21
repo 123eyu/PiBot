@@ -252,6 +252,26 @@ export class ToolCallsRepo {
     return result;
   }
 
+  /** A run's latest calls of one tool, newest first, and how many it made in all. */
+  recentForRun(
+    runId: string,
+    tool: string,
+    limit: number,
+  ): { calls: StoredToolCall[]; total: number } {
+    const calls = this.db
+      .prepare(`SELECT ${columns} FROM ${source} JOIN messages m ON m.id = t.message_id
+      WHERE m.run_id = ? AND t.tool = ? ORDER BY t.created_at DESC, t.rowid DESC LIMIT ?`)
+      .all(runId, tool, Math.max(0, Math.min(limit, 50)))
+      .map(parseTool);
+    const total = Number(
+      this.db
+        .prepare(`SELECT count(*) AS n FROM tool_calls t JOIN messages m ON m.id = t.message_id
+        WHERE m.run_id = ? AND t.tool = ?`)
+        .get(runId, tool)?.n ?? 0,
+    );
+    return { calls, total };
+  }
+
   getLogPath(runId: string, toolCallId?: string): string | undefined {
     // A run may hold one log per command. The step's tool call selects its own; without it only a
     // unique run log is safe to use — conflicting persisted paths must not choose an arbitrary file.

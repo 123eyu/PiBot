@@ -142,10 +142,17 @@ export class GroupWorkflowPause {
         // The rerun of each is told files may have changed and keeps the workspace it had
         // (dispatch); the marker names the stopped run, so only that rerun reads it.
         const resumed = { ...ledger.resumed };
+        const continuedAt = new Date().toISOString();
         for (const stepId of picked) {
           const state = ready.get(stepId);
-          if (state?.executionRunId)
-            resumed[stepId] = { runId: state.executionRunId, attempt: state.attempt };
+          if (!state?.executionRunId) continue;
+          // The stopped run's end bounds what "changed during the pause" means for its rerun.
+          const pausedAt = service.runs.get(state.executionRunId)?.finishedAt ?? undefined;
+          resumed[stepId] = {
+            runId: state.executionRunId,
+            attempt: state.attempt,
+            ...(pausedAt ? { pausedAt, continuedAt } : {}),
+          };
         }
         progress.save(latest, {
           ...ledger,

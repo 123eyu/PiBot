@@ -23,6 +23,7 @@ import {
 import { checkMethodFolderInputs } from "./group-method-inputs.ts";
 import { stepMerged, workspaceFolder, workspaceSteps } from "./group-plan-step-workspaces.ts";
 import { assertPlanWorkplace } from "./group-plan-workplace.ts";
+import { resumeSummary, resumeSummaryCounts } from "./group-step-resume-summary.ts";
 import { stepHandoff, stepInstructions } from "./group-workflow-brief.ts";
 import { reviewPrompt, reviewRequirements, summaryStep } from "./group-workflow-delivery-review.ts";
 import { progressOf } from "./group-workflow-progress.ts";
@@ -191,10 +192,8 @@ export class GroupWorkflowDispatcher {
       return this.engine.block(record, definition, state, "budget_exhausted");
     const group = service.active(record.groupId, state.ownerBotId);
     const frozenGroup = workflow.workplace ? { ...group, ...workflow.workplace } : group;
-    const access = workspaceFiles(
-      service.deps.local,
-      (await groupWorkplace(service.deps.local, state.ownerBotId, frozenGroup, signal)).boundary,
-    );
+    const place = await groupWorkplace(service.deps.local, state.ownerBotId, frozenGroup, signal);
+    const access = workspaceFiles(service.deps.local, place.boundary);
     if (workflow.source.kind === "dynamic" && workflow.delivery)
       await checkMethodFolderInputs(
         workflow,
@@ -282,6 +281,12 @@ export class GroupWorkflowDispatcher {
         : undefined;
     const kept = keep?.state === "kept" && ownFolder ? keep : undefined;
     const lost = keep?.state === "lost" || (keep?.state === "kept" && !ownFolder);
+    // Read before the transaction and before the old workspace is discarded (its root names it).
+    // Every rerun but a kept workspace's starts from the group folder, so edits there matter.
+    const summary =
+      continued && marker
+        ? await this.resumeSummary(marker, place.cwd, previousTaskId, !kept, access, signal)
+        : undefined;
     // A redone step starts from the latest merged base; its earlier workspace is never merged
     // (a kept one is the new task's from the transaction below).
     if (previousTaskId) {
@@ -312,7 +317,7 @@ export class GroupWorkflowDispatcher {
         (value) => service.deps.redactor.redact(value),
         text,
         !!ownFolder,
-        continued ? { lost } : undefined,
+        continued ? { lost, ...(summary ? { summary } : {}) } : undefined,
       );
     const reviewText =
       review && reviewPrompt(service, review, workflow.contract.steps ?? [], states);
@@ -454,9 +459,59 @@ export class GroupWorkflowDispatcher {
           workspace: kept ? "kept" : lost ? "lost" : "none",
         }),
       );
+    if (summary)
+      service.deps.logger.info(
+        JSON.stringify({
+          module: "group-workflow",
+          event: "step_resume_summary",
+          workflowRunId: record.id,
+          stepId: definition.id,
+          ...resumeSummaryCounts(summary),
+        }),
+      );
     // Only needed by the step's merge, long after its run started.
     if (kept && previousTaskId)
       await service.memberWorktrees.adoptedStep(previousTaskId, task.task.id);
+  }
+
+  /** Auxiliary context: a failure leaves the rerun's brief without it, never the step blocked. */
+  private async resumeSummary(
+    marker: NonNullable<ReturnType<typeof progressOf>["resumed"]>[string],
+    cwd: string,
+    previousTaskId: string | null | undefined,
+    shared: boolean,
+    access: ReturnType<typeof workspaceFiles>,
+    signal: AbortSignal,
+  ) {
+    const { service } = this.engine;
+    try {
+      const isolated = previousTaskId
+        ? service.memberWorktrees.isolated(previousTaskId)
+        : undefined;
+      return await resumeSummary(
+        service,
+        {
+          runId: marker.runId,
+          ...(marker.pausedAt ? { pausedAt: marker.pausedAt } : {}),
+          ...(marker.continuedAt ? { continuedAt: marker.continuedAt } : {}),
+          cwd,
+          ...(isolated?.primary === cwd ? { isolated } : {}),
+          paths: access.paths,
+          scanShared: shared && !access.remote,
+        },
+        signal,
+      );
+    } catch (error) {
+      if (signal.aborted) throw error;
+      service.deps.logger.warn(
+        JSON.stringify({
+          module: "group-workflow",
+          event: "step_resume_summary_failed",
+          code: error instanceof RpcError ? error.message : "internal",
+        }),
+      );
+      return undefined;
+    }
   }
 
   private async discard(taskId: string) {

@@ -92,7 +92,13 @@ const Progress = z.strictObject({
   resumed: z
     .record(
       z.string(),
-      z.strictObject({ runId: z.string().max(64), attempt: z.number().int().nonnegative() }),
+      z.strictObject({
+        runId: z.string().max(64),
+        attempt: z.number().int().nonnegative(),
+        /** When the stopped run ended and when the group continued: the rerun's summary window. */
+        pausedAt: z.iso.datetime().optional(),
+        continuedAt: z.iso.datetime().optional(),
+      }),
     )
     .refine((items) => Object.keys(items).length <= 20)
     .optional(),

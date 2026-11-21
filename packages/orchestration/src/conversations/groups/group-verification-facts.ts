@@ -42,7 +42,8 @@ type ChangeRows = readonly import("@pibot/storage").RunFileSummary[];
 type Paths = typeof import("node:path").posix;
 type Isolated = { root: string; primary: string };
 
-function changedFiles(rows: ChangeRows, paths: Paths, root: string, isolated?: Isolated) {
+/** Every path a run changed in its working folder (or its own workspace), relative to it. */
+export function changedFiles(rows: ChangeRows, paths: Paths, root: string, isolated?: Isolated) {
   return rows.flatMap((row) => {
     if (row.root !== root && !(isolated?.root === row.root && isolated.primary === root)) return [];
     if (

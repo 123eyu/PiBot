@@ -2,6 +2,7 @@ import { deliveryCorrectionText } from "@pibot/brain/orchestration-kit";
 import type { GroupExecutionPlan, HandoffSpec, WorkflowStep } from "@pibot/protocol-base";
 import type { HandoffRecord } from "@pibot/storage";
 import { handoffBrief } from "./group-handoff-text.ts";
+import { type ResumeSummary, resumeSummaryText } from "./group-step-resume-summary.ts";
 import { groupWorkflowBriefPrompts } from "./prompts/group-workflow-brief.ts";
 
 export function stepHandoff(step: WorkflowStep, workflowRunId: string): HandoffSpec {
@@ -15,6 +16,8 @@ export function stepHandoff(step: WorkflowStep, workflowRunId: string): HandoffS
     acceptance: step.acceptance,
   };
 }
+
+const BRIEF_CHARS = 16_000;
 
 /** Never truncate required paths/acceptance or input values silently; fail admission explicitly. */
 export function stepInstructions(
@@ -33,9 +36,10 @@ export function stepInstructions(
   ownWorkspace = false,
   /**
    * Maintainers 2026-11-21: the rerun of a step the group's pause stopped. Fixed lines at the end,
-   * so every other brief keeps its text; `lost` when its unmerged workspace could not be kept.
+   * so every other brief keeps its text; `lost` when its unmerged workspace could not be kept, and
+   * Pi Bot's record of the stopped run last, shortened to fit (the task itself is never cut).
    */
-  continued?: { lost: boolean },
+  continued?: { lost: boolean; summary?: ResumeSummary },
 ): string | undefined {
   const failed = previous?.result?.items.filter((item) => item.status === "fail") ?? [];
   const text = redact(
@@ -60,7 +64,11 @@ export function stepInstructions(
       .filter(Boolean)
       .join("\n\n"),
   );
-  return text.length <= 16_000 ? text : undefined;
+  if (text.length > BRIEF_CHARS) return undefined;
+  const summary = continued?.summary
+    ? resumeSummaryText(continued.summary, BRIEF_CHARS - text.length - 2, continued.lost)
+    : "";
+  return summary ? `${text}\n\n${summary}` : text;
 }
 
 /** Defer only declared human checks; missing evidence and unreadable program checks still stop. */
