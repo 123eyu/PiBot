@@ -306,6 +306,10 @@ function turnsReason(reason: string, zh: boolean) {
       return zh ? "执行端上的仓库有未提交的改动" : "the runner repository has uncommitted changes";
     case "managed_folder_too_large":
       return zh ? "文件夹太大，建不了独立工作区" : "the folder is too large for own workspaces";
+    case "git_unavailable":
+      return zh
+        ? "这台电脑没有安装 Git，建不了独立工作区"
+        : "Git is not installed on this computer, so steps cannot have own workspaces";
     case "worktree_quota":
       return zh
         ? "这个仓库的独立工作区已达上限"

@@ -1,5 +1,5 @@
 import type { PlanStepWorkspace, ToolRunContext } from "@pibot/brain/kit";
-import { ManagedFolderError, managedFolderRepository } from "@pibot/execution";
+import { ExecError, ManagedFolderError, managedFolderRepository } from "@pibot/execution";
 import { type Group, RpcError } from "@pibot/workspaces-contract/full";
 import type { groupWorkplace } from "../runtime.ts";
 import type { GroupMemberWorktrees } from "./group-member-worktrees.ts";
@@ -84,6 +84,10 @@ export async function prepareStepWorktree(
     } catch (error) {
       if (error instanceof ManagedFolderError && error.folderCode === "managed_folder_too_large")
         return turns(error.folderCode);
+      // Most Windows computers have no Git and Pi Bot ships none: parallel steps take turns in
+      // the shared folder instead of failing every one of them as an internal error.
+      if (error instanceof ExecError && error.code === "git_unavailable")
+        return turns("git_unavailable");
       throw error;
     }
     place = { ...baseline, cwd: managed };
