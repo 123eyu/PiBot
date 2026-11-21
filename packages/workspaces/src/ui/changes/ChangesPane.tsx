@@ -347,43 +347,47 @@ export function ChangesPane({
           ) : undefined
         }
       />
-      {model.reviews.historyOpen && model.reviews.history.length > 0 && (
-        <section
-          className={styles.reviewHistory}
-          aria-label={model.t("agentReview.historicalFindings")}
-        >
-          <p>{model.t("agentReview.historyExplanation")}</p>
-          {model.reviews.history.map((finding) => (
-            <article key={finding.id}>
-              <strong>
-                {finding.path}
-                {finding.line ? `:${finding.line}` : ""}
-              </strong>
-              <p>{finding.message}</p>
-            </article>
-          ))}
-        </section>
-      )}
-      {/* A single open file gets the height; the notices describe the list. */}
-      {(wide || view !== "diff" || !file) && <Notices model={model} />}
-      <div className={styles.body} data-wide={wide || undefined}>
-        {scope === "history" && !model.commit ? (
-          <History
-            peer={options.peer}
-            target={model.target}
-            revision={`${model.historyRevision}:${model.git?.state === "repo" ? model.git.head : ""}`}
-            open={model.setCommit}
-          />
-        ) : wide ? (
-          <>
-            <div className={styles.listColumn}>{list}</div>
-            <div className={styles.diffColumn}>
-              {diff || <p className={styles.listEmpty}>{t("changes.diff.pick")}</p>}
-            </div>
-          </>
-        ) : (
-          diff || <div className={styles.listColumn}>{list}</div>
+      {/* Notices such as the Git install card can be taller than a short window: this middle
+          region scrolls so their buttons stay reachable while the bars above and below stay put. */}
+      <div className={styles.scroller}>
+        {model.reviews.historyOpen && model.reviews.history.length > 0 && (
+          <section
+            className={styles.reviewHistory}
+            aria-label={model.t("agentReview.historicalFindings")}
+          >
+            <p>{model.t("agentReview.historyExplanation")}</p>
+            {model.reviews.history.map((finding) => (
+              <article key={finding.id}>
+                <strong>
+                  {finding.path}
+                  {finding.line ? `:${finding.line}` : ""}
+                </strong>
+                <p>{finding.message}</p>
+              </article>
+            ))}
+          </section>
         )}
+        {/* A single open file gets the height; the notices describe the list. */}
+        {(wide || view !== "diff" || !file) && <Notices model={model} />}
+        <div className={styles.body} data-wide={wide || undefined}>
+          {scope === "history" && !model.commit ? (
+            <History
+              peer={options.peer}
+              target={model.target}
+              revision={`${model.historyRevision}:${model.git?.state === "repo" ? model.git.head : ""}`}
+              open={model.setCommit}
+            />
+          ) : wide ? (
+            <>
+              <div className={styles.listColumn}>{list}</div>
+              <div className={styles.diffColumn}>
+                {diff || <p className={styles.listEmpty}>{t("changes.diff.pick")}</p>}
+              </div>
+            </>
+          ) : (
+            diff || <div className={styles.listColumn}>{list}</div>
+          )}
+        </div>
       </div>
       <Footer model={model} />
       {execution?.conversationId && execution.topics.length > 0 && (

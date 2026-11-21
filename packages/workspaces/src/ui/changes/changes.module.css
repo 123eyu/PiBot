@@ -390,9 +390,19 @@
 }
 
 /* body */
+.scroller {
+  flex: 1 1 0;
+  min-height: 96px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+}
 .body {
   flex: 1;
-  min-height: 0;
+  /* Enough room for the file list once tall notices push it down; the scroller takes the rest. */
+  min-height: 240px;
   display: flex;
 }
 .listColumn {
@@ -1095,13 +1105,21 @@
 
 /* footer */
 .footer {
-  flex: none;
+  /* A failed commit can add the Git install card here: the footer then shrinks and scrolls
+     instead of pushing its buttons past the bottom of the pane. */
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px 12px;
   border-top: 1px solid var(--b1);
   background: var(--bg);
+}
+.footer > * {
+  flex-shrink: 0;
 }
 .commentsBar {
   display: flex;
