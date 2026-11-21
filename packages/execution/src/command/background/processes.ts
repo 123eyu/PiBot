@@ -24,6 +24,19 @@ function createdAtOrAfter(row: ProcessRow, earliest: bigint) {
 }
 
 /**
+ * Windows: ParentProcessId keeps naming a creator after it exits, and that PID may now belong to
+ * another process. A real child started after its parent; an older one is not ours to kill.
+ */
+function startedAfter(row: ProcessRow, parent: ProcessRow) {
+  try {
+    return BigInt(row.started) >= BigInt(parent.started);
+  } catch {
+    // An unreadable time cannot prove the relation, and this set is killed.
+    return false;
+  }
+}
+
+/**
  * Why a process tree did not provably exit: kept as a class so the cleanup retry can tell an
  * unconfirmed tree (processes remain) from a failed snapshot (existence unknown).
  */
@@ -147,11 +160,13 @@ export function createBackgroundProcesses(deps: BackgroundDependencies) {
       // Descendants started by the recorded processes after the last record.
       for (let grew = true; grew; ) {
         grew = false;
-        for (const row of rows)
-          if (!found.has(row.pid) && found.has(row.parent)) {
-            found.set(row.pid, row);
-            grew = true;
-          }
+        for (const row of rows) {
+          const parent = found.get(row.parent);
+          if (found.has(row.pid) || !parent) continue;
+          if (platform === "win32" && !startedAfter(row, parent)) continue;
+          found.set(row.pid, row);
+          grew = true;
+        }
       }
       return [...found.values()];
     };

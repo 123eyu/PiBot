@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { stallTolerantTimeout } from "../core/deadline.ts";
 import { ExecError } from "../core/types.ts";
 
 export type ProcessRow = { pid: number; parent: number; group: number; started: string };
@@ -17,6 +18,13 @@ const POLL_FAILURE_LIMIT = 3;
 // cleanup never learns about. Time counts even before the failure limit is reached (W6-1 review):
 // two timed-out snapshots put the real blind window at roughly 11s, not the 6s threshold alone.
 const POLL_BLIND_MS = 6_000;
+/** .NET ticks (100 ns since 0001-01-01) of the Unix epoch, the unit of Windows CreationDate. */
+const EPOCH_TICKS = 621355968000000000n;
+
+function ticks(value: string | undefined) {
+  if (value === undefined || !/^\d+$/.test(value)) return undefined;
+  return BigInt(value);
+}
 
 /** Compare ps start times as well as ancestry to avoid retaining stale process identities. */
 export async function snapshot(
@@ -42,7 +50,9 @@ export async function snapshot(
       windowsHide: true,
     });
     let text = "";
-    const timer = setTimeout(
+    // A stalled brain must not turn a finished snapshot into a timeout (Windows 2026-11-21: a
+    // ~9 s stall failed a worktree add's cleanup as unconfirmed although nothing was left).
+    const timer = stallTolerantTimeout(
       () => {
         ps.kill("SIGKILL");
         reject(new ExecError("command_failed", "process_snapshot_timeout"));
@@ -59,11 +69,11 @@ export async function snapshot(
       }
     });
     ps.once("error", () => {
-      clearTimeout(timer);
+      timer.clear();
       reject(new ExecError("command_failed", "process_snapshot_failed"));
     });
     ps.once("close", (code) => {
-      clearTimeout(timer);
+      timer.clear();
       if (code !== 0) return reject(new ExecError("command_failed", "process_snapshot_failed"));
       const rows: ProcessRow[] = [];
       for (const line of text.split("\n")) {
@@ -90,6 +100,9 @@ export function createTreeState(root: number, platform: NodeJS.Platform, spawned
   const known = new Map<number, string>();
   let firstSnapshot = true;
   let rootStarted: string | undefined;
+  // Windows: the latest creation time a child of the exited root can have. Its PID may be reused
+  // by an unrelated process whose children then name the same parent; those start later.
+  let rootEnded: bigint | undefined;
   return {
     get rootStarted() {
       return rootStarted;
@@ -101,6 +114,13 @@ export function createTreeState(root: number, platform: NodeJS.Platform, spawned
         firstSnapshot = false;
       }
       const rootReused = live.has(root) && live.get(root)?.started !== rootStarted;
+      if (platform === "win32" && rootEnded === undefined && (rootReused || !live.has(root))) {
+        // The update runs after the snapshot was read, so "now" is no earlier than the exit; a
+        // reusing process was created after the root ended.
+        const now = BigInt(Date.now()) * 10_000n + EPOCH_TICKS;
+        const reuser = rootReused ? ticks(live.get(root)?.started) : undefined;
+        rootEnded = reuser !== undefined && reuser < now ? reuser : now;
+      }
       for (const [pid, started] of known) if (live.get(pid)?.started !== started) known.delete(pid);
       const children = new Map<number, ProcessRow[]>();
       for (const row of rows) {
@@ -117,11 +137,12 @@ export function createTreeState(root: number, platform: NodeJS.Platform, spawned
           if (known.has(row.pid)) continue;
           if (platform === "win32") {
             const creator = known.get(row.parent) ?? rootStarted;
-            const earliest = creator
-              ? BigInt(creator)
-              : BigInt(spawnedAt) * 10_000n + 621355968000000000n;
+            const earliest = creator ? BigInt(creator) : BigInt(spawnedAt) * 10_000n + EPOCH_TICKS;
             // ParentProcessId can refer to a recycled PID: older orphans are not our descendants.
             if (BigInt(row.started) < earliest) continue;
+            // Nor are children started after the root ended, by whatever reused its PID.
+            if (row.parent === root && rootEnded !== undefined && BigInt(row.started) > rootEnded)
+              continue;
           }
           known.set(row.pid, row.started);
           queue.push(row.pid);
@@ -160,6 +181,11 @@ export function trackProcessTree(
       });
     return scanning;
   };
+  // A scan already running may have read the table before the exit or kill it must confirm.
+  const fresh = async () => {
+    await scanning?.catch(() => {});
+    return scan();
+  };
   // Only the kill paths below are hard errors: they cannot afford to guess without a snapshot.
   const poll = () =>
     void scan().then(
@@ -191,7 +217,8 @@ export function trackProcessTree(
   );
   poll();
   return {
-    members: scan,
+    /** `fresh`: only a snapshot started after this call counts (proof that something ended). */
+    members: (requireFresh = false) => (requireFresh ? fresh() : scan()),
     record: () => ({
       group: root,
       processes: latest.map(({ pid, started }) => ({ pid, started })),

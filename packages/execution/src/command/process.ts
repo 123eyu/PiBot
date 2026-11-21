@@ -2,7 +2,7 @@ import { type ChildProcess, spawn } from "node:child_process";
 import type { Readable, Writable } from "node:stream";
 import { StringDecoder } from "node:string_decoder";
 import { z } from "zod";
-import { withDeadline } from "../core/deadline.ts";
+import { stallTolerantTimeout, withDeadline } from "../core/deadline.ts";
 import { ExecError, type ExecRedactor } from "../core/types.ts";
 import {
   MAX_REPORTED_VIOLATIONS,
@@ -75,35 +75,39 @@ export async function windowsTree(
   env: NodeJS.ProcessEnv,
   signal: AbortSignal,
 ) {
-  const members = await tree.members();
+  // Fresh reads only: a scan started before the exit lists PIDs that may be reused by now, and one
+  // started before taskkill would report the processes it just ended as still running.
+  const members = await tree.members(true);
   if (!members.length) return;
   // Explicit descendant PIDs still work after the original PowerShell has exited.
   for (let offset = 0; offset < members.length; offset += 128) {
     signal.throwIfAborted();
     const batch = members.slice(offset, offset + 128);
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve) => {
       const killer = spawn(
         `${env.SystemRoot}\\System32\\taskkill.exe`,
         [...batch.flatMap(({ pid }) => ["/PID", String(pid)]), "/T", "/F"],
         { env, stdio: "ignore", windowsHide: true },
       );
-      const timer = setTimeout(() => {
+      // taskkill's own outcome proves nothing either way: it reports PIDs that already exited as
+      // not found and may hang under load. The fresh snapshot below is the only proof.
+      const timer = stallTolerantTimeout(() => {
         killer.kill();
         killer.unref();
-        reject(new ExecError("command_failed", "process_kill_failed"));
+        resolve();
       }, 2000);
       killer.once("error", () => {
-        clearTimeout(timer);
-        reject(new ExecError("command_failed", "process_kill_failed"));
+        timer.clear();
+        resolve();
       });
       killer.once("close", () => {
-        clearTimeout(timer);
-        // taskkill may report missing PIDs in a partly-exited batch; verify the whole tree below.
+        timer.clear();
         resolve();
       });
     });
   }
-  if ((await tree.members()).length) throw new ExecError("command_failed", "process_kill_failed");
+  if ((await tree.members(true)).length)
+    throw new ExecError("command_failed", "process_kill_failed");
 }
 
 export async function executeProcess(options: {
@@ -143,7 +147,7 @@ export async function executeProcess(options: {
   let preparing: Promise<void> | undefined;
   let exitCode: number | null = null;
   let killTask: Promise<void> | undefined;
-  let forceDrain: ReturnType<typeof setTimeout> | undefined;
+  let forceDrain: ReturnType<typeof stallTolerantTimeout> | undefined;
   let finishWait: (() => void) | undefined;
   let rootClosed = false;
   let drained = false;
@@ -184,8 +188,9 @@ export async function executeProcess(options: {
     );
   const terminate = () => {
     if (killTask) return;
-    // Neither an escaped session retaining pipes nor failed OS cleanup may hold busy forever.
-    forceDrain = setTimeout(() => {
+    // Neither an escaped session retaining pipes nor failed OS cleanup may hold busy forever. A
+    // stalled brain must not read as an escaped pipe holder before the queued close is seen.
+    forceDrain = stallTolerantTimeout(() => {
       failed = true;
       child.stdout?.destroy();
       child.stderr?.destroy();
@@ -359,7 +364,7 @@ export async function executeProcess(options: {
     await closed;
     // The force-drain timer only exists to unblock a wait that pipes never end; once close is
     // observed, a long cleanup snapshot must not be mistaken for an escaped pipe holder.
-    clearTimeout(forceDrain);
+    forceDrain?.clear();
     clearTimeout(startupTimer);
     terminate();
     await killTask;
@@ -370,7 +375,7 @@ export async function executeProcess(options: {
     // it must not surface as the transient monitor fault the model is told to retry (found in
     // review).
     const leftovers = tree
-      ? await tree.members().then(
+      ? await tree.members(true).then(
           (members) => members.length,
           () => {
             throw cleanupFailed();
@@ -404,7 +409,7 @@ export async function executeProcess(options: {
           : truncatedOutput,
     };
   } finally {
-    clearTimeout(forceDrain);
+    forceDrain?.clear();
     clearTimeout(startupTimer);
     clearTimeout(finishTimer);
     options.signal.removeEventListener("abort", terminate);
