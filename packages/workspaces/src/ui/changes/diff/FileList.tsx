@@ -9,6 +9,9 @@ import { type FileRow, firstRowAt, ROW_HEIGHT } from "./file-rows.ts";
 const OVERSCAN = 360;
 const number = new Intl.NumberFormat("en-US");
 export const formatCount = (value: number) => number.format(value);
+/** A count for a plural string: plural forms are picked from numbers, and below 1000 the
+ * formatted text is the same digits anyway. */
+export const pluralCount = (value: number) => (value < 1000 ? value : formatCount(value));
 
 export function Tag({ file }: { file: Pick<ListFile, "tag"> }) {
   const t = useT();

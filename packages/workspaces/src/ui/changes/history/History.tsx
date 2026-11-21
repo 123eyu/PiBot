@@ -3,7 +3,7 @@ import { useSettings } from "@pibot/renderer-kit";
 import type { ChangeCommit } from "@pibot/workspaces-contract/full";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "../changes.module.css";
-import { formatCount } from "../diff/FileList.tsx";
+import { pluralCount } from "../diff/FileList.tsx";
 import { ChangesIcon } from "../icons.tsx";
 import type { ChangesTarget } from "../store.ts";
 
@@ -76,7 +76,7 @@ export function History({
               <span className={styles.mono}>{shortOid(commit.oid)}</span> · {commit.author} ·{" "}
               {commitTime(commit.time, language)}
               {typeof commit.files === "number" &&
-                ` · ${t("changes.history.files", { count: formatCount(commit.files) })}`}
+                ` · ${t("changes.history.files", { count: pluralCount(commit.files) })}`}
             </span>
           </span>
           <ChangesIcon name="right" />

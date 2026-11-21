@@ -1,4 +1,10 @@
-import { auditGroup, auditResult, auditSummary, isSystemAudit } from "@pibot/client-core";
+import {
+  auditGroup,
+  auditResult,
+  auditSummary,
+  isSystemAudit,
+  isUserAudit,
+} from "@pibot/client-core";
 import type { AuditEntry, Bot } from "@pibot/protocol";
 import { BotAvatar, useSettings } from "@pibot/renderer-kit";
 import { Icon, IconTile } from "@pibot/ui";
@@ -25,7 +31,12 @@ export function AuditRow({
   const group = auditGroup(entry);
   const result = auditResult(entry, t);
   const system = isSystemAudit(entry);
-  const name = system ? t("audit.actor.system") : (bot?.name ?? t("audit.actor.deletedBot"));
+  const user = isUserAudit(entry);
+  const name = system
+    ? t("audit.actor.system")
+    : user
+      ? t("audit.actor.user")
+      : (bot?.name ?? t("audit.actor.deletedBot"));
   const what = auditSummary(entry, t, { source, botName: name });
   const mark = activityMark(group);
   const kind = t(group === "identity" ? "audit.kind.oauth.changed" : `activity.kind.${group}`);
@@ -46,7 +57,7 @@ export function AuditRow({
             hour12: false,
           })}
         </time>
-        <BotAvatar bot={system ? undefined : bot} label={name} size={22} state="idle" />
+        <BotAvatar bot={system || user ? undefined : bot} label={name} size={22} state="idle" />
         <span className={styles.botName} title={name}>
           {name}
         </span>

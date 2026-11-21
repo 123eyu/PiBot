@@ -28,6 +28,12 @@ function leaf(value: string | undefined) {
       .at(-1),
   );
 }
+const gitInstallReasons = ["denied", "no_elevation", "failed", "timeout", "cancelled"] as const;
+/** The Git install's failure reason in the reader's language; undefined for an unknown code. */
+export function gitInstallReason(detail: Pick<AuditDetail, "reasonCode">, t: AuditT) {
+  const code = gitInstallReasons.find((reason) => reason === detail.reasonCode);
+  return code ? t(`changes.git.reason.${code}`) : undefined;
+}
 export function auditTool(detail: AuditDetail): string | undefined {
   return detail.toolName ?? detail.category;
 }
@@ -60,6 +66,7 @@ export function auditTarget(detail: AuditDetail): string {
   return leaf(detail.target ?? detail.path);
 }
 const operationKeys: Record<string, TranslationKey> = {
+  git_install: "audit.git.operation",
   tool_discover: "tool.tool_discover",
   connector_discover: "tool.connector_discover",
   image_generation: "media.audit.operation",
@@ -372,7 +379,8 @@ export function auditFactRows(entry: AuditEntry, t: AuditT, fallbackName?: strin
   // The same went for every non-refusal event, so only refusals keep the "rule" row;
   // others show a known code as a plain note, and an unknown one says nothing at all.
   if ((detail.reason || detail.reasonCode) && entry.kind !== "skill.changed") {
-    if (isRoutineAuditKind(entry.kind)) add("activity.rule", routineAuditReason(entry, t));
+    if (entry.kind === "git.install") add("audit.detail.note", gitInstallReason(detail, t));
+    else if (isRoutineAuditKind(entry.kind)) add("activity.rule", routineAuditReason(entry, t));
     else if (isRefusalKind(entry.kind)) add("activity.rule", auditReason(detail, t, entry.kind));
     else {
       const code = detail.reasonCode ?? detail.reason ?? "";

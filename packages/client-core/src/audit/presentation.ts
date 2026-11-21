@@ -15,6 +15,7 @@ import {
   auditOperation,
   auditProvider,
   auditReason,
+  gitInstallReason,
   isKnownImageReason,
   safeAuditText,
 } from "./facts.ts";
@@ -225,6 +226,21 @@ export function isSystemAudit(entry: AuditEntry): boolean {
     entry.kind === "runtime.drain_failed" && entry.detail.reasonCode === "interactive_drain_failed"
   );
 }
+/**
+ * Rows a person did themselves are filed under main (the audit table needs a Bot) but belong to
+ * the user: today the Git install, which only a click on its card starts.
+ */
+export function isUserAudit(entry: Pick<AuditEntry, "kind" | "detail">): boolean {
+  return entry.kind === "git.install" && entry.detail.actor === "user";
+}
+function gitInstallSummary(entry: AuditEntry, t: T): string {
+  const code = entry.detail.reasonCode;
+  if (code === "started")
+    return t("audit.git.started", { command: safeAuditText(entry.detail.command) || "-" });
+  if (code === "installed") return t("audit.git.installed");
+  const reason = gitInstallReason(entry.detail, t);
+  return reason ? t("audit.git.failed", { reason }) : t("audit.git.failedGeneric");
+}
 /** Connector rows written before `internal` was set are recognized by their fixed summary. */
 function connectorEvent(entry: Pick<AuditEntry, "kind" | "summary">) {
   return entry.kind === "connector.changed" || entry.kind === "plugin.changed"
@@ -316,6 +332,8 @@ export function auditSummary(
   const workflow = groupWorkflowSummary(entry, t);
   if (workflow) return workflow;
   if (entry.kind === "feedback.opened") return t("appMenu.feedbackOpened");
+  // The stored summary carries both languages for exports; the page shows the reader's own.
+  if (entry.kind === "git.install") return gitInstallSummary(entry, t);
   if (entry.kind === "external_agent.prewarmed") return t("audit.externalAgent.prewarmed");
   if (isRoutineAuditKind(entry.kind)) return routineAuditSummary(entry, t);
   const detail = { ...context.source?.detail, ...entry.detail };

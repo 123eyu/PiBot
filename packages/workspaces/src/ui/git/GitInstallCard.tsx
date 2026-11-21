@@ -148,10 +148,21 @@ export function GitInstallCard({
       </p>
     );
   if (status.state === "failed")
+    // The title stays so the failure still says what it is about; another click on 重新安装
+    // starts a fresh attempt (the brain still runs one installer at a time).
     return (
-      <p className={styles.state} data-tone="danger" role="alert">
-        <span className={styles.dot} aria-hidden="true" />
-        <span>
+      <section className={styles.failed} role="alert" aria-label={t("changes.git.title")}>
+        <header className={styles.failedTitle}>
+          <span className={`${styles.dot} ${styles.dotDanger}`} aria-hidden="true" />
+          <strong>{t("changes.git.title")}</strong>
+        </header>
+        <p className={styles.failedBody}>
+          {status.reason
+            ? t("changes.git.notInstalledReason", {
+                reason: t(`changes.git.reason.${status.reason}`),
+              })
+            : t("changes.git.notInstalled")}
+          {/* English sentences carry their own trailing space; Chinese ones join directly. */}
           {status.manualCommand ? (
             <WithCommand
               text={t("changes.git.failed", { command: MARK })}
@@ -160,16 +171,31 @@ export function GitInstallCard({
           ) : (
             t("changes.git.failedGeneric")
           )}
-        </span>
-        <Button
-          variant="secondary"
-          className={styles.recheck}
-          loading={busy}
-          onClick={() => void act("changes.gitStatus")}
-        >
-          {t("changes.git.recheck")}
-        </Button>
-      </p>
+        </p>
+        {error && (
+          <p role="alert" className={approvalStyles.risk}>
+            {t("changes.git.error")}
+          </p>
+        )}
+        <div className={styles.failedActions}>
+          <Button
+            variant="secondary"
+            className={styles.recheck}
+            disabled={busy}
+            onClick={() => void act("changes.gitStatus")}
+          >
+            {t("changes.git.recheck")}
+          </Button>
+          <Button
+            className={styles.recheck}
+            loading={busy}
+            disabled={!peer}
+            onClick={() => void act("changes.gitInstall")}
+          >
+            {t("changes.git.retry")}
+          </Button>
+        </div>
+      </section>
     );
   if (dismissed) return null;
   const what =

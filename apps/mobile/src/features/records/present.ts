@@ -5,6 +5,7 @@ import {
   auditResult,
   auditSummary,
   isSystemAudit,
+  isUserAudit,
   routineRunName,
   routineRunStatus,
   safeAuditText,
@@ -73,13 +74,18 @@ export function presentRecord(row: RecordRow, c: PresentContext): RecordView {
   switch (row.type) {
     case "audit": {
       const system = isSystemAudit(row.entry);
-      const who = system ? c.shared("audit.actor.system") : (name ?? c.shared("audit.actor.bot"));
+      const user = isUserAudit(row.entry);
+      const who = system
+        ? c.shared("audit.actor.system")
+        : user
+          ? c.shared("audit.actor.user")
+          : (name ?? c.shared("audit.actor.bot"));
       const group = auditGroup(row.entry);
       const result = auditResult(row.entry, c.shared);
       view = {
         what: auditSummary(row.entry, c.shared, { botName: who }),
         who,
-        look: system ? undefined : look,
+        look: system || user ? undefined : look,
         badge: c.shared(
           group === "identity" ? "audit.kind.oauth.changed" : `activity.kind.${group}`,
         ),

@@ -55,8 +55,14 @@
   font: inherit;
   font-size: 11px;
 }
-/* The suggestion is labelled by a small chip in the conversation's colour. */
+/* The suggestion is labelled by a small chip in the conversation's colour. In a narrow
+   composer the chip shortens first, so the Tab key never runs under the send options. */
 .label {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   align-self: center;
   padding: 1px 8px;
   border-radius: var(--radius-pill);

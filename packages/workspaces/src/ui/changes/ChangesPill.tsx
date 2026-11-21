@@ -1,6 +1,6 @@
 import { useT } from "@pibot/renderer-kit";
 import styles from "./changes.module.css";
-import { formatCount } from "./diff/FileList.tsx";
+import { formatCount, pluralCount } from "./diff/FileList.tsx";
 import { ChangesIcon } from "./icons.tsx";
 import type { SourceState } from "./store.ts";
 
@@ -39,7 +39,7 @@ export function ChangesPill({
           {!!totals.removed && <span className={styles.minus}>−{formatCount(totals.removed)}</span>}
         </>
       ) : (
-        <span>{t("changes.list.files", { count: formatCount(status.total) })}</span>
+        <span>{t("changes.list.files", { count: pluralCount(status.total) })}</span>
       )}
     </button>
   );

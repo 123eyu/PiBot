@@ -1,7 +1,7 @@
 import { useT } from "@pibot/renderer-kit";
 import { useMemo } from "react";
 import styles from "./changes.module.css";
-import { FileList, type FileListActions, formatCount } from "./diff/FileList.tsx";
+import { FileList, type FileListActions, formatCount, pluralCount } from "./diff/FileList.tsx";
 import { type FileRow, rowOffsets } from "./diff/file-rows.ts";
 import { ChangesIcon } from "./icons.tsx";
 import { type FileTag, type ListFile, sumLines, TAG_LABEL } from "./model.ts";
@@ -51,7 +51,7 @@ export function ListPanel({
   return (
     <>
       <div className={styles.summary}>
-        <b>{t("changes.list.files", { count: formatCount(files.length) })}</b>
+        <b>{t("changes.list.files", { count: pluralCount(files.length) })}</b>
         {!!summary.added && <span className={styles.plus}>+{formatCount(summary.added)}</span>}
         {!!summary.removed && <span className={styles.minus}>−{formatCount(summary.removed)}</span>}
         <span className={styles.dist}>

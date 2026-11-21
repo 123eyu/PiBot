@@ -38,13 +38,46 @@
 .state[data-tone="ok"] .dot {
   background: var(--ok);
 }
-.state[data-tone="danger"] .dot {
-  background: var(--danger);
-}
 .hint {
   color: var(--text2);
 }
 .recheck {
   min-height: 26px;
   padding: 2px 12px;
+}
+/* A failed attempt keeps the card's title and both ways forward; a block, not a pill, so the
+   dot stays with the title at narrow widths. */
+.failed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+  box-sizing: border-box;
+  margin: 8px 0;
+  padding: 10px 14px 12px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--b1);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.failedTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.dotDanger {
+  background: var(--danger);
+}
+.failedBody {
+  margin: 0;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.failedActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
