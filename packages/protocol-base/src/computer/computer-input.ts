@@ -68,9 +68,25 @@ function normalizeKeys(args: Args): Args {
   });
 }
 
-/** Drops placeholder fields from keys / ui_action arguments; other tools pass through untouched. */
+/**
+ * `kind` says which fields a pointer step reads: only a drag has a destination and only a scroll
+ * has dx / dy. A padded `to: {x: 0, y: 0}` on a click made the foreground driver check a drag
+ * destination at the screen corner and refuse every right-click as occluded.
+ */
+function normalizePointer(args: Args): Args {
+  const kind = args.kind;
+  if (typeof kind !== "string") return args;
+  return without(args, (key, value) => {
+    if (key === "to") return kind !== "drag" || value === null;
+    if (key === "dx" || key === "dy") return kind !== "scroll" || value === null;
+    return key !== "app" && key !== "kind" && value === null;
+  });
+}
+
+/** Drops placeholder fields from keys / ui_action / pointer arguments; other tools pass through. */
 export function normalizeComputerInput(tool: string, input: unknown): unknown {
-  if (tool !== "keys" && tool !== "ui_action") return input;
+  if (tool !== "keys" && tool !== "ui_action" && tool !== "pointer") return input;
   if (!input || typeof input !== "object" || Array.isArray(input)) return input;
+  if (tool === "pointer") return normalizePointer(input as Args);
   return tool === "keys" ? normalizeKeys(input as Args) : normalizeUiAction(input as Args);
 }

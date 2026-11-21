@@ -54,7 +54,7 @@ export function toolsExtension(
               prepareArguments: (args: unknown) =>
                 normalizeTodoPauseInput(args) as Record<string, unknown>,
             }
-          : tool.name === "keys" || tool.name === "ui_action"
+          : tool.name === "keys" || tool.name === "ui_action" || tool.name === "pointer"
             ? {
                 // Placeholder fields from strict-mode providers; authorization and the permit
                 // below both see the normalised call.

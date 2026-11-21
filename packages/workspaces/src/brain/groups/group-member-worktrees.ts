@@ -234,7 +234,7 @@ export class GroupMemberWorktrees {
               error instanceof RpcError && /^[a-z0-9_.-]{1,80}$/i.test(error.message)
                 ? error.message
                 : error instanceof ExecError
-                  ? `exec_${error.code}`
+                  ? `exec_${error.code}${error.reason ? `.${error.reason}` : ""}`
                   : error instanceof Error
                     ? error.name
                     : "unknown",
