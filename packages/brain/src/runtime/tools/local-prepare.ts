@@ -1088,6 +1088,12 @@ export function groupAuthorization(local: LocalService, context: ToolRunContext)
           updatedAt: undefined,
           topicTitle: undefined,
           memberWorkspaces: undefined,
+          // Cosmetic settings (GroupService's COSMETIC_GROUP_FIELDS) change no authority; a
+          // rename mid-step otherwise failed every later tool call and killed the running step.
+          name: undefined,
+          announcement: undefined,
+          autoRoundLimit: undefined,
+          externalAgentStepContext: undefined,
         }
       : null,
     actual?.kind,
