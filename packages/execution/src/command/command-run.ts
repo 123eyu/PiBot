@@ -39,7 +39,7 @@ import { executeHostedCommand } from "./foreground-host.ts";
 import { runPromotableCommand } from "./foreground-promotion.ts";
 import { PERMISSION_OUTPUT_NOTICE, timeoutOutput } from "./output-notices.ts";
 import { consumeOutsideSandboxPermit, pinSystemFilters } from "./outside-sandbox.ts";
-import { executeProcess, type ProcessControl } from "./process.ts";
+import { cleanupRecord, executeProcess, type ProcessControl } from "./process.ts";
 import { createRollingCommandLog } from "./rolling-command-log.ts";
 import { verifyScriptInterpreters } from "./script-interpreters.ts";
 import { verifyScriptPins } from "./script-pins.ts";
@@ -362,7 +362,9 @@ async function executePhase(
     return pinnedFilters ? { ...direct, pinnedFilters } : direct;
   } catch (error) {
     if (error instanceof ExecError && error.reason === "cleanup_failed")
-      deps.failDrain(error, undefined, control?.record());
+      // The error's own record also covers a tree whose snapshots all timed out before `control`
+      // was published, which left the Windows pause unprovable until a restart.
+      deps.failDrain(error, undefined, cleanupRecord(error) ?? control?.record(), input.runId);
     throw error;
   } finally {
     log?.destroy();

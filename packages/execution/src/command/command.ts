@@ -17,6 +17,7 @@ import { createCommandRunner } from "./command-run.ts";
 import { createCommandTemps } from "./command-temp.ts";
 import { commandEnvironment } from "./environment.ts";
 import { UnsafeSandboxEnvironmentError } from "./host-environment.ts";
+import { cleanupRecord } from "./process.ts";
 import { commandDeadline } from "./run-deadline.ts";
 import { secretOutputRedactor } from "./secret-output.ts";
 
@@ -53,6 +54,21 @@ export function createExec(options: ExecOptions) {
   const retiringRuns = new Map<string, Promise<void>>();
   let closing: Promise<void> | undefined;
   const promoted = new Map<string, import("./background.ts").BackgroundJob>();
+  /**
+   * Temp folders of commands that settled while paused: the unconfirmed tree may still use them,
+   * so they stay pinned until the pause is proven clear, then are released like any other.
+   */
+  const heldPins: string[] = [];
+  const releaseHeldPins = () => {
+    for (const runId of heldPins.splice(0)) temps.unpin(runId);
+  };
+  const unpin = (runId: string) => {
+    if (!background.drainFailed()) return temps.unpin(runId);
+    heldPins.push(runId);
+    void background.whenHealthy().then(releaseHeldPins, () => {
+      // Closing: dispose removes every folder, pinned or not.
+    });
+  };
   const dependencies: CommandDependencies = {
     options,
     sandbox,
@@ -60,8 +76,8 @@ export function createExec(options: ExecOptions) {
     violations,
     lifetime,
     background,
-    failDrain(error, jobId, record) {
-      background.failDrain(error, jobId, record);
+    failDrain(error, jobId, record, runId) {
+      background.failDrain(error, jobId, record, runId);
     },
     // The background instance owns the retry; a copy here would outlive its recovery.
     drainFailed: () => background.drainFailed(),
@@ -71,12 +87,10 @@ export function createExec(options: ExecOptions) {
         work
           .catch((error: unknown) => {
             if (error instanceof ExecError && error.reason === "cleanup_failed")
-              background.failDrain(error);
+              background.failDrain(error, undefined, cleanupRecord(error), runId);
             throw error;
           })
-          .finally(() => {
-            if (!background.drainFailed()) temps.unpin(runId);
-          }),
+          .finally(() => unpin(runId)),
         runId,
       );
     },
@@ -162,12 +176,10 @@ export function createExec(options: ExecOptions) {
       const raw = execute({ ...input, signal })
         .catch((error: unknown) => {
           if (error instanceof ExecError && error.reason === "cleanup_failed")
-            background.failDrain(error);
+            background.failDrain(error, undefined, cleanupRecord(error), input.runId);
           throw error;
         })
-        .finally(() => {
-          if (!background.drainFailed()) temps.unpin(input.runId);
-        });
+        .finally(() => unpin(input.runId));
       track(raw, input.runId);
       return commandDeadline(raw, input.timeoutSec, signal, commandLifetime).catch(
         (error: unknown) => {
@@ -215,20 +227,34 @@ export function createExec(options: ExecOptions) {
         throw new ExecError("command_failed", "cleanup_unconfirmed");
       });
     },
-    /** The run ended: its commands' private temp folder goes (idempotent). */
-    releaseRun(runId: string): Promise<void> {
+    /**
+     * The run ended: its commands' private temp folder goes (idempotent). `signal` bounds only the
+     * wait for a paused cleanup; a caller that cannot wait gets the pause's failure instead.
+     */
+    releaseRun(runId: string, signal?: AbortSignal): Promise<void> {
       const previous = retiringRuns.get(runId);
       if (previous) return previous;
       const released = (async () => {
         await Promise.allSettled(
           [...active].filter(([, owner]) => owner === runId).map(([work]) => work),
         );
-        if (background.drainFailed()) background.assertHealthy();
+        // While paused the run's folder may still be in use, so the run waits for the proof
+        // (automatic checks, then the person's "Check again") instead of failing its drain: a
+        // failed drain kept the run's folder lease until a restart, so every later step of that
+        // folder timed out (Windows test 2026-11-21). Closing rejects the wait.
+        if (background.drainFailed()) {
+          await background.whenHealthy(signal);
+          releaseHeldPins();
+        }
         await temps.releaseRun(runId);
       })().finally(() => retiringRuns.delete(runId));
       retiringRuns.set(runId, released);
       return released;
     },
+    /** Commands are paused because a cleanup is unconfirmed: still checking, or out of checks. */
+    commandPause: () => background.pauseState(),
+    /** The person asked to check again; proof is required exactly as for the automatic checks. */
+    recheckCommandPause: () => background.recheck(),
     background: {
       get: (id: string) => promoted.get(id) ?? background.get(id),
       /** Brain restart: stop processes a previous brain recorded (idempotent). */

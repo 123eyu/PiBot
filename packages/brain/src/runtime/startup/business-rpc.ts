@@ -57,6 +57,8 @@ function internalDetail(error: unknown): string {
 const contentIndependent = new Set<string>([
   "runtime.health.get",
   "runtime.forceRelease",
+  "runtime.commands.get",
+  "runtime.commands.recheck",
   "chat.abort",
   "groups.abort",
   "app.about",

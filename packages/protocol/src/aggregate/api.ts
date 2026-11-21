@@ -325,6 +325,7 @@ export const EventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("providers.loginStep"),
   eventSchema("sidebar.changed"),
   eventSchema("runtime.health"),
+  eventSchema("runtime.commands"),
   eventSchema("runtime.activeRuns"),
   eventSchema("continuations.pending"),
   eventSchema("computer.step"),

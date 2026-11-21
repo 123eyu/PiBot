@@ -3202,6 +3202,18 @@ const methodCases = {
     badParams: { botId: id, confirmed: false },
     badResult: { healthy: false, reason: null, botIds: [] },
   },
+  "runtime.commands.get": {
+    params: undefined,
+    result: { paused: null },
+    badParams: { unexpected: true },
+    badResult: { paused: "unknown" },
+  },
+  "runtime.commands.recheck": {
+    params: undefined,
+    result: { paused: "stuck" },
+    badParams: { unexpected: true },
+    badResult: {},
+  },
 } satisfies Cases<MethodParams, MethodResults>;
 const hostCases = {
   "host.office.render": {
@@ -3882,6 +3894,7 @@ const eventCases = {
     payload: { healthy: false, reason: "run_drain_failed", botIds: [id] },
     bad: { healthy: false, reason: "unknown", botIds: [] },
   },
+  "runtime.commands": { payload: { paused: "retrying" }, bad: { paused: "paused" } },
   "runtime.activeRuns": { payload: { count: 1 }, bad: { count: -1 } },
   "bots.changed": { payload: { botId: id, reason: "created" }, bad: { unexpected: true } },
   "groups.changed": { payload: { groupId: id, reason: "created" }, bad: { unexpected: true } },

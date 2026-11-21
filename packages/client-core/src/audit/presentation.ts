@@ -162,6 +162,7 @@ const kindGroups: Record<AuditKind, readonly [AuditGroup, ...AuditGroup[]]> = {
   "execution.continuation.restored": ["run"],
   "runtime.drain_failed": ["run"],
   "runtime.force_release": ["run"],
+  "runtime.commands_paused": ["run"],
   "execution.task.changed": ["run"],
   "team.created": ["collaboration"],
   "team.exported": ["collaboration"],
@@ -535,6 +536,14 @@ export function auditSummary(
       );
     case "runtime.drain_failed":
       return t("runtime.auditDrainFailed");
+    case "runtime.commands_paused":
+      return t(
+        detail.reasonCode === "recovered"
+          ? "runtime.auditCommandsRecovered"
+          : detail.reasonCode === "stuck"
+            ? "runtime.auditCommandsStuck"
+            : "runtime.auditCommandsPaused",
+      );
     case "runtime.force_release":
       return t(
         detail.reasonCode === "released"

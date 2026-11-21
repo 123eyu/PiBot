@@ -29,6 +29,8 @@ export interface SandboxDiagnosticCheck {
   verify?(): Promise<boolean>;
 }
 
+/** A paused cleanup gets the automatic checks' first round, then the row reports it unconfirmed. */
+const RELEASE_WAIT_MS = 45_000;
 const diagnosticError = (error: unknown) =>
   error instanceof ExecError
     ? error.reason === "cleanup_failed"
@@ -196,7 +198,8 @@ export async function createSandboxDiagnosticSession(options: SandboxDiagnosticO
           result = row(check.tool, "failed", diagnosticError(error));
         } finally {
           try {
-            await runner.releaseRun(runId);
+            // A self-test must not wait for a paused cleanup the way a run does: it reports it.
+            await runner.releaseRun(runId, AbortSignal.timeout(RELEASE_WAIT_MS));
           } catch {
             retain = true;
           }

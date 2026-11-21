@@ -235,6 +235,7 @@ export const KernelEventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("inbox.changed"),
   eventSchema("sidebar.changed"),
   eventSchema("runtime.health"),
+  eventSchema("runtime.commands"),
   eventSchema("runtime.activeRuns"),
   eventSchema("continuations.pending"),
   eventSchema("chat.notice"),

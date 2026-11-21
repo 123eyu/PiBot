@@ -13,9 +13,11 @@ export {
   externalAgentSandboxConfig,
 } from "./agents/external-agent-sandbox.ts";
 export type {
+  BackgroundDrainEvent,
   BackgroundEndReason,
   BackgroundJob,
   BackgroundProcessRecord,
+  CommandPauseState,
 } from "./command/background.ts";
 export { createExec } from "./command/command.ts";
 export { commandPaths, discoverCommandPaths } from "./command/command-paths.ts";

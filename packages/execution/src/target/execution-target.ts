@@ -47,6 +47,9 @@ export interface ExecutionTarget {
   };
   /** Owner facts only; zero is not a substitute for dispose/drain confirmation. */
   activitySnapshot?(): { runningCommands: number; backgroundTasks: number };
+  /** Local only: commands are paused because a previous command was not confirmed stopped. */
+  commandPause?: LocalExec["commandPause"];
+  recheckCommandPause?: LocalExec["recheckCommandPause"];
   readonly supportsCommandPromotion?: boolean;
   /**
    * Operations that always fail on this target whatever the input, so callers can avoid offering
@@ -147,6 +150,8 @@ export function createLocalExecutionTarget(options: LocalExecutionTargetOptions)
       return { path: result, ...(stat ? fileIdentity(stat) : { device: null, inode: null }) };
     },
     activitySnapshot: exec.activitySnapshot,
+    commandPause: exec.commandPause,
+    recheckCommandPause: exec.recheckCommandPause,
     isolationStatus: exec.isolationStatus,
     runCommand: exec.runCommand,
     releaseRun: exec.releaseRun,

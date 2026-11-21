@@ -6,6 +6,7 @@ import { Button, Icon, IconTile } from "@pibot/ui";
 import { useEffect, useRef, useState } from "react";
 import { useRuntimeHealth } from "../../app/runtime-health.ts";
 import { AppMenu } from "../app-menu/AppMenu.tsx";
+import { CommandPauseBanner } from "../runtime/CommandPause.tsx";
 import { ForceRelease } from "../runtime/ForceRelease.tsx";
 import { updateBot } from "../settings/operations.ts";
 import { newChatDialog } from "../workspace/new-chat/new-chat-dialog.ts";
@@ -278,6 +279,7 @@ export function Sidebar() {
           <ForceRelease />
         </div>
       )}
+      <CommandPauseBanner className={styles.health} />
       <div className={styles.search}>
         <Icon name="search" size={15} className={styles.searchIcon} />
         <input

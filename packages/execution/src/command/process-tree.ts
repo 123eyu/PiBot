@@ -22,6 +22,7 @@ const POLL_BLIND_MS = 6_000;
 export async function snapshot(
   env: NodeJS.ProcessEnv,
   platform: NodeJS.Platform,
+  timeoutMs?: number,
 ): Promise<ProcessRow[]> {
   return new Promise((resolve, reject) => {
     const windows = platform === "win32";
@@ -48,7 +49,7 @@ export async function snapshot(
         ps.stdout.destroy();
         ps.unref();
       },
-      SNAPSHOT_TIMEOUT_MS[windows ? "win32" : "default"],
+      timeoutMs ?? SNAPSHOT_TIMEOUT_MS[windows ? "win32" : "default"],
     );
     ps.stdout.on("data", (chunk: Buffer) => {
       text += chunk.toString("utf8");

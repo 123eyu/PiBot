@@ -9,6 +9,15 @@ export const runtimeZh = {
   "runtime.auditForceRequested": "强制释放：已请求",
   "runtime.auditForceReleased": "强制释放：已释放",
   "runtime.auditForceRefused": "强制释放：未能确认退出",
+  "runtime.commandsPausedRetrying":
+    "命令已暂停：Pi Bot 还没能确认上一条命令已经停下，正在自动检查。确认后会自动恢复。",
+  "runtime.commandsPausedStuck":
+    "命令已暂停：Pi Bot 没能确认上一条命令已经停下。可以再检查一次；还是不行，请重启 Pi Bot。",
+  "runtime.commandsRecheck": "再检查一次",
+  "runtime.commandsStillPaused": "还是没能确认，命令仍然暂停。请重启 Pi Bot。",
+  "runtime.auditCommandsPaused": "命令已暂停：上一条命令未确认停下",
+  "runtime.auditCommandsStuck": "命令仍暂停：自动检查没能确认，需要再检查或重启",
+  "runtime.auditCommandsRecovered": "已确认上一条命令停下，命令恢复",
   "runtime.continuationPrompt": "有未完成的自动接续，是否继续？",
   "runtime.continuationResume": "继续",
   "runtime.continuationDiscard": "放弃",
@@ -38,6 +47,16 @@ export const runtimeEn: Record<keyof typeof runtimeZh, string> = {
   "runtime.auditForceRequested": "Force release requested",
   "runtime.auditForceReleased": "Force release: released",
   "runtime.auditForceRefused": "Force release refused: still running",
+  "runtime.commandsPausedRetrying":
+    "Commands are paused: Pi Bot couldn't confirm the previous command stopped and is checking automatically. They resume once it's confirmed.",
+  "runtime.commandsPausedStuck":
+    "Commands are paused: Pi Bot couldn't confirm the previous command stopped. Check again, or restart Pi Bot if that doesn't help.",
+  "runtime.commandsRecheck": "Check again",
+  "runtime.commandsStillPaused": "Still not confirmed, so commands stay paused. Restart Pi Bot.",
+  "runtime.auditCommandsPaused": "Commands paused: previous command not confirmed stopped",
+  "runtime.auditCommandsStuck":
+    "Commands still paused: automatic checks couldn't confirm; check again or restart",
+  "runtime.auditCommandsRecovered": "Previous command confirmed stopped; commands resumed",
   "runtime.continuationPrompt": "Some automatic follow-ups didn't finish. Continue them?",
   "runtime.continuationResume": "Continue",
   "runtime.continuationDiscard": "Discard",

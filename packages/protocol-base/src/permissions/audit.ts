@@ -133,6 +133,9 @@ export const AuditKindSchema = z.enum([
   "runtime.drain_failed",
   // The user asked to force-release a failed drain (requested / released / refused).
   "runtime.force_release",
+  // New commands paused because a previous command was not confirmed stopped (reasonCode
+  // paused / stuck / recovered); fixed codes only, never command text.
+  "runtime.commands_paused",
   "execution.task.changed",
   // Bots/groups created from a role, template, profession or imported file; a group file
   // exported. Counts and built-in ids only, never personas, norms or skill content.

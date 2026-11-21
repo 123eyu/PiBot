@@ -797,9 +797,10 @@ async function attachRunnerSession(options: SessionOptions, detached: () => void
       }
     }),
   );
-  handle("runner.command.release", async ({ idempotencyKey, issuedAt, runId }) =>
+  handle("runner.command.release", async ({ idempotencyKey, issuedAt, runId }, context) =>
     once(idempotencyKey, issuedAt, async () => {
-      await options.target.releaseRun(runId);
+      // A paused cleanup makes the release wait for its proof; the caller's deadline bounds it.
+      await options.target.releaseRun(runId, context.signal);
       return null;
     }),
   );

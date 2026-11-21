@@ -21,16 +21,28 @@ export interface BackgroundProcessRecord {
   /** POSIX process group (= root pid); Windows has none and uses the recorded tree only. */
   group: number;
   processes: { pid: number; started: string }[];
+  /**
+   * Foreground commands only (ms since epoch, taken before spawn). A Windows tree whose identities
+   * were never captured (snapshot timeout under load) can still be checked later: the root pid and
+   * its descendants created after this moment are the only processes that can belong to it.
+   */
+  spawnedAt?: number;
 }
 
 /** Fixed reason codes, so a log line never carries command text, paths or raw OS errors. */
 export type BackgroundDrainReason = "cleanup_unconfirmed" | "cleanup_unverified" | "unknown";
 
 export interface BackgroundDrainEvent {
-  phase: "paused" | "retrying" | "recovered";
+  /**
+   * `stuck`: automatic checks ran out (or nothing identifies the tree), so the pause stays until a
+   * manual check proves it clean or Pi Bot restarts. Never a release: only `recovered` is.
+   */
+  phase: "paused" | "retrying" | "stuck" | "recovered";
   reason: BackgroundDrainReason;
   /** The job whose cleanup was not confirmed, when one job caused it. */
   jobId?: string;
+  /** The run whose foreground command was not confirmed stopped, when one run caused it. */
+  runId?: string;
   /** Cleanup attempts so far; zero for the first failure. */
   attempts: number;
   /** Processes or groups still found after the last attempt; zero once it is confirmed clean. */

@@ -6,7 +6,7 @@ import { ExecError } from "@pibot/execution";
  * wording hid the real cause for 5.5 hours and 1,380 attempts.
  */
 export const EXECUTION_PAUSED =
-  "后台命令没能清理干净，为安全起见暂停新命令；正在自动重试清理，通常 30 秒内恢复，重启 Pi Bot 也能恢复 / A background command could not be cleaned up, so new commands are paused for safety. Cleanup is retried automatically (usually within 30 seconds); restarting Pi Bot also restores it.";
+  "Pi Bot 没能确认上一条命令已经停下，为安全起见暂停新命令；正在自动检查，确认后自动恢复。侧栏提示里可以「再检查一次」，一直不恢复请重启 Pi Bot / Pi Bot couldn't confirm a previous command stopped, so new commands are paused for safety. It keeps checking and resumes once that's confirmed; the sidebar notice offers \"Check again\", and restarting Pi Bot also clears it.";
 
 /**
  * Identifies the paused runtime from the error alone: the refusal comes from the command layer,

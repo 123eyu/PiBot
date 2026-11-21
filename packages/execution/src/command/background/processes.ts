@@ -1,6 +1,6 @@
 import { ExecError } from "../../core/types.ts";
 import { windowsTree } from "../process.ts";
-import { snapshot } from "../process-tree.ts";
+import { type ProcessRow, snapshot } from "../process-tree.ts";
 import type {
   BackgroundDependencies,
   BackgroundDrainReason,
@@ -9,6 +9,19 @@ import type {
 } from "./types.ts";
 
 const STOP_GRACE_MS = 3000;
+/** Spawn time is read just before (foreground) or after (background) the spawn; widen the match. */
+const SPAWN_MARGIN_MS = 2000;
+/** .NET ticks (100 ns since 0001-01-01) of the Unix epoch, the unit of Windows CreationDate. */
+const EPOCH_TICKS = 621355968000000000n;
+
+function createdAtOrAfter(row: ProcessRow, earliest: bigint) {
+  try {
+    return BigInt(row.started) >= earliest;
+  } catch {
+    // An unreadable creation time could be anything, so it counts as possibly part of the tree.
+    return true;
+  }
+}
 
 /**
  * Why a process tree did not provably exit: kept as a class so the cleanup retry can tell an
@@ -107,14 +120,18 @@ export function createBackgroundProcesses(deps: BackgroundDependencies) {
    * Identity is pid + start time, so a recycled pid is never signalled; the recorded process
    * group is included only while one of its recorded members still matches. Idempotent.
    */
-  async function killOrphans(records: BackgroundProcessRecord[], signal: AbortSignal) {
+  async function killOrphans(
+    records: BackgroundProcessRecord[],
+    signal: AbortSignal,
+    snapshotTimeoutMs?: number,
+  ) {
     const wanted = new Set(
       records.flatMap((record) => record.processes.map((p) => `${p.pid}:${p.started}`)),
     );
     if (!wanted.size) return 0;
     const env = deps.env();
     const targets = async () => {
-      const rows = await snapshot(env, platform);
+      const rows = await snapshot(env, platform, snapshotTimeoutMs);
       const matched = rows.filter((row) => wanted.has(`${row.pid}:${row.started}`));
       const groups = new Set(
         platform === "win32"
@@ -186,5 +203,47 @@ export function createBackgroundProcesses(deps: BackgroundDependencies) {
     return remaining.size;
   }
 
-  return { terminate, killOrphans };
+  /**
+   * Windows only: processes that may still belong to a retained tree, found by the same rule the
+   * command's own monitor uses (the root pid, then children created after their creator) but
+   * seeded with the root and every recorded pid even when they already exited, so a tree whose
+   * identities were never captured can still be shown to be gone. Check-only: a pid matched by
+   * creation time alone may be an unrelated process that reused it, so nothing is signalled, and
+   * every such match keeps the pause (the safe direction).
+   */
+  async function treeRemains(records: readonly BackgroundProcessRecord[], timeoutMs: number) {
+    const dated = records.filter((record) => record.spawnedAt !== undefined);
+    if (platform !== "win32" || !dated.length) return 0;
+    const rows = await snapshot(deps.env(), platform, timeoutMs);
+    const children = new Map<number, ProcessRow[]>();
+    for (const row of rows) {
+      const list = children.get(row.parent) ?? [];
+      list.push(row);
+      children.set(row.parent, list);
+    }
+    let remaining = 0;
+    for (const record of dated) {
+      const earliest =
+        BigInt(Math.max(0, (record.spawnedAt as number) - SPAWN_MARGIN_MS)) * 10_000n + EPOCH_TICKS;
+      const found = new Set<number>();
+      for (const row of rows)
+        if (row.pid === record.group && createdAtOrAfter(row, earliest)) found.add(row.pid);
+      const queue = [record.group, ...record.processes.map((process) => process.pid)];
+      const visited = new Set<number>();
+      for (let i = 0; i < queue.length; i++) {
+        const parent = queue[i] as number;
+        if (visited.has(parent)) continue;
+        visited.add(parent);
+        for (const row of children.get(parent) ?? []) {
+          if (found.has(row.pid) || !createdAtOrAfter(row, earliest)) continue;
+          found.add(row.pid);
+          queue.push(row.pid);
+        }
+      }
+      remaining += found.size;
+    }
+    return remaining;
+  }
+
+  return { terminate, killOrphans, treeRemains };
 }

@@ -28,7 +28,12 @@ export interface CommandDependencies {
   background: ReturnType<typeof createBackgroundJobs>;
   lifetime: AbortController;
   /** `record` carries the failed foreground command's own tree when no job is involved. */
-  failDrain(error: ExecError, jobId?: string, record?: BackgroundProcessRecord): void;
+  failDrain(
+    error: ExecError,
+    jobId?: string,
+    record?: BackgroundProcessRecord,
+    runId?: string,
+  ): void;
   drainFailed(): boolean;
   retainCommand(work: Promise<unknown>, runId: string): void;
   adoptForeground(job: import("./background.ts").BackgroundJob): void;

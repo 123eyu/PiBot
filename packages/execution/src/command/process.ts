@@ -22,6 +22,26 @@ export interface ProcessControl {
   drained?(): boolean;
 }
 
+/**
+ * A foreground cleanup that could not be confirmed, with the tree it leaves behind: the root pid,
+ * whatever identities the monitor captured (none when every snapshot timed out under load) and the
+ * spawn time, so the retry can still prove the tree gone instead of pausing until a restart.
+ */
+export class ProcessCleanupError extends ExecError {
+  constructor(
+    readonly record:
+      | { group: number; processes: { pid: number; started: string }[]; spawnedAt: number }
+      | undefined,
+  ) {
+    super("command_failed", "cleanup_failed");
+  }
+}
+
+/** The tree a cleanup failure retained, when the failure came from a foreground process. */
+export function cleanupRecord(error: unknown) {
+  return error instanceof ProcessCleanupError ? error.record : undefined;
+}
+
 const HostViolationsSchema = z
   .array(z.string().max(MAX_VIOLATION_CHARS))
   .max(MAX_REPORTED_VIOLATIONS);
@@ -146,7 +166,7 @@ export async function executeProcess(options: {
           // retryable monitor fault (found in review).
           const late = rootClosed || exitCode !== null || killTask !== undefined;
           processFailure ??= late
-            ? new ExecError("command_failed", "cleanup_failed")
+            ? cleanupFailed()
             : error instanceof ExecError
               ? error
               : new ExecError("command_failed", "process_monitor_failed");
@@ -156,6 +176,12 @@ export async function executeProcess(options: {
         spawnedAt,
       )
     : undefined;
+  const cleanupFailed = () =>
+    new ProcessCleanupError(
+      child.pid
+        ? { group: child.pid, processes: tree?.record().processes ?? [], spawnedAt }
+        : undefined,
+    );
   const terminate = () => {
     if (killTask) return;
     // Neither an escaped session retaining pipes nor failed OS cleanup may hold busy forever.
@@ -347,11 +373,11 @@ export async function executeProcess(options: {
       ? await tree.members().then(
           (members) => members.length,
           () => {
-            throw new ExecError("command_failed", "cleanup_failed");
+            throw cleanupFailed();
           },
         )
       : 0;
-    if (!rootClosed || leftovers) throw new ExecError("command_failed", "cleanup_failed");
+    if (!rootClosed || leftovers) throw cleanupFailed();
     drained = true;
     for (const flush of flushChannels) flush();
     const truncatedOutput = await Promise.race([

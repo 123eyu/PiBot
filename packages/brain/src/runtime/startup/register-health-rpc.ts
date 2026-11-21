@@ -1,4 +1,5 @@
 import {
+  type CommandPause,
   type createPeer,
   type KernelEvents,
   type KernelMethods,
@@ -38,6 +39,20 @@ export function registerHealthRpc(ctx: StartupContext) {
     if (!ctx.interactiveDrainHealthy)
       return { healthy: false, reason: "interactive_drain_failed", botIds: run.botIds };
     return run;
+  });
+  // A local command pause clears by itself once a check proves the previous command stopped; the
+  // UI pulls it on (re)connect like the drain health above, and live changes arrive as events.
+  const commandPause = (): CommandPause => ({
+    paused: ctx.capabilities.target.commandPause?.() ?? null,
+  });
+  ctx.handle("runtime.commands.get", async () => commandPause());
+  ctx.handle("runtime.commands.recheck", async (): Promise<CommandPause> => {
+    const recheck = ctx.capabilities.target.recheckCommandPause;
+    if (!recheck) return commandPause();
+    const paused = await recheck();
+    // A recovery is announced by the drain event; a refused check changes nothing to announce,
+    // and the result alone tells the person it is still paused.
+    return { paused };
   });
   /**
    * The client-wide failure has its own state in this factory, so reopening it is

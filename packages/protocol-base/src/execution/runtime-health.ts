@@ -15,6 +15,15 @@ export const RuntimeHealthSchema = z
   })
   .refine((value) => value.healthy === (value.reason === null));
 export type RuntimeHealth = z.infer<typeof RuntimeHealthSchema>;
+/**
+ * New commands are paused because Pi Bot could not confirm a previous command stopped:
+ * `retrying` while automatic checks run, `stuck` once they ran out (check again, or restart).
+ * Separate from `RuntimeHealth`, which is sticky until restart; this clears on its own.
+ */
+export const CommandPauseSchema = z.strictObject({
+  paused: z.enum(["retrying", "stuck"]).nullable(),
+});
+export type CommandPause = z.infer<typeof CommandPauseSchema>;
 export const RuntimeMethods = {
   // The UI pulls the current health once on (re)connect so a missed event is not final.
   "runtime.health.get": { params: noParams, result: RuntimeHealthSchema },
@@ -25,10 +34,15 @@ export const RuntimeMethods = {
     params: z.strictObject({ botId: IdSchema.optional(), confirmed: z.literal(true) }),
     result: RuntimeHealthSchema,
   },
+  "runtime.commands.get": { params: noParams, result: CommandPauseSchema },
+  // The person asked to check again. The brain re-checks with the same proof as its automatic
+  // checks; nothing is released without it, so the result may still be paused.
+  "runtime.commands.recheck": { params: noParams, result: CommandPauseSchema },
 } as const;
 export const RuntimeEvents = {
   /** Authoritative snapshot, including parked approvals, deduplicated by run ID. */
   "runtime.activeRuns": z.strictObject({ count: z.number().int().nonnegative().safe() }),
   // A drain failure is sticky; `botIds` names the Bots whose sessions stayed open.
   "runtime.health": RuntimeHealthSchema,
+  "runtime.commands": CommandPauseSchema,
 } as const;

@@ -234,6 +234,37 @@ export class LocalService {
   readonly executionTargets = new ExecutionTargets();
   /** Primary folders whose pre-A55 outputs were already looked at in this process. */
   readonly outputMigrations = new Set<string>();
+  /**
+   * Tells the UI and the Records log that commands are paused, still paused or resumed. The state
+   * is read back from the target rather than derived from the event, so a repeat report can never
+   * show a pause that already cleared. Reporting must not affect the pause itself.
+   */
+  private reportCommandPause(
+    event: { phase: "paused" | "stuck" | "recovered"; runId?: string },
+    botId: string | undefined,
+    jobRunId: string | null | undefined,
+  ) {
+    try {
+      this.deps.peer.emit("runtime.commands", { paused: this.target.commandPause?.() ?? null });
+      const owner = botId ?? new BotsRepo(this.deps.db).getMain()?.id;
+      // Without any Bot the row has nowhere to be filed; the log line above still has the event.
+      if (!owner) return;
+      const runId = event.runId ?? jobRunId ?? undefined;
+      this.approvals.audit.append({
+        botId: owner,
+        ...(runId ? { runId } : {}),
+        kind: "runtime.commands_paused",
+        summary:
+          event.phase === "recovered"
+            ? "Commands resumed / 命令已恢复"
+            : "Commands paused / 命令已暂停",
+        detail: { reasonCode: event.phase },
+      });
+    } catch {
+      this.deps.logger.warn(JSON.stringify({ module: "exec", event: "command_pause_unreported" }));
+    }
+  }
+
   targetFor(location?: { target: string }): ExecutionTarget {
     return !location ||
       location.target === "local" ||
@@ -298,14 +329,18 @@ export class LocalService {
             // The pause blocks every command, so its owner (the job's Bot and topic) has to be
             // in the log; without it 1,380 failures took 5.5 hours to trace.
             const row = event.jobId ? this.background.repo.get(event.jobId) : undefined;
+            const botId =
+              row?.botId ?? (event.runId ? this.runContexts.get(event.runId)?.botId : undefined);
             const fields = {
               module: "exec",
               event: `background.drain_${event.phase}`,
               ...event,
-              ...(row ? { botId: row.botId, conversationId: row.conversationId } : {}),
+              ...(botId ? { botId } : {}),
+              ...(row ? { conversationId: row.conversationId } : {}),
             };
             if (event.phase === "recovered") deps.logger.info(JSON.stringify(fields));
             else deps.logger.warn(JSON.stringify(fields));
+            if (event.phase !== "retrying") this.reportCommandPause(event, botId, row?.runId);
           },
           platform: deps.platform,
           proxy: deps.proxy,
