@@ -53,6 +53,8 @@ export interface ChatState {
   historyError: boolean;
   metadataError: boolean;
   metadataLoading: boolean;
+  /** A Bot or model read went unanswered (slow start) and is being retried; not an error yet. */
+  metadataRetrying?: boolean;
   loadingMore: boolean;
   hasMore: boolean;
   pending: boolean;

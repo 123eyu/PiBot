@@ -127,9 +127,9 @@ export function renderChatHistory(screen: ChatScreenModel) {
           className={styles.messages}
           style={userBubbleStyle(state.bot?.avatarColor)}
         >
-          {state.loading && (
+          {(state.loading || state.metadataRetrying) && (
             <p className={styles.notice} role="status">
-              {t("chat.loadingHistory")}
+              {t(state.metadataRetrying ? "chat.metadataWaiting" : "chat.loadingHistory")}
             </p>
           )}
           {(state.historyError || state.metadataError || workplaces.error || topicPlace.error) && (

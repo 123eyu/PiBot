@@ -197,6 +197,7 @@ export const chatZh = {
   "errors.mention_unresolved":
     "这个 @ 对应不上群里唯一的一个 Bot。请从 @ 列表里选出要找的 Bot 再发送。",
   "chat.metadataError": "无法加载 Bot 和模型信息，请重试。",
+  "chat.metadataWaiting": "Bot 和模型信息还在加载，请稍等…",
   "chat.stopError": "停止请求失败，请再点一次停止。",
   "chat.sendUncertain": "未能确认消息是否发送成功。请查看聊天记录后再重试。",
   "chat.retryNeedsHistory": "加载更早的消息后可以重试。",
@@ -448,6 +449,7 @@ export const chatEn: { [K in keyof typeof chatZh]: string } = {
   "errors.mention_unresolved":
     "This @mention doesn’t match exactly one Bot in the group. Pick the Bot from the @ list, then send again.",
   "chat.metadataError": "Couldn’t load the Bot and model information. Please try again.",
+  "chat.metadataWaiting": "Still loading the Bot and model information…",
   "chat.stopError": "Couldn’t stop the reply. Please press Stop again.",
   "chat.sendUncertain":
     "Couldn’t confirm whether the message was sent. Check the chat history before retrying.",
