@@ -71,6 +71,7 @@ export function createManagedGitPort(
     platform: options.platform,
     env: options.env,
     userHome: options.systemHome,
+    resourcesDir: options.resourcesDir,
   });
   const sourceRoot = (binding: Binding) => {
     const root = binding.source?.root.canonicalPath;

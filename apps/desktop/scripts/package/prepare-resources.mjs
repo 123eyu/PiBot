@@ -2,6 +2,7 @@ import { chmod, copyFile, mkdir, readFile, realpath, writeFile } from "node:fs/p
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { prepareCuaDaemon } from "./prepare-cua-daemon.mjs";
+import { prepareMinGit } from "./prepare-mingit.mjs";
 import { prepareNodeHelper } from "./prepare-node-helper.mjs";
 
 /** @param {import("app-builder-lib").BeforePackContext} context */
@@ -72,18 +73,16 @@ export default async function prepareM1Resources(context) {
       throw new Error(`Invalid parser WASM asset: ${target}`);
   }
   await prepareCodeMapGrammars(desktop, execRequire);
-  // Child Node workloads run on this helper, never on Pi Bot's executable.
-  await prepareNodeHelper(
+  const binDirectory = join(
     desktop,
-    context.electronPlatformName,
-    arch,
-    join(
-      desktop,
-      "out/native-resources",
-      `${context.packager.platform.buildConfigurationKey}-${arch}`,
-      "bin",
-    ),
+    "out/native-resources",
+    `${context.packager.platform.buildConfigurationKey}-${arch}`,
+    "bin",
   );
+  // Child Node workloads run on this helper, never on Pi Bot's executable.
+  await prepareNodeHelper(desktop, context.electronPlatformName, arch, binDirectory);
+  // Only Windows bundles Git; macOS and Linux use the system's.
+  if (context.electronPlatformName === "win32") await prepareMinGit(desktop, arch, binDirectory);
 }
 
 /**

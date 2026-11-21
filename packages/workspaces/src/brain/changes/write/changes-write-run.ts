@@ -49,7 +49,12 @@ async function run(
   // Windows only, and only from the user's changes.discard / changes.commit clicks.
   if (mode === "direct")
     return runGitWriteDirect(
-      { platform: deps.platform, env: deps.env, userHome: deps.userHome },
+      {
+        platform: deps.platform,
+        env: deps.env,
+        userHome: deps.userHome,
+        resourcesDir: deps.resourcesDir,
+      },
       { cwd: root, operations, signal, timeoutMs: 120_000, assertAuthorized },
     );
   const runId = randomUUID();

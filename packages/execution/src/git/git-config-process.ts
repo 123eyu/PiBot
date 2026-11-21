@@ -9,12 +9,13 @@ import { gitPrograms } from "./git-program.ts";
 export interface GitConfigurationProcessOptions {
   platform: NodeJS.Platform;
   env: Readonly<NodeJS.ProcessEnv>;
+  resourcesDir?: string;
 }
 export async function configurationGitProgram(
   requested: string,
   options: GitConfigurationProcessOptions,
 ) {
-  const candidates = gitPrograms(options.platform, options.env).filter(
+  const candidates = gitPrograms(options.platform, options.env, options.resourcesDir).filter(
     (path) => requested === "git" || path === requested,
   );
   for (const path of candidates) {

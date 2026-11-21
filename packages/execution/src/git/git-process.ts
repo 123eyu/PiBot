@@ -10,6 +10,8 @@ export interface GitProcessOptions {
   platform: NodeJS.Platform;
   env: Readonly<NodeJS.ProcessEnv>;
   userHome: string;
+  /** Packaged app resources; on Windows the bundled MinGit there is the last Git candidate. */
+  resourcesDir?: string;
 }
 
 export interface GitProcessResult {
@@ -22,8 +24,10 @@ export interface GitProcessResult {
   durationMs: number;
 }
 
-export async function findGit(options: Pick<GitProcessOptions, "platform" | "env">) {
-  for (const candidate of gitPrograms(options.platform, options.env)) {
+export async function findGit(
+  options: Pick<GitProcessOptions, "platform" | "env" | "resourcesDir">,
+) {
+  for (const candidate of gitPrograms(options.platform, options.env, options.resourcesDir)) {
     try {
       await access(candidate, options.platform === "win32" ? constants.F_OK : constants.X_OK);
       return candidate;

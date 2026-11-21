@@ -73,6 +73,7 @@ export class GroupMemberWorktrees {
       platform: local.deps.platform,
       env: local.deps.env,
       userHome: local.deps.userHome,
+      resourcesDir: local.deps.resourcesDir,
     });
     this.git = createManagedGit({
       platform: local.deps.platform,
@@ -87,6 +88,7 @@ export class GroupMemberWorktrees {
       platform: local.deps.platform,
       env: local.deps.env,
       tempDir: local.deps.tempDir,
+      resourcesDir: local.deps.resourcesDir,
     });
     this.localHost = localWorktreeHost(local, this.git, this.reader);
     this.timer = setInterval(() => {

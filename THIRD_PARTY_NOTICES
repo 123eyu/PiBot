@@ -61,7 +61,15 @@ Bundled binaries and assets
    only. Details, sources and the MPL-2.0 text:
    apps/desktop/resources/licenses/
 
-8. External agent logos (packages/external-agents/assets/logos/)
+8. MinGit (Git for Windows) 2.56.1 (bundled unmodified in the Windows desktop
+   app only, as resources/bin/git/)
+   Source:  https://github.com/git-for-windows/git/releases/tag/v2.56.1.windows.1
+   License: GNU General Public License, version 2 (Git), plus the licenses of
+            its bundled components; full texts ship in resources/bin/git/LICENSE.txt.
+   Pi Bot runs it as a separate program; the GPL does not apply to the rest of
+   Pi Bot. Details and corresponding source: apps/desktop/resources/licenses/mingit.md
+
+9. External agent logos (packages/external-agents/assets/logos/)
    Codex, Claude, Cursor and OpenCode marks are trademarks of their owners and
    are used only to identify the user's own installed agent. Sources are listed
    in packages/external-agents/assets/logos/NOTICE.md. These marks are not

@@ -147,13 +147,16 @@ function inside(root: string, relativePath: string) {
   return absolute;
 }
 
-export function createManagedFolders(options: Pick<ExecOptions, "platform" | "env" | "tempDir">) {
+export function createManagedFolders(
+  options: Pick<ExecOptions, "platform" | "env" | "tempDir" | "resourcesDir">,
+) {
   // An empty HOME: the user's global Git config (filters, hooks, signing) never applies here.
   const home = join(options.tempDir, "managed-folder-home");
   const processOptions: GitProcessOptions = {
     platform: options.platform,
     env: options.env,
     userHome: home,
+    resourcesDir: options.resourcesDir,
   };
   async function git(repository: string, args: string[], signal: AbortSignal) {
     const program = await findGit(processOptions);

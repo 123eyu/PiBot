@@ -88,6 +88,7 @@ export function createManagedGit(options: ExecOptions) {
     platform: options.platform,
     env: options.env,
     userHome: options.systemHome,
+    resourcesDir: options.resourcesDir,
   };
   const reader = createGitReader(processOptions);
   const live = new Set<import("node:child_process").ChildProcess>();

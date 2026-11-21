@@ -88,6 +88,7 @@ export class ChangesService {
       platform: local.deps.platform,
       env: local.deps.env,
       userHome: local.deps.userHome,
+      resourcesDir: local.deps.resourcesDir,
     });
     this.turn = new RunChanges({
       db: local.deps.db,

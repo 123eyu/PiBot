@@ -36,6 +36,7 @@ export async function commitGroupWorktree(
     platform: local.deps.platform,
     env: local.deps.env,
     userHome: local.deps.userHome,
+    resourcesDir: local.deps.resourcesDir,
   });
   // The fixed recipe reads these files inside its sandbox, which reads the Bot home but not the
   // system temp folder (the same place changes-write keeps its pathspec and message files).

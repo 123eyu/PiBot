@@ -64,6 +64,12 @@ export async function verifyTargetPackage(
   }
   verifyTargetBinary(join(resources, "bin", win ? "rg.exe" : "rg"), platform, arch);
   verifyChildNode(resources, platform, arch);
+  if (win) {
+    // Bundled MinGit: runtime resolves bin/git/cmd/git.exe after any installed Git.
+    verifyTargetBinary(join(resources, "bin", "git", "cmd", "git.exe"), platform, arch);
+    assert(existsSync(join(resources, "bin", "git", "LICENSE.txt")), "Missing MinGit licence");
+    assert(existsSync(join(resources, "licenses", "mingit.md")), "Missing MinGit notice");
+  }
   verifyCodeMapGrammars(join(resources, "wasm", "codemap"));
   for (const name of ["web-tree-sitter.wasm", "tree-sitter-bash.wasm"])
     assert(
