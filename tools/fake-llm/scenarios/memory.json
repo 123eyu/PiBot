@@ -1,0 +1,20 @@
+{
+  "replies": [
+    {
+      "toolCalls": [
+        { "name": "memory_add", "arguments": { "text": "报告先写结论", "category": "how_to" } }
+      ]
+    },
+    { "text": "已提交结论优先的记忆。" },
+    { "text": "新话题合成报告：结论先行。" },
+    {
+      "toolCalls": [
+        {
+          "name": "memory_add",
+          "arguments": { "text": "合成偏好：使用短段落", "category": "how_to" }
+        }
+      ]
+    },
+    { "text": "先问我模式已提交待确认记忆。" }
+  ]
+}

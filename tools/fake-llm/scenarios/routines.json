@@ -1,0 +1,21 @@
+{
+  "replies": [{ "text": "合成例行任务已完成。", "delayMs": 0 }],
+  "routes": {
+    "coordinator": [
+      {
+        "toolCalls": [
+          {
+            "name": "routine_propose",
+            "arguments": {
+              "name": "合成晨报",
+              "instructions": "整理本地合成资料",
+              "triggers": [{ "kind": "cron", "expr": "30 8 * * *", "timezone": "Asia/Shanghai" }]
+            }
+          }
+        ],
+        "delayMs": 0
+      },
+      { "text": "已提出，请在卡片确认。", "delayMs": 0 }
+    ]
+  }
+}

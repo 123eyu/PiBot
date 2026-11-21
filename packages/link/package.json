@@ -1,0 +1,26 @@
+{
+  "name": "@pibot/link",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L1"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./room": "./src/room/index.ts",
+    "./lan": "./src/transport/lan.ts",
+    "./lan-socket": "./src/transport/lan-socket.ts",
+    "./runner-address": "./src/transport/runner-address.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/protocol-base": "workspace:*",
+    "@noble/curves": "2.4.0",
+    "@noble/ciphers": "2.4.0",
+    "@noble/hashes": "2.4.0",
+    "zod": "4.6.5"
+  }
+}

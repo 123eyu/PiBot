@@ -1,0 +1,650 @@
+.page {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  background: var(--bg);
+  color: var(--text);
+}
+.pageHeader {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--b1);
+}
+.pageHeader h1 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+.page h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 14px 24px;
+  border-bottom: 1px solid var(--b1);
+}
+.tabs strong {
+  color: var(--prim);
+}
+.pageScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.content {
+  max-width: 960px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.content > p {
+  margin: 0;
+}
+.empty {
+  padding: 16px;
+  border: 1px solid var(--b1);
+  border-radius: var(--radius-card);
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 13px;
+}
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.card,
+.cardButton {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 14px 16px;
+  /* Soft cards instead of bordered boxes. */
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.card p {
+  margin: 0;
+}
+.cardButton {
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.cardOpen {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.cardButton:hover {
+  background: var(--hover);
+}
+.cardButton [data-status="ready"],
+.cardOpen [data-status="ready"] {
+  color: var(--ok);
+}
+.cardButton [data-status="error"],
+.cardButton [data-status="needs_auth"],
+.cardOpen [data-status="error"],
+.cardOpen [data-status="needs_auth"] {
+  color: var(--warn);
+}
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+.grow {
+  flex: 1 1 160px;
+}
+.note {
+  font-size: 12.5px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.warn,
+.error {
+  padding: 12px;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.warn {
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.error {
+  color: var(--danger);
+  background: var(--dangerBg);
+}
+.dangerButton {
+  background: var(--dangerBg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.search {
+  margin-inline-start: auto;
+  flex: 0 1 220px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+  min-height: 34px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--text2);
+}
+.search:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.search input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.search input::placeholder {
+  color: var(--text2);
+}
+.search svg {
+  flex: none;
+}
+.filters > * {
+  max-width: 100%;
+}
+.panel {
+  position: fixed;
+  inset: var(--titlebar-height, 0px) 0 0 auto;
+  margin: 0;
+  width: min(560px, 100vw);
+  height: calc(100dvh - var(--titlebar-height, 0px));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  box-sizing: border-box;
+  border: 0;
+  border-start-start-radius: 20px;
+  border-end-start-radius: 20px;
+  background: var(--bg);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--avatar-blue) 10%, transparent),
+    transparent 220px
+  );
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  -webkit-app-region: no-drag;
+}
+.panel[open] {
+  display: flex;
+  flex-direction: column;
+  animation: panelIn 260ms var(--ease-out);
+}
+@keyframes panelIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel[open] {
+    animation: none;
+  }
+}
+.panel::backdrop {
+  background: var(--overlay);
+}
+.panelHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 10px;
+}
+.panelHeader h2 {
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.panelBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+.panelBody h3,
+.panelBody p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.panelBody pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field textarea {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 11px;
+  font: inherit;
+  background: var(--tert);
+  color: var(--text);
+  resize: vertical;
+}
+.options {
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+.options label {
+  overflow-wrap: anywhere;
+}
+.panel input {
+  accent-color: var(--avatar-blue);
+}
+.page h1:focus-visible,
+.cardButton:focus-visible,
+.panel :focus-visible {
+  outline: 2px solid var(--prim);
+  outline-offset: 3px;
+}
+@container (max-width: 820px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (max-width: 520px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .content {
+    padding: 16px 12px;
+  }
+  .pageHeader,
+  .tabs {
+    padding-inline: 12px;
+  }
+  .filters {
+    align-items: stretch;
+  }
+  .filters > * {
+    width: 100%;
+  }
+  .search {
+    flex-basis: auto;
+    margin-inline-start: 0;
+  }
+}
+@media (max-width: 480px) {
+  .panelHeader,
+  .panelBody {
+    padding: 16px 12px;
+  }
+}
+/* Secrets tab: interactive tabs like ptabs. */
+.tab,
+.tabActive {
+  font: inherit;
+  font-size: 14px;
+  padding: 4px 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+}
+.tab:hover {
+  color: var(--text);
+}
+.tabActive {
+  color: var(--prim);
+  border-bottom-color: var(--prim);
+  font-weight: 600;
+}
+.secretsList {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  overflow: hidden;
+}
+.secretRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--b1);
+}
+.secretRow:last-child {
+  border-bottom: 0;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+/* Panel inputs share the textarea styling; the secret value is write-only, never echoed. */
+.field input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 13px;
+  background: var(--tert);
+  color: var(--text);
+}
+.field input[readonly] {
+  color: var(--text2);
+}
+.field input:focus-visible {
+  outline: 2px solid var(--prim);
+  outline-offset: 1px;
+}
+
+.field select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 11px;
+  font: inherit;
+  background: var(--tert);
+  color: var(--text);
+}
+.field select:focus-visible {
+  outline: 2px solid var(--prim);
+  outline-offset: 1px;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Option cards: a radio choice drawn as a tinted card with a ring, as in the prototypes. */
+.optCards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.optCard {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1.5px solid transparent;
+  border-radius: 13px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 13px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition:
+    border-color 180ms var(--ease-out),
+    background-color 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+.optCard:hover {
+  transform: translateX(2px);
+}
+.optCard input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.optCard::before {
+  content: "";
+  flex: none;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid var(--b2);
+  border-radius: 50%;
+  transition:
+    border-color 180ms var(--ease-out),
+    background-color 180ms var(--ease-out);
+}
+.optCard:has(input:checked) {
+  border-color: var(--avatar-blue);
+  background: color-mix(in srgb, var(--avatar-blue) 9%, var(--card));
+}
+.optCard:has(input:checked)::before {
+  border-color: var(--avatar-blue);
+  background: var(--avatar-blue);
+  box-shadow: inset 0 0 0 3px var(--card);
+}
+.optCard:has(input:focus-visible) {
+  outline: 2px solid var(--prim);
+  outline-offset: 2px;
+}
+.optCard:has(input:disabled) {
+  cursor: default;
+  opacity: 0.6;
+}
+.toolRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.toolText {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.toolText small {
+  color: var(--text2);
+  font-size: 12px;
+}
+.toolText strong {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+.statusCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .optCard {
+    transition: none;
+  }
+  .optCard:hover {
+    transform: none;
+  }
+}
+/* Forms in panels: one soft card of fields; text fields are tinted pills, chips pick a value. */
+.formCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.formCard .field input:not([type="radio"]):not([type="checkbox"]),
+.formCard .field select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+}
+.formCard .field textarea {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.fieldLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chipButton {
+  min-height: 30px;
+  padding: 5px 13px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-out);
+}
+.chipButton[aria-pressed="true"] {
+  background: var(--avatar-blue);
+  color: var(--on-tone);
+  font-weight: 600;
+}
+.chipButton:focus-visible {
+  outline: 2px solid var(--prim);
+  outline-offset: 2px;
+}
+.chipButton[data-mono] {
+  font-family: var(--font-mono);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chipButton {
+    transition: none;
+  }
+}
+.mono {
+  font-family: var(--font-mono);
+}
+/* A stdio MCP's start failure. */
+.failureList {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+.stderrTail {
+  margin: 6px 0 0;
+  max-height: 180px;
+  overflow: auto;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

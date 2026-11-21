@@ -1,0 +1,46 @@
+{
+  "name": "@pibot/remote",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": {
+    "./brain": "./src/brain/index.ts",
+    "./store": "./src/store/index.ts",
+    "./ui": "./src/ui/index.ts",
+    "./dev": "./dev/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.ui.json && tsc --noEmit -p tsconfig.dev.json"
+  },
+  "dependencies": {
+    "@pibot/runner": "workspace:0.0.0",
+    "@pibot/brain": "workspace:0.0.0",
+    "@pibot/browser-contract": "workspace:0.0.0",
+    "@pibot/i18n": "workspace:0.0.0",
+    "@pibot/protocol": "workspace:0.0.0",
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "@pibot/remote-contract": "workspace:0.0.0",
+    "@pibot/renderer-kit": "workspace:0.0.0",
+    "@pibot/secrets": "workspace:0.0.0",
+    "@pibot/storage": "workspace:0.0.0",
+    "@pibot/ui": "workspace:0.0.0",
+    "qrcode": "1.5.4",
+    "react": "19.3.0",
+    "zod": "4.6.5",
+    "@pibot/link": "workspace:0.0.0",
+    "@pibot/execution": "workspace:0.0.0",
+    "undici": "8.10.2",
+    "multicast-dns": "7.2.5",
+    "ws": "8.22.0"
+  },
+  "devDependencies": {
+    "@types/qrcode": "1.5.6",
+    "@types/ws": "8.18.2",
+    "@types/multicast-dns": "7.2.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}

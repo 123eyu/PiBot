@@ -1,0 +1,139 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  height: 56px;
+  box-sizing: border-box;
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-sans);
+  border-bottom: 1px solid var(--b2);
+  overflow: hidden;
+}
+.address {
+  flex: 1;
+  min-width: 30px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text2);
+}
+.toolbar button {
+  flex: none;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.toolbar select {
+  min-width: 60px;
+  max-width: 180px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+  padding: 6px;
+}
+.toolbar select:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.result {
+  font-size: 11px;
+  color: var(--text2);
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+@media (max-width: 720px) {
+  .result {
+    display: none;
+  }
+  .toolbar {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+  .toolbar button {
+    padding-inline: 8px;
+  }
+  .toolbar select {
+    max-width: 110px;
+  }
+}
+
+/*
+ * Lively layer: the takeover is orange, the colour that
+ * means "you are driving". The bar is washed orange with an orange base line, a hand tile and the
+ * 你在操作 light lead, the address sits in a pill, results are chips, 交还 is the orange button.
+ */
+.toolbar.toolbar {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--avatar-orange) 16%, var(--card)),
+    var(--card)
+  );
+  border-bottom: 2px solid var(--avatar-orange);
+}
+.youDrive {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--ink-orange);
+  background: color-mix(in srgb, var(--avatar-orange) 14%, transparent);
+}
+.youDrive > i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.address.address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+}
+.address.address > svg {
+  flex: none;
+}
+.address.address > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.result.result {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+}
+.result.result[data-tone="ok"] {
+  color: var(--ok);
+  background: var(--okBg);
+}
+.result.result[data-tone="danger"] {
+  color: var(--danger);
+  background: var(--dangerBg);
+}
+.toolbar.toolbar select {
+  border-color: transparent;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  padding: 6px 10px;
+}
+.handBack:enabled {
+  color: var(--on-tone);
+  background: var(--avatar-orange);
+}
+@media (max-width: 720px) {
+  .youDrive {
+    display: none;
+  }
+}

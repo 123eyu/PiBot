@@ -1,0 +1,899 @@
+/* Operating-the-computer UI. Builds on chat/local-exec.module.css (.approval, .facts, .check). */
+
+/* ---- grant card ---- */
+.subtitle {
+  margin: 0;
+  padding: 0 16px 10px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.appRow,
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--b1);
+  font-size: 13px;
+  cursor: pointer;
+}
+.optionRow {
+  align-items: flex-start;
+}
+.appRow input,
+.optionRow input {
+  flex: none;
+  margin: 0;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--prim);
+}
+.optionRow input {
+  margin-top: 3px;
+}
+.appRow[data-locked] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.appName {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.optionText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.optionText small,
+.inlineNote {
+  font-size: 12px;
+  color: var(--text2);
+}
+.hint {
+  flex: none;
+  font-size: 12px;
+  color: var(--accent);
+}
+.hint[data-tone="danger"] {
+  color: var(--danger);
+}
+.hint[data-tone="muted"] {
+  color: var(--text2);
+}
+.durationRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--b1);
+  font-size: 13px;
+}
+.durationRow > span {
+  color: var(--text2);
+}
+.cardNote {
+  margin: 0;
+  padding: 8px 16px 10px;
+  border-top: 1px solid var(--b1);
+  font-size: 12px;
+  color: var(--text2);
+}
+.cardWarn {
+  margin: 0;
+  padding: 8px 16px;
+  border-top: 1px solid var(--b1);
+  font-size: 12px;
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.permRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--b1);
+  font-size: 13px;
+}
+.permRow > .permLabel {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---- tags ---- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--hover);
+  color: var(--text2);
+}
+.tag[data-tone="background"],
+.tag[data-tone="ok"] {
+  background: var(--okBg);
+  color: var(--ok);
+}
+.tag[data-tone="foreground"],
+.tag[data-tone="warn"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.tag[data-tone="browser"] {
+  background: var(--accentBg);
+  color: var(--accent);
+}
+.tag[data-tone="danger"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+
+/* ---- steps ---- */
+.steps {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 4px;
+}
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+}
+button.stepRow {
+  cursor: pointer;
+}
+button.stepRow:hover {
+  background: var(--hover);
+}
+button.stepRow:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.stepText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.stepPage {
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.stepPageTitle {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 50%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stepPageUrl {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.8;
+}
+.stepText > span:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.stepStatus {
+  flex: none;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--text2);
+}
+.stepStatus[data-result="done"] {
+  color: var(--ok);
+}
+.stepStatus[data-result="error"],
+.stepStatus[data-result="denied"] {
+  color: var(--danger);
+}
+/* The step stopped on a "come help for a moment" card. */
+.stepStatus[data-result="waiting"] {
+  color: var(--warn);
+}
+.thumb {
+  position: relative;
+  flex: none;
+  width: 72px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--b2);
+  background: var(--tert);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.stepsError {
+  font-size: 12px;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---- screenshot viewer ---- */
+.viewer {
+  box-sizing: border-box;
+  width: min(760px, 92vw);
+  max-height: 90vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--b2);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  padding: 16px 18px 18px;
+}
+.viewer::backdrop {
+  background: var(--overlay);
+}
+.viewerHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.viewerHeader strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+}
+.frame {
+  position: relative;
+  margin: 12px 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--b2);
+  overflow: hidden;
+  background: var(--tert);
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.frame img {
+  display: block;
+  max-width: 100%;
+  max-height: 64vh;
+  object-fit: contain;
+}
+.frameInner {
+  position: relative;
+  line-height: 0;
+}
+.mark {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 50%;
+  border: 2px solid var(--danger);
+  box-shadow: 0 0 0 3px var(--dangerBg);
+  pointer-events: none;
+}
+.viewer p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.viewerActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+/* ---- chat notes ---- */
+.chatNote {
+  margin: 4px 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.foregroundAsk {
+  margin: 6px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--warnBg);
+  color: var(--warn);
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- settings / profile lists ---- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 12px;
+}
+.chips[data-flush] {
+  padding: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 4px 0 10px;
+  border-radius: 14px;
+  background: var(--tert);
+  font-size: 12.5px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.chip[data-locked] {
+  padding-right: 10px;
+  color: var(--text2);
+}
+.chip button {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+.chip button:hover {
+  background: var(--hover);
+}
+.search {
+  margin: 0 16px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text2);
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.appList {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  border-top: 1px solid var(--b1);
+}
+.appList .appRow:first-child {
+  border-top: 0;
+}
+.listNote {
+  margin: 0;
+  padding: 8px 16px 12px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.listError {
+  margin: 0;
+  padding: 8px 16px 12px;
+  font-size: 12px;
+  color: var(--danger);
+}
+.kbd {
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--b2);
+  background: var(--tert);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.banner {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  background: var(--tert);
+  color: var(--text2);
+}
+.banner strong {
+  display: block;
+  color: var(--warn);
+  font-weight: 600;
+}
+.picker {
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--card);
+  overflow: hidden;
+  padding-top: 8px;
+}
+.pickerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--b1);
+}
+
+/* ---- settings · blocklist «add app» popover ---- */
+.addApp {
+  position: relative;
+  align-self: flex-start;
+}
+.addPopover {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 300px;
+  max-width: calc(100vw - 48px);
+  box-sizing: border-box;
+  padding: 8px 0 4px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.addPopover .search {
+  margin: 0 8px 6px;
+}
+.addList {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 0 4px;
+}
+.addItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.addItem:hover,
+.addItem:focus-visible {
+  background: var(--hover);
+  outline: none;
+}
+
+/*
+ * Lively layer. Inside a chat every accent follows the chat's Bot
+ * colour (`--chat-c` / `--chat-ink`, set by the chat column); outside one (records, settings)
+ * the 操作电脑 pink stands in. The grant card leads with that edge and a washed header, choices
+ * are tinted rows, notes and hints are pills, steps are soft rows with a status chip. Status
+ * colours keep their meaning (granted green, missing / blocked red, foreground amber). Doubled selectors win over the shared
+ * approval styles in @pibot/renderer-kit without depending on stylesheet order.
+ */
+.card.card {
+  --tone: var(--chat-c, var(--avatar-pink));
+  --accent-fill: var(--tone);
+  --accent-knob: var(--on-tone);
+  --accent-ink: var(--chat-ink, var(--ink-pink));
+  border: 0;
+  border-left: 4px solid var(--tone);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  animation: rise 350ms var(--ease-out) both;
+}
+.card.card > header {
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  font-weight: 600;
+}
+.card.card > header > span {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--tone);
+  color: var(--on-tone);
+}
+.card.card > header > span > svg {
+  width: 14px;
+  height: 14px;
+}
+.card.card > footer {
+  border-top-color: var(--b1);
+}
+.card .subtitle {
+  padding: 10px 14px 4px;
+}
+.card .appRow,
+.card .optionRow {
+  margin: 6px 14px 0;
+  padding: 8px 10px;
+  border-top: 0;
+  border-radius: 12px;
+  background: var(--tert);
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+.card .appRow:has(input:checked),
+.card .optionRow:has(input:checked) {
+  background: color-mix(in srgb, var(--tone) 10%, transparent);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tone) 50%, transparent);
+}
+.card .appRow input,
+.card .optionRow input {
+  accent-color: var(--tone);
+}
+.card .durationRow {
+  margin: 4px 0 0;
+  padding: 10px 14px 4px;
+  border-top: 0;
+}
+.card .durationRow > span:first-child {
+  flex: 1;
+}
+.card .cardWarn {
+  margin: 8px 14px 0;
+  padding: 8px 12px;
+  border-top: 0;
+  border-radius: 12px;
+}
+.card .permRow {
+  margin: 6px 14px 0;
+  padding: 6px 6px 6px 12px;
+  border-top: 0;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.hint.hint {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  color: var(--chat-ink, var(--ink-pink));
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 13%, transparent);
+  white-space: nowrap;
+}
+.hint.hint[data-tone="danger"] {
+  color: var(--danger);
+  background: var(--dangerBg);
+}
+.hint.hint[data-tone="muted"] {
+  color: var(--text2);
+  background: var(--tert);
+}
+.cardNotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 12px 14px;
+  list-style: none;
+}
+/* Lets a tile take the chat colour (it beats the tile's own tone rule). */
+.chatTile.chatTile.chatTile {
+  --tile: var(--chat-c, var(--avatar-pink));
+}
+.primary:enabled {
+  color: var(--on-tone);
+  background: var(--chat-c, var(--avatar-pink));
+}
+.cardNotes li {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+/* Tags: soft pills; foreground is amber, background green, the Bot browser blue. */
+.tag.tag {
+  height: 19px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+}
+.tag.tag[data-tone="browser"] {
+  color: var(--ink-blue);
+  background: color-mix(in srgb, var(--avatar-blue) 13%, transparent);
+}
+
+/* Steps: one soft row each; the status reads as a chip. */
+.steps.steps {
+  gap: 6px;
+  margin: 6px 0;
+}
+.stepRow.stepRow {
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: var(--tert);
+  font-size: 12.5px;
+  transition:
+    background-color 150ms ease,
+    transform 180ms var(--ease-out);
+}
+button.stepRow.stepRow:hover {
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 9%, var(--tert));
+  transform: translateX(2px);
+}
+.stepStatus.stepStatus {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  background: var(--b1);
+}
+.stepStatus.stepStatus[data-result="done"] {
+  background: var(--okBg);
+}
+.stepStatus.stepStatus[data-result="error"],
+.stepStatus.stepStatus[data-result="denied"] {
+  background: var(--dangerBg);
+}
+.stepStatus.stepStatus[data-result="waiting"] {
+  background: var(--warnBg);
+}
+.thumb.thumb {
+  width: 64px;
+  height: 40px;
+  border: 0;
+  border-radius: 9px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 22%, var(--card)),
+    var(--card)
+  );
+  box-shadow: var(--shadow-soft);
+}
+
+/* Records · 操作电脑: day headings carry the pink dot. */
+.logDay > h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 2px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+}
+.logDay > h2::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chat-c, var(--avatar-pink));
+}
+
+/* Screenshot viewer: a soft sheet; the click mark is pink; facts are chips. */
+.viewer.viewer {
+  border: 0;
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+  animation: rise 260ms var(--ease-out);
+}
+.viewerHeader.viewerHeader {
+  align-items: center;
+}
+.frame.frame {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px var(--b1);
+}
+.mark.mark {
+  border-color: var(--chat-c, var(--avatar-pink));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 25%, transparent);
+}
+.viewerFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+/* Run notices: the foreground ask is an amber band; waiting / paused / stopped are grey bands. */
+/* The sentence takes the full width; the buttons get their own right-aligned row and never wrap. */
+.foregroundAsk.foregroundAsk {
+  align-items: flex-start;
+  gap: 8px 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  animation: rise 300ms var(--ease-out) both;
+}
+.foregroundAsk.foregroundAsk > span:not(:first-child) {
+  flex: 1 1 calc(100% - 40px);
+  min-width: 0;
+  padding-top: 1px;
+}
+.foregroundActions {
+  flex: 1 0 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.foregroundActions > button {
+  min-height: 32px;
+  padding: 5px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.chatNote[role="status"] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 6px 0;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+
+/* Settings / profile lists: chips and the picker as soft cards; checked apps tinted pink. */
+.chip.chip {
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 10%, var(--tert));
+}
+.chip.chip[data-locked] {
+  background: var(--tert);
+}
+.search.search {
+  border-color: transparent;
+  background: var(--tert);
+}
+.picker.picker,
+.addPopover.addPopover {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+.appList .appRow:has(input:checked) {
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 9%, transparent);
+}
+.appList .appRow input {
+  accent-color: var(--chat-c, var(--avatar-pink));
+}
+.banner.banner {
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 8%, var(--tert));
+}
+.kbd.kbd {
+  border: 0;
+  border-radius: 8px;
+  box-shadow: inset 0 -1px 0 var(--b2);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card.card,
+  .viewer.viewer,
+  .foregroundAsk.foregroundAsk {
+    animation: none;
+  }
+  .card .appRow,
+  .card .optionRow,
+  .stepRow.stepRow {
+    transition: none;
+  }
+  button.stepRow.stepRow:hover {
+    transform: none;
+  }
+}
+
+/* ---- welcome (onboarding) permission rows: one soft card, status chips ---- */
+.onboard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+.onboardCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.onboardRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 10px;
+  border-radius: 12px;
+}
+.onboardText {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow-wrap: anywhere;
+}
+.onboardText strong {
+  font-weight: 600;
+}
+.onboardSub {
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.onboardNote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 9px 14px;
+  border-radius: 12px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12.5px;
+}
+.onboardGrow {
+  flex: 1;
+  min-width: 0;
+}
+.onboardNote[data-tone="warn"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.onboardNote[data-tone="danger"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+/* In-use hero: stopping a Bot's computer session is the destructive action. */
+.stopButton {
+  background: var(--danger);
+  color: var(--on-tone);
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@pibot/runner",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L4"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./remote-target": "./src/remote-target.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/execution": "workspace:*",
+    "@pibot/link": "workspace:*",
+    "@pibot/protocol-base": "workspace:*"
+  }
+}

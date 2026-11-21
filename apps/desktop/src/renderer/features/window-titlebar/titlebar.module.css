@@ -1,0 +1,23 @@
+/* Same height as the main process's titleBarOverlay (window.ts TITLE_STRIP_HEIGHT). The right
+   padding keeps everything of ours out of the OS controls' overlay area. */
+.strip {
+  position: fixed;
+  inset: 0 0 auto;
+  height: var(--titlebar-height);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 calc(12px + var(--window-controls-inset, 0px)) 0 12px;
+  box-sizing: border-box;
+  background: var(--side);
+  border-bottom: 1px solid var(--b1);
+  color: var(--text2);
+  font-size: 12px;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+.name {
+  color: var(--text);
+  font-weight: 600;
+}

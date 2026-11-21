@@ -1,0 +1,51 @@
+{
+  "scenario": 2,
+  "method": "periodic-brief",
+  "behaviour": "template",
+  "requiredStrings": [
+    "合成公共交通"
+  ],
+  "deliverables": [
+    {
+      "id": "brief",
+      "path": "简报.md",
+      "kind": "md",
+      "sections": [
+        "结论摘要",
+        "本期变化",
+        "与上期相比",
+        "数据说明",
+        "来源",
+        "待确认"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "a1",
+      "check": "exists",
+      "deliverable": "brief"
+    },
+    {
+      "id": "a2",
+      "check": "sections",
+      "deliverable": "brief"
+    },
+    {
+      "id": "a3",
+      "check": "citations",
+      "deliverable": "brief"
+    },
+    {
+      "id": "source-count",
+      "check": "minCitations",
+      "min": 1,
+      "deliverable": "brief"
+    }
+  ],
+  "budget": {
+    "modelRequests": 100,
+    "costUsd": 1,
+    "activeSeconds": 300
+  }
+}

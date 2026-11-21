@@ -1,0 +1,34 @@
+{
+  "name": "@pibot/protocol",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./office-content": "./src/subpaths/office-content.ts",
+    "./background": "./src/subpaths/background.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/plugins-contract": "workspace:0.0.0",
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "@pibot/routines-contract": "workspace:0.0.0",
+    "zod": "4.6.5",
+    "@pibot/models-contract": "workspace:0.0.0",
+    "@pibot/office-contract": "workspace:0.0.0",
+    "@pibot/images-contract": "workspace:0.0.0",
+    "@pibot/credentials-contract": "workspace:0.0.0",
+    "@pibot/skills-contract": "workspace:0.0.0",
+    "@pibot/computer-use-contract": "workspace:0.0.0",
+    "@pibot/browser-contract": "workspace:0.0.0",
+    "@pibot/workspaces-contract": "workspace:0.0.0",
+    "@pibot/teams-contract": "workspace:0.0.0",
+    "@pibot/remote-contract": "workspace:0.0.0",
+    "@pibot/external-agents-contract": "workspace:0.0.0"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "workflows": {
+    "brief-data": {
+      "fingerprint": "58bb104bd7e4a866",
+      "modelId": "workflow-eval-fake-v1",
+      "cases": {
+        "2026-07": {
+          "passed": true,
+          "costUsd": null
+        },
+        "2026-08": {
+          "passed": true,
+          "costUsd": null
+        },
+        "2026-09": {
+          "passed": true,
+          "costUsd": null
+        }
+      }
+    },
+    "periodic-brief": {
+      "fingerprint": "2f39400e3a5af1cb",
+      "modelId": "workflow-eval-fake-v1",
+      "cases": {
+        "2026-07": {
+          "passed": true,
+          "costUsd": null
+        },
+        "2026-08": {
+          "passed": true,
+          "costUsd": null
+        },
+        "2026-09": {
+          "passed": true,
+          "costUsd": null
+        },
+        "2026-10": {
+          "passed": true,
+          "costUsd": null
+        }
+      }
+    },
+    "analysis-report": {
+      "fingerprint": "1a47d3a11af8e9f1",
+      "modelId": "workflow-eval-fake-v1",
+      "cases": {
+        "synthetic-1": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-2": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-3": {
+          "passed": true,
+          "costUsd": null
+        }
+      }
+    },
+    "competitive-analysis": {
+      "fingerprint": "e99c8ca0a0ea6d2f",
+      "modelId": "workflow-eval-fake-v1",
+      "cases": {
+        "synthetic-1": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-2": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-3": {
+          "passed": true,
+          "costUsd": null
+        }
+      }
+    },
+    "fact-check": {
+      "fingerprint": "acf6ef771bc50bd7",
+      "modelId": "workflow-eval-fake-v1",
+      "cases": {
+        "synthetic-1": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-2": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-3": {
+          "passed": true,
+          "costUsd": null
+        }
+      }
+    },
+    "research-report": {
+      "fingerprint": "58beae33f712c143",
+      "modelId": "workflow-eval-fake-v1",
+      "cases": {
+        "synthetic-1": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-2": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-3": {
+          "passed": true,
+          "costUsd": null
+        }
+      }
+    },
+    "source-notes": {
+      "fingerprint": "bf9634804aae2176",
+      "modelId": "workflow-eval-fake-v1",
+      "cases": {
+        "synthetic-1": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-2": {
+          "passed": true,
+          "costUsd": null
+        },
+        "synthetic-3": {
+          "passed": true,
+          "costUsd": null
+        }
+      }
+    }
+  }
+}

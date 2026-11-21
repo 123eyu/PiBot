@@ -1,0 +1,685 @@
+diff --git a/dist/sandbox/linux-sandbox-utils.d.ts b/dist/sandbox/linux-sandbox-utils.d.ts
+index 9a16855dff76efea64af8516a38d079c105a2ffb..2e5586f835e04a10bed8b1727e9afa1ddba08fe0 100644
+--- a/dist/sandbox/linux-sandbox-utils.d.ts
++++ b/dist/sandbox/linux-sandbox-utils.d.ts
+@@ -1,3 +1,4 @@
++// Modified for Pi Bot: scoped .gitmodules exceptions; all other sandbox rules retained.
+ import type { ChildProcess } from 'node:child_process';
+ import { type RipgrepConfig } from '../utils/ripgrep.js';
+ import type { FsReadRestrictionConfig, FsWriteRestrictionConfig } from './sandbox-schemas.js';
+@@ -55,6 +56,7 @@ export interface LinuxSandboxParams {
+     mandatoryDenySearchDepth?: number;
+     /** Allow writes to .git/config files (default: false) */
+     allowGitConfig?: boolean;
++    gitManifestWriteRoots?: readonly string[];
+     /**
+      * Directories to emit as `safe.directory` via `GIT_CONFIG_*` env
+      * vars (see {@link buildPosixGitSafeDirEnv}). Under `--unshare-user`
+@@ -86,7 +88,7 @@ export interface LinuxSandboxParams {
+  * violation monitor, which needs the same denies to judge a write bwrap
+  * refuses — reads the same definition rather than a copy of it.
+  */
+-export declare function linuxGetCwdMandatoryDenyPaths(allowGitConfig?: boolean): string[];
++export declare function linuxGetCwdMandatoryDenyPaths(allowGitConfig?: boolean, gitManifestWriteRoots?: readonly string[]): string[];
+ /**
+  * The directories below `cwd`, down to `maxDepth`, that ripgrep said it could
+  * not read, that this process cannot read either, and whose mode is this
+diff --git a/dist/sandbox/linux-sandbox-utils.js b/dist/sandbox/linux-sandbox-utils.js
+index b3acba671fe6356ad5d9e187ca13753f345f931b..f3a0b86c1f07684527fee838cf1c4c239b19184c 100644
+--- a/dist/sandbox/linux-sandbox-utils.js
++++ b/dist/sandbox/linux-sandbox-utils.js
+@@ -1,3 +1,4 @@
++// Modified for Pi Bot: scoped .gitmodules exceptions; all other sandbox rules retained.
+ import { quote } from '../utils/shell-quote.js';
+ import { logForDebugging } from '../utils/debug.js';
+ import { realPathOf, wayTo } from '../utils/real-path.js';
+@@ -10,7 +11,7 @@ import path, { join } from 'node:path';
+ import { ripGrep, RipgrepError } from '../utils/ripgrep.js';
+ import { buildJavaToolOptions } from './java-proxy-agent.js';
+ import { readNamesOf, writeNamesOf } from './path-entries.js';
+-import { generateProxyEnvVars, buildPosixGitSafeDirEnv, normalizePathForSandbox, normalizeCaseForComparison, isSymlinkOutsideBoundary, encodeSandboxedCommand, attributionKeyFor, DANGEROUS_FILES, isAbsenceErrno, isAtOrUnder, isStrictlyUnder, properAncestors, nameLocation, getDangerousDirectories, workingDirectory, } from './sandbox-utils.js';
++import { generateProxyEnvVars, buildPosixGitSafeDirEnv, normalizePathForSandbox, normalizeCaseForComparison, isSymlinkOutsideBoundary, encodeSandboxedCommand, attributionKeyFor, DANGEROUS_FILES, isAbsenceErrno, isAtOrUnder, isStrictlyUnder, properAncestors, nameLocation, getDangerousDirectories, DEPENDENCY_DIRECTORIES, workingDirectory, } from './sandbox-utils.js';
+ import { getApplySeccompBinaryPath } from './generate-seccomp-filter.js';
+ /** Default max depth for searching dangerous files */
+ const DEFAULT_MANDATORY_DENY_SEARCH_DEPTH = 3;
+@@ -316,12 +317,12 @@ function dotGitKindAt(dotGitPath) {
+  * violation monitor, which needs the same denies to judge a write bwrap
+  * refuses — reads the same definition rather than a copy of it.
+  */
+-export function linuxGetCwdMandatoryDenyPaths(allowGitConfig = false) {
++export function linuxGetCwdMandatoryDenyPaths(allowGitConfig = false, gitManifestWriteRoots = []) {
+     const cwd = process.cwd();
+     // Note: Settings files are added at the callsite in sandbox-manager.ts
+     const denyPaths = [
+         // Dangerous files in CWD
+-        ...DANGEROUS_FILES.map(f => path.resolve(cwd, f)),
++        ...DANGEROUS_FILES.filter(f => f !== '.gitmodules' || !gitManifestWriteRoots.some(root => isAtOrUnder(path.resolve(cwd, f), root))).map(f => path.resolve(cwd, f)),
+         // Dangerous directories in CWD
+         ...getDangerousDirectories().map(d => path.resolve(cwd, d)),
+     ];
+@@ -398,13 +399,13 @@ export function unreadableDirectories(stderr, cwd, maxDepth) {
+  * Uses a SINGLE ripgrep call with multiple glob patterns for efficiency.
+  * With --max-depth limiting, this is fast enough to run on each command without memoization.
+  */
+-async function linuxGetMandatoryDenyPaths(ripgrepConfig = { command: 'rg' }, maxDepth = DEFAULT_MANDATORY_DENY_SEARCH_DEPTH, allowGitConfig = false, abortSignal) {
++async function linuxGetMandatoryDenyPaths(ripgrepConfig = { command: 'rg' }, maxDepth = DEFAULT_MANDATORY_DENY_SEARCH_DEPTH, allowGitConfig = false, gitManifestWriteRoots = [], abortSignal) {
+     const cwd = process.cwd();
+     // Use provided signal or create a fallback controller
+     const fallbackController = new AbortController();
+     const signal = abortSignal ?? fallbackController.signal;
+     const dangerousDirectories = getDangerousDirectories();
+-    const denyPaths = linuxGetCwdMandatoryDenyPaths(allowGitConfig);
++    const denyPaths = linuxGetCwdMandatoryDenyPaths(allowGitConfig, gitManifestWriteRoots);
+     // Build iglob args for all patterns in one ripgrep call
+     const iglobArgs = [];
+     for (const fileName of DANGEROUS_FILES) {
+@@ -443,8 +444,11 @@ async function linuxGetMandatoryDenyPaths(ripgrepConfig = { command: 'rg' }, max
+             '--max-depth',
+             String(maxDepth + 1),
+             ...iglobArgs,
+-            '-g',
+-            '!**/node_modules/**',
++            // Pi Bot patch: dependency folders are pruned whole. Upstream's
++            // `!**/node_modules/**` loses to the case-insensitive --iglob names for a file
++            // directly inside the folder (node_modules/.bashrc); excluding the folder's own path
++            // keeps ripgrep from descending at all.
++            ...DEPENDENCY_DIRECTORIES.flatMap(name => ['-g', `!**/${name}`]),
+         ], cwd, signal, ripgrepConfig);
+     }
+     catch (error) {
+@@ -498,7 +502,11 @@ async function linuxGetMandatoryDenyPaths(ripgrepConfig = { command: 'rg' }, max
+         const found = segments.slice(0, at + length);
+         if (lower[at] === '.git' && lower[at + 1] === 'head')
+             found[at + 1] = 'hooks';
+-        denyPaths.push(path.join(cwd, ...found));
++        const foundPath = path.join(cwd, ...found);
++        // Unreadable-directory denies above are never removed by a manifest exception.
++        if (path.basename(foundPath) === '.gitmodules' && gitManifestWriteRoots.some(root => isAtOrUnder(foundPath, root)))
++            continue;
++        denyPaths.push(foundPath);
+     }
+     return [...new Set(denyPaths)];
+ }
+@@ -1675,7 +1683,7 @@ function pushReadDenyDirMounts(args, unit) {
+ /**
+  * Generate filesystem bind mount arguments for bwrap
+  */
+-async function generateFilesystemArgs(readConfig, writeConfig, maskedFileBinds, maskedFileStoreDir, ripgrepConfig = { command: 'rg' }, mandatoryDenySearchDepth = DEFAULT_MANDATORY_DENY_SEARCH_DEPTH, allowGitConfig = false, abortSignal) {
++async function generateFilesystemArgs(readConfig, writeConfig, maskedFileBinds, maskedFileStoreDir, ripgrepConfig = { command: 'rg' }, mandatoryDenySearchDepth = DEFAULT_MANDATORY_DENY_SEARCH_DEPTH, allowGitConfig = false, gitManifestWriteRoots = [], abortSignal) {
+     const args = [];
+     const startedIn = workingDirectory();
+     // fs already imported
+@@ -2067,7 +2075,7 @@ async function generateFilesystemArgs(readConfig, writeConfig, maskedFileBinds,
+         const configuredDenyPaths = writeConfig.denyWithinAllow || [];
+         const denyPaths = [
+             ...configuredDenyPaths,
+-            ...(await linuxGetMandatoryDenyPaths(ripgrepConfig, mandatoryDenySearchDepth, allowGitConfig, abortSignal)),
++            ...(await linuxGetMandatoryDenyPaths(ripgrepConfig, mandatoryDenySearchDepth, allowGitConfig, gitManifestWriteRoots, abortSignal)),
+         ];
+         // INVARIANT: one plan, one working directory. A relative entry is resolved
+         // against it on both sides of the await above, the only one here.
+@@ -2851,7 +2859,7 @@ async function generateFilesystemArgs(readConfig, writeConfig, maskedFileBinds,
+  * inheritable sets.
+  */
+ export async function wrapCommandWithSandboxLinux(params) {
+-    const { command, commandId, needsNetworkRestriction, httpSocketPath, socksSocketPath, httpProxyPort, socksProxyPort, proxyAuthToken, caCertPath, javaAgentJarPath, unsetEnvVars, setEnvVars, maskedFileBinds, maskedFileStoreDir, enableWeakerNestedSandbox, allowNestedUserNamespaces, allowAllUnixSockets, binShell, ripgrepConfig = { command: 'rg' }, mandatoryDenySearchDepth = DEFAULT_MANDATORY_DENY_SEARCH_DEPTH, allowGitConfig = false, gitSafeDirectories, seccompConfig, bwrapPath, socatPath, observeSocketPath, abortSignal, } = params;
++    const { command, commandId, needsNetworkRestriction, httpSocketPath, socksSocketPath, httpProxyPort, socksProxyPort, proxyAuthToken, caCertPath, javaAgentJarPath, unsetEnvVars, setEnvVars, maskedFileBinds, maskedFileStoreDir, enableWeakerNestedSandbox, allowNestedUserNamespaces, allowAllUnixSockets, binShell, ripgrepConfig = { command: 'rg' }, mandatoryDenySearchDepth = DEFAULT_MANDATORY_DENY_SEARCH_DEPTH, allowGitConfig = false, gitManifestWriteRoots = [], gitSafeDirectories, seccompConfig, bwrapPath, socatPath, observeSocketPath, abortSignal, } = params;
+     // bubblewrap takes no patterns, so every path here is a name. The literal
+     // lists are folded into the lists they belong to, once, so that nothing
+     // below can read a list and miss them; a pattern in `allowOnly` that is no
+@@ -3019,7 +3027,7 @@ export async function wrapCommandWithSandboxLinux(params) {
+             // If no sockets provided, network is completely blocked (--unshare-net without proxy)
+         }
+         // ========== FILESYSTEM RESTRICTIONS ==========
+-        const { args: fsArgs, mandatoryDenyArgs } = await generateFilesystemArgs(readConfig, writeConfig, maskedFileBinds, maskedFileStoreDir, ripgrepConfig, mandatoryDenySearchDepth, allowGitConfig, abortSignal);
++        const { args: fsArgs, mandatoryDenyArgs } = await generateFilesystemArgs(readConfig, writeConfig, maskedFileBinds, maskedFileStoreDir, ripgrepConfig, mandatoryDenySearchDepth, allowGitConfig, gitManifestWriteRoots, abortSignal);
+         const mountsStart = bwrapArgs.length;
+         bwrapArgs.push(...fsArgs);
+         const mounts = {
+diff --git a/dist/sandbox/macos-sandbox-utils.d.ts b/dist/sandbox/macos-sandbox-utils.d.ts
+index 8af5e03041b27d060b0027278fb0567745b06f2f..c2a19594484cc778c28a5a06c916367b11a51c25 100644
+--- a/dist/sandbox/macos-sandbox-utils.d.ts
++++ b/dist/sandbox/macos-sandbox-utils.d.ts
+@@ -1,3 +1,4 @@
++// Modified for Pi Bot: scoped .gitmodules exceptions; all other sandbox rules retained.
+ import type { FsReadRestrictionConfig, FsWriteRestrictionConfig } from './sandbox-schemas.js';
+ import type { IgnoreViolationsConfig } from './sandbox-config.js';
+ export interface MacOSSandboxParams {
+@@ -21,6 +22,8 @@ export interface MacOSSandboxParams {
+     /** Path to the JVM proxy agent jar; injected via JAVA_TOOL_OPTIONS. */
+     javaAgentJarPath?: string;
+     allowUnixSockets?: string[];
++    /** Pi Bot patch: loopback ports the command may connect to. */
++    allowLoopbackPorts?: number[];
+     allowAllUnixSockets?: boolean;
+     allowLocalBinding?: boolean;
+     allowMachLookup?: string[];
+@@ -49,6 +52,7 @@ export interface MacOSSandboxParams {
+     ignoreViolations?: IgnoreViolationsConfig | undefined;
+     allowPty?: boolean;
+     allowGitConfig?: boolean;
++    gitManifestWriteRoots?: readonly string[];
+     /**
+      * Directories to emit as `safe.directory` via `GIT_CONFIG_*` env
+      * vars — see {@link buildPosixGitSafeDirEnv}.
+@@ -69,7 +73,7 @@ export interface MacOSSandboxParams {
+  * Compiled as one glob, a cwd like `a[b/c]d` would turn into a character
+  * class and every one of these denies would match nothing.
+  */
+-export declare function macGetMandatoryDenyEntries(allowGitConfig?: boolean): PathEntry[];
++export declare function macGetMandatoryDenyEntries(allowGitConfig?: boolean, gitManifestWriteRoots?: readonly string[]): PathEntry[];
+ export interface SandboxViolationEvent {
+     line: string;
+     command?: string;
+@@ -87,9 +91,11 @@ export type SandboxViolationCallback = (violation: SandboxViolationEvent) => voi
+ export type PathEntry = {
+     glob: false;
+     path: string;
++    manifestWriteRoots?: readonly string[];
+ } | {
+     glob: true;
+     path: string;
++    manifestWriteRoots?: readonly string[];
+     /**
+      * Set when this glob is anchored at a directory that is a name on
+      * disk (the cwd, for the mandatory `**\/<name>` patterns, or an
+diff --git a/dist/sandbox/macos-sandbox-utils.js b/dist/sandbox/macos-sandbox-utils.js
+index 0e598b612d84d24b09ec2ab0d7ccc9b009c9457b..2c3339c288df6729c18be3b97ca24e99f8cef42e 100644
+--- a/dist/sandbox/macos-sandbox-utils.js
++++ b/dist/sandbox/macos-sandbox-utils.js
+@@ -1,10 +1,11 @@
++// Modified for Pi Bot: scoped .gitmodules exceptions; all other sandbox rules retained.
+ import { quote } from '../utils/shell-quote.js';
+ import { spawn } from 'child_process';
+ import * as path from 'path';
+ import { logForDebugging } from '../utils/debug.js';
+ import { whichSync } from '../utils/which.js';
+ import { buildJavaToolOptions } from './java-proxy-agent.js';
+-import { normalizePathForSandbox, generateProxyEnvVars, buildPosixGitSafeDirEnv, attributionKeyFor, encodeSandboxedCommand, decodeSandboxedCommand, containsGlobChars, isAtOrUnder, isStrictlyUnder as isPathStrictlyUnder, nameLocation, pathSpellings, DANGEROUS_FILES, getDangerousDirectories, } from './sandbox-utils.js';
++import { normalizePathForSandbox, generateProxyEnvVars, buildPosixGitSafeDirEnv, attributionKeyFor, encodeSandboxedCommand, decodeSandboxedCommand, containsGlobChars, isAtOrUnder, isStrictlyUnder as isPathStrictlyUnder, nameLocation, pathSpellings, DANGEROUS_FILES, DEPENDENCY_DIRECTORIES, getDangerousDirectories, } from './sandbox-utils.js';
+ import { denyGlobRegex, escapeRegexLiteral, globToRegex, } from './glob-pattern.js';
+ import { shouldIgnoreViolation } from './sandbox-violation-store.js';
+ import { literalReadings } from './path-entries.js';
+@@ -19,20 +20,32 @@ import { literalReadings } from './path-entries.js';
+  * Compiled as one glob, a cwd like `a[b/c]d` would turn into a character
+  * class and every one of these denies would match nothing.
+  */
+-export function macGetMandatoryDenyEntries(allowGitConfig = false) {
++export function macGetMandatoryDenyEntries(allowGitConfig = false, gitManifestWriteRoots = []) {
+     const cwd = normalizePathForSandbox(process.cwd(), { literal: true });
+     const entries = [];
+     const literal = (relativePath) => toLiteralPathEntry(path.resolve(cwd, relativePath));
+     const beneathCwd = (pattern) => anchoredGlobEntry(cwd, pattern);
++    // Pi Bot patch: the subtree rules below spare a name that lies inside a dependency
++    // folder (the dependency folder comes before the name, never after it).
++    const dependencies = DEPENDENCY_DIRECTORIES.map(escapeRegexLiteral).join('|');
++    const beneathCwdOutsideDependencies = (pattern, name, subtree) => ({
++        ...beneathCwd(pattern),
++        dependencyCarve: `^${escapeRegexLiteral(cwd)}/(.*/)?(${dependencies})/(.*/)?${escapeRegexLiteral(name)}${subtree ? '(/.*)?' : ''}$`,
++    });
+     // Dangerous files - static paths in CWD + glob patterns for subtree
+     for (const fileName of DANGEROUS_FILES) {
+-        entries.push(literal(fileName));
+-        entries.push(beneathCwd(`**/${fileName}`));
++        const fileEntries = [literal(fileName), beneathCwdOutsideDependencies(`**/${fileName}`, fileName, false)];
++        // Carve only library manifest denies, never caller-supplied or other mandatory denies.
++        if (fileName === '.gitmodules' && gitManifestWriteRoots.length > 0) {
++            for (const entry of fileEntries)
++                entry.manifestWriteRoots = gitManifestWriteRoots;
++        }
++        entries.push(...fileEntries);
+     }
+     // Dangerous directories
+     for (const dirName of getDangerousDirectories()) {
+         entries.push(literal(dirName));
+-        entries.push(beneathCwd(`**/${dirName}/**`));
++        entries.push(beneathCwdOutsideDependencies(`**/${dirName}/**`, dirName, true));
+     }
+     // Git hooks are always blocked for security
+     entries.push(literal('.git/hooks'));
+@@ -100,9 +113,14 @@ function denyGlobEntryRegex(entry) {
+ }
+ /** {@link pathFilter} for deny rules: globs get {@link denyGlobEntryRegex}. */
+ function denyPathFilter(entry) {
+-    return entry.glob
++    const filter = entry.glob
+         ? `(regex ${escapePath(denyGlobEntryRegex(entry))})`
+         : `(subpath ${escapePath(entry.path)})`;
++    return carveFilter(filter, [
++        ...(entry.manifestWriteRoots ?? []).map(root => `(subpath ${escapePath(root)})`),
++        // Pi Bot patch: only ever narrows a mandatory deny.
++        ...(entry.dependencyCarve ? [`(regex ${escapePath(entry.dependencyCarve)})`] : []),
++    ]);
+ }
+ /**
+  * A concrete path shaped like the ones `entry` matches (every glob segment
+@@ -471,7 +489,7 @@ const MIN_DENY_GROUP_SIZE = 4;
+ function groupLiteralDenyPaths(entries) {
+     const byDir = new Map();
+     for (const entry of entries) {
+-        if (entry.glob)
++        if (entry.glob || entry.manifestWriteRoots?.length)
+             continue;
+         const entryPath = entry.path;
+         const parent = path.dirname(entryPath);
+@@ -521,7 +539,7 @@ function groupLiteralDenyPaths(entries) {
+     }
+     return {
+         groups,
+-        rest: entries.filter(e => !grouped.has(e.path)),
++        rest: entries.filter(e => e.manifestWriteRoots?.length || !grouped.has(e.path)),
+     };
+ }
+ /** Bytes a regex fragment occupies inside an SBPL string literal. */
+@@ -700,7 +718,7 @@ function writeRootEntries(config) {
+ /**
+  * Generate filesystem write rules for sandbox profile
+  */
+-function generateWriteRules(config, logTag, allowGitConfig, writeRoots) {
++function generateWriteRules(config, logTag, allowGitConfig, writeRoots, gitManifestWriteRoots) {
+     if (!config) {
+         return [`(allow file-write*)`];
+     }
+@@ -717,7 +735,7 @@ function generateWriteRules(config, logTag, allowGitConfig, writeRoots) {
+     const denyEntries = [
+         ...(config.denyWithinAllow || []).map(toPathEntry),
+         ...(config.literalDenyWithinAllow ?? []).map(toLiteralPathEntry),
+-        ...macGetMandatoryDenyEntries(allowGitConfig),
++        ...macGetMandatoryDenyEntries(allowGitConfig, gitManifestWriteRoots),
+     ];
+     denyEntries.push(...alsoReadAs(config.denyWithinAllow, 'deny'));
+     const { groups, rest: ungrouped } = groupLiteralDenyPaths(denyEntries);
+@@ -750,7 +768,7 @@ function generateWriteRules(config, logTag, allowGitConfig, writeRoots) {
+ /**
+  * Generate complete sandbox profile
+  */
+-function generateSandboxProfile({ readConfig, libraryDenyEntries, writeConfig, httpProxyPort, socksProxyPort, needsNetworkRestriction, allowUnixSockets, allowAllUnixSockets, allowLocalBinding, allowMachLookup, allowPty, allowGitConfig = false, enableWeakerNetworkIsolation = false, allowAppleEvents = false, logTag, }) {
++function generateSandboxProfile({ readConfig, libraryDenyEntries, writeConfig, httpProxyPort, socksProxyPort, needsNetworkRestriction, allowUnixSockets, allowLoopbackPorts, allowAllUnixSockets, allowLocalBinding, allowMachLookup, allowPty, allowGitConfig = false, gitManifestWriteRoots = [], enableWeakerNetworkIsolation = false, allowAppleEvents = false, logTag, }) {
+     const profile = [
+         '(version 1)',
+         `(deny default (with message "${logTag}"))`,
+@@ -953,6 +971,18 @@ function generateSandboxProfile({ readConfig, libraryDenyEntries, writeConfig, h
+             profile.push('(allow network-inbound (local ip "*:*"))');
+             profile.push('(allow network-outbound (remote ip "localhost:*"))');
+         }
++        // Pi Bot patch: connect to these loopback ports only (adb, Docker, a local
++        // database); no bind/inbound, and every other loopback port stays denied.
++        for (const port of allowLoopbackPorts ?? []) {
++            if (!Number.isInteger(port) || port < 1 || port > 65535)
++                throw new Error('allowLoopbackPorts: invalid port');
++            profile.push(`(allow network-outbound (remote ip "localhost:${port}"))`);
++        }
++        // A client socket is often bound before connect() (adb binds *:0). Seatbelt cannot name
++        // port 0 alone, so bind is admitted on any port but never network-inbound: listen() is
++        // still refused (measured: nc -l -> "listen: Operation not permitted").
++        if ((allowLoopbackPorts ?? []).length > 0)
++            profile.push('(allow network-bind (local ip "*:*"))');
+         // Unix domain sockets for local IPC (SSH agent, Docker, Gradle, etc.)
+         // Three separate operations must be allowed:
+         // 1. system-socket: socket(AF_UNIX, ...) syscall — creates the socket fd (no path context)
+@@ -1005,7 +1035,7 @@ function generateSandboxProfile({ readConfig, libraryDenyEntries, writeConfig, h
+     profile.push('');
+     // Write rules
+     profile.push('; File write');
+-    profile.push(...generateWriteRules(writeConfig, logTag, allowGitConfig, writeRoots));
++    profile.push(...generateWriteRules(writeConfig, logTag, allowGitConfig, writeRoots, gitManifestWriteRoots));
+     // Read-denied paths inside write roots: the read section's unlink/create
+     // re-allow for write roots (and the write section's file-write* allows)
+     // must not leave them renameable. Last in the profile so nothing above
+@@ -1044,7 +1074,7 @@ function escapePath(pathStr) {
+  * Wrap command with macOS sandbox
+  */
+ export function wrapCommandWithSandboxMacOS(params) {
+-    const { command, commandId, needsNetworkRestriction, httpProxyPort, socksProxyPort, proxyAuthToken, caCertPath, javaAgentJarPath, allowUnixSockets, allowAllUnixSockets, allowLocalBinding, allowMachLookup, readConfig, writeConfig, unsetEnvVars, setEnvVars, maskedFileBinds, degradeToDenyPaths, allowPty, allowGitConfig = false, gitSafeDirectories, enableWeakerNetworkIsolation = false, allowAppleEvents = false, binShell, } = params;
++    const { command, commandId, needsNetworkRestriction, httpProxyPort, socksProxyPort, proxyAuthToken, caCertPath, javaAgentJarPath, allowUnixSockets, allowLoopbackPorts, allowAllUnixSockets, allowLocalBinding, allowMachLookup, readConfig, writeConfig, unsetEnvVars, setEnvVars, maskedFileBinds, degradeToDenyPaths, allowPty, allowGitConfig = false, gitManifestWriteRoots = [], gitSafeDirectories, enableWeakerNetworkIsolation = false, allowAppleEvents = false, binShell, } = params;
+     // SBPL cannot redirect a read to different bytes, so whole-file masking
+     // degrades to read-deny on macOS: the sandboxed process gets EPERM
+     // instead of the sentinel. The DYLD interposer (a later step) lifts
+@@ -1094,11 +1124,13 @@ export function wrapCommandWithSandboxMacOS(params) {
+         socksProxyPort,
+         needsNetworkRestriction,
+         allowUnixSockets,
++        allowLoopbackPorts,
+         allowAllUnixSockets,
+         allowLocalBinding,
+         allowMachLookup,
+         allowPty,
+         allowGitConfig,
++        gitManifestWriteRoots,
+         enableWeakerNetworkIsolation,
+         allowAppleEvents,
+         logTag,
+@@ -1125,6 +1157,7 @@ export function wrapCommandWithSandboxMacOS(params) {
+     // dropped so the deny holds.
+     const loopbackReachable = needsNetworkRestriction &&
+         (allowLocalBinding ||
++            (allowLoopbackPorts?.length ?? 0) > 0 ||
+             httpProxyPort !== undefined ||
+             socksProxyPort !== undefined);
+     const javaToolOptions = buildJavaToolOptions({
+diff --git a/dist/sandbox/sandbox-config.d.ts b/dist/sandbox/sandbox-config.d.ts
+index 6a929a0f27b9a4a079766d1f8744eaf5bd992a9c..c4f85138664ab8cc6e5215ed5b92204b9d8245dc 100644
+--- a/dist/sandbox/sandbox-config.d.ts
++++ b/dist/sandbox/sandbox-config.d.ts
+@@ -1,3 +1,4 @@
++// Modified for Pi Bot: scoped .gitmodules exceptions; all other sandbox rules retained.
+ /**
+  * Configuration for Sandbox Runtime
+  * This is the main configuration interface that consumers pass to SandboxManager.initialize()
+@@ -612,6 +613,7 @@ export declare const NetworkConfigSchema: z.ZodObject<{
+     strictAllowlist: z.ZodOptional<z.ZodBoolean>;
+     deniedResolvedAddresses: z.ZodOptional<z.ZodArray<z.ZodEffects<z.ZodString, string, string>, "many">>;
+     allowUnixSockets: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
++    allowLoopbackPorts: z.ZodOptional<z.ZodArray<z.ZodNumber, "many">>;
+     allowAllUnixSockets: z.ZodOptional<z.ZodBoolean>;
+     allowLocalBinding: z.ZodOptional<z.ZodBoolean>;
+     allowMachLookup: z.ZodOptional<z.ZodArray<z.ZodEffects<z.ZodString, string, string>, "many">>;
+@@ -688,6 +690,7 @@ export declare const NetworkConfigSchema: z.ZodObject<{
+     httpProxyPort?: number | undefined;
+     socksProxyPort?: number | undefined;
+     allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+     allowAllUnixSockets?: boolean | undefined;
+     allowLocalBinding?: boolean | undefined;
+     allowMachLookup?: string[] | undefined;
+@@ -723,6 +726,7 @@ export declare const NetworkConfigSchema: z.ZodObject<{
+     httpProxyPort?: number | undefined;
+     socksProxyPort?: number | undefined;
+     allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+     allowAllUnixSockets?: boolean | undefined;
+     allowLocalBinding?: boolean | undefined;
+     allowMachLookup?: string[] | undefined;
+@@ -798,6 +802,7 @@ export declare const FilesystemConfigSchema: z.ZodObject<{
+         path: string;
+         literal: true;
+     }>]>, "many">;
++    gitManifestWriteRoots: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+     allowGitConfig: z.ZodOptional<z.ZodBoolean>;
+ }, "strip", z.ZodTypeAny, {
+     denyRead: (string | {
+@@ -812,6 +817,7 @@ export declare const FilesystemConfigSchema: z.ZodObject<{
+         path: string;
+         literal: true;
+     })[];
++    gitManifestWriteRoots?: string[] | undefined;
+     allowGitConfig?: boolean | undefined;
+     disabled?: boolean | undefined;
+     allowRead?: (string | {
+@@ -831,6 +837,7 @@ export declare const FilesystemConfigSchema: z.ZodObject<{
+         path: string;
+         literal: true;
+     })[];
++    gitManifestWriteRoots?: string[] | undefined;
+     allowGitConfig?: boolean | undefined;
+     disabled?: boolean | undefined;
+     allowRead?: (string | {
+@@ -953,6 +960,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+         strictAllowlist: z.ZodOptional<z.ZodBoolean>;
+         deniedResolvedAddresses: z.ZodOptional<z.ZodArray<z.ZodEffects<z.ZodString, string, string>, "many">>;
+         allowUnixSockets: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
++    allowLoopbackPorts: z.ZodOptional<z.ZodArray<z.ZodNumber, "many">>;
+         allowAllUnixSockets: z.ZodOptional<z.ZodBoolean>;
+         allowLocalBinding: z.ZodOptional<z.ZodBoolean>;
+         allowMachLookup: z.ZodOptional<z.ZodArray<z.ZodEffects<z.ZodString, string, string>, "many">>;
+@@ -1029,6 +1037,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+         httpProxyPort?: number | undefined;
+         socksProxyPort?: number | undefined;
+         allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+         allowAllUnixSockets?: boolean | undefined;
+         allowLocalBinding?: boolean | undefined;
+         allowMachLookup?: string[] | undefined;
+@@ -1064,6 +1073,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+         httpProxyPort?: number | undefined;
+         socksProxyPort?: number | undefined;
+         allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+         allowAllUnixSockets?: boolean | undefined;
+         allowLocalBinding?: boolean | undefined;
+         allowMachLookup?: string[] | undefined;
+@@ -1136,6 +1146,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+             path: string;
+             literal: true;
+         }>]>, "many">;
++        gitManifestWriteRoots: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+         allowGitConfig: z.ZodOptional<z.ZodBoolean>;
+     }, "strip", z.ZodTypeAny, {
+         denyRead: (string | {
+@@ -1150,6 +1161,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+             path: string;
+             literal: true;
+         })[];
++        gitManifestWriteRoots?: string[] | undefined;
+         allowGitConfig?: boolean | undefined;
+         disabled?: boolean | undefined;
+         allowRead?: (string | {
+@@ -1169,6 +1181,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+             path: string;
+             literal: true;
+         })[];
++        gitManifestWriteRoots?: string[] | undefined;
+         allowGitConfig?: boolean | undefined;
+         disabled?: boolean | undefined;
+         allowRead?: (string | {
+@@ -1471,6 +1484,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+         httpProxyPort?: number | undefined;
+         socksProxyPort?: number | undefined;
+         allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+         allowAllUnixSockets?: boolean | undefined;
+         allowLocalBinding?: boolean | undefined;
+         allowMachLookup?: string[] | undefined;
+@@ -1514,6 +1528,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+             path: string;
+             literal: true;
+         })[];
++        gitManifestWriteRoots?: string[] | undefined;
+         allowGitConfig?: boolean | undefined;
+         disabled?: boolean | undefined;
+         allowRead?: (string | {
+@@ -1591,6 +1606,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+         httpProxyPort?: number | undefined;
+         socksProxyPort?: number | undefined;
+         allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+         allowAllUnixSockets?: boolean | undefined;
+         allowLocalBinding?: boolean | undefined;
+         allowMachLookup?: string[] | undefined;
+@@ -1634,6 +1650,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+             path: string;
+             literal: true;
+         })[];
++        gitManifestWriteRoots?: string[] | undefined;
+         allowGitConfig?: boolean | undefined;
+         disabled?: boolean | undefined;
+         allowRead?: (string | {
+@@ -1711,6 +1728,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+         httpProxyPort?: number | undefined;
+         socksProxyPort?: number | undefined;
+         allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+         allowAllUnixSockets?: boolean | undefined;
+         allowLocalBinding?: boolean | undefined;
+         allowMachLookup?: string[] | undefined;
+@@ -1754,6 +1772,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+             path: string;
+             literal: true;
+         })[];
++        gitManifestWriteRoots?: string[] | undefined;
+         allowGitConfig?: boolean | undefined;
+         disabled?: boolean | undefined;
+         allowRead?: (string | {
+@@ -1831,6 +1850,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+         httpProxyPort?: number | undefined;
+         socksProxyPort?: number | undefined;
+         allowUnixSockets?: string[] | undefined;
++    allowLoopbackPorts?: number[] | undefined;
+         allowAllUnixSockets?: boolean | undefined;
+         allowLocalBinding?: boolean | undefined;
+         allowMachLookup?: string[] | undefined;
+@@ -1874,6 +1894,7 @@ export declare const SandboxRuntimeConfigSchema: z.ZodEffects<z.ZodObject<{
+             path: string;
+             literal: true;
+         })[];
++        gitManifestWriteRoots?: string[] | undefined;
+         allowGitConfig?: boolean | undefined;
+         disabled?: boolean | undefined;
+         allowRead?: (string | {
+diff --git a/dist/sandbox/sandbox-config.js b/dist/sandbox/sandbox-config.js
+index 76b00b1dc82a2d42a451a9f58068cbbd5e68da75..48c58789df5f0c0ab9eaa80a24debc822983b79d 100644
+--- a/dist/sandbox/sandbox-config.js
++++ b/dist/sandbox/sandbox-config.js
+@@ -1,3 +1,4 @@
++// Modified for Pi Bot: scoped .gitmodules exceptions; all other sandbox rules retained.
+ /**
+  * Configuration for Sandbox Runtime
+  * This is the main configuration interface that consumers pass to SandboxManager.initialize()
+@@ -612,6 +613,10 @@ export const NetworkConfigSchema = z.object({
+         .array(z.string())
+         .optional()
+         .describe('macOS only: Unix socket paths to allow. Ignored on Linux (seccomp cannot filter by path).'),
++    allowLoopbackPorts: z
++        .array(z.number().int().min(1).max(65535))
++        .optional()
++        .describe('Pi Bot patch, macOS only: loopback ports (127.0.0.1 / ::1) the command may connect to.'),
+     allowAllUnixSockets: z
+         .boolean()
+         .optional()
+@@ -828,6 +833,11 @@ export const FilesystemConfigSchema = z.object({
+     denyWrite: z
+         .array(filesystemPathEntrySchema)
+         .describe('Paths denied for writing (takes precedence over allowWrite)'),
++    gitManifestWriteRoots: z
++        .array(z.string().min(1))
++        .max(128)
++        .optional()
++        .describe('Literal roots already granted by allowWrite in which only the built-in .gitmodules write deny is carved out. Default empty; does not grant write access or override user denies.'),
+     allowGitConfig: z
+         .boolean()
+         .optional()
+diff --git a/dist/sandbox/sandbox-manager.js b/dist/sandbox/sandbox-manager.js
+index d475e55977bf54a2fe00a0c6aba38313761d55aa..37975a274e42f8f2d419ec42f0f986c18d4e398c 100644
+--- a/dist/sandbox/sandbox-manager.js
++++ b/dist/sandbox/sandbox-manager.js
+@@ -1,3 +1,4 @@
++// Modified for Pi Bot: scoped .gitmodules exceptions; all other sandbox rules retained.
+ import { hasNameReading, literalReadLists, literalWriteLists, reExposedBy, readRulesOf, samePathEntries, spelledOf, withOtherReadings, writeRootsOf, } from './path-entries.js';
+ import { createHttpProxyServer } from './http-proxy.js';
+ import { assertTlsTerminationSupported } from './emitted-connection.js';
+@@ -19,14 +20,14 @@ import { expandReadDenyGlobLinuxSteps } from './read-deny-glob.js';
+ import { wrapCommandWithSandboxMacOS, startMacOSSandboxLogMonitor, } from './macos-sandbox-utils.js';
+ import { startLinuxSandboxViolationMonitor, } from './linux-violation-monitor.js';
+ import { checkWindowsDependencies, checkWindowsDependenciesAsync, wrapCommandWithSandboxWindows, parseWindowsBinShell, expandWindowsFsPaths, rankWindowsFsAccess, restoreWindowsAcl, grantWindowsAclPersistent, windowsSetupVersionMismatch, windowsSrtWinOutdatedError, missingWindowsSrtWinCapability, windowsGrantsBeneathDenies, getWindowsProfileReadStatus, getWindowsProfileReadStatusAsync, windowsProfileExclusionConflicts, revokeWindowsAclChecked, getWindowsSandboxUserStatusAsync, ensurePersistentWindowsCa, verifyWindowsWfpEgress, resolveSrtWin, WindowsSandboxError, DEFAULT_WINDOWS_PROXY_PORT_RANGE, } from './windows-sandbox-utils.js';
+-import { getDefaultWritePaths, containsGlobChars, globBaseDirIsRoot, globPatternBaseDir, normalizePathForSandbox, removeTrailingGlobSuffix, walkGlobPatternSteps, workingDirectory, finish, finishInTurns, attributionKeyFor, decodeSandboxedCommand, encodeSandboxedCommand, } from './sandbox-utils.js';
++import { getDefaultWritePaths, isAtOrUnder, containsGlobChars, globBaseDirIsRoot, globPatternBaseDir, normalizePathForSandbox, removeTrailingGlobSuffix, walkGlobPatternSteps, workingDirectory, finish, finishInTurns, attributionKeyFor, decodeSandboxedCommand, encodeSandboxedCommand, } from './sandbox-utils.js';
+ import { ownInstallWarning } from './own-files.js';
+ import { SandboxViolationStore, sanitizeDenialReason, sanitizeUnregisteredCommandKey, shouldIgnoreViolation, } from './sandbox-violation-store.js';
+ import { canonicalizeHost, isValidHost, redactUrl, resolveParentProxy, } from './parent-proxy.js';
+ import { ALLOWED_DOMAIN_ENTRY_MESSAGE, isValidAllowedDomainEntry, matchesDomainPattern, matchesDomainPatternWithPort, stripDomainPatternPort, } from './domain-pattern.js';
+ import { createResolvedAddressGuard, isResolvedAddressDenied, } from './resolved-address-guard.js';
+ import { EOL } from 'node:os';
+-import { dirname } from 'node:path';
++import { dirname, isAbsolute } from 'node:path';
+ import { getJavaProxyAgentJarPathAsync } from './java-proxy-agent.js';
+ import { getApplySeccompBinaryPathAsync } from './generate-seccomp-filter.js';
+ // ============================================================================
+@@ -880,7 +881,7 @@ async function initializeSteps(runtimeConfig, sandboxAskCallback, enableLogMonit
+                 // them, so the monitor must not judge by them either.
+                 ...(config.filesystem.disabled
+                     ? []
+-                    : linuxGetCwdMandatoryDenyPaths(getAllowGitConfig())),
++                    : linuxGetCwdMandatoryDenyPaths(getAllowGitConfig(), getGitManifestWriteRoots())),
+             ],
+             ignoreViolations: config.ignoreViolations,
+             resolveCommandText,
+@@ -1649,6 +1650,9 @@ function getNetworkRestrictionConfig() {
+ function getAllowUnixSockets() {
+     return config?.network?.allowUnixSockets;
+ }
++function getAllowLoopbackPorts() {
++    return config?.network?.allowLoopbackPorts;
++}
+ function getAllowAllUnixSockets() {
+     return config?.network?.allowAllUnixSockets;
+ }
+@@ -1676,6 +1680,25 @@ function getRipgrepConfig() {
+ function getMandatoryDenySearchDepth() {
+     return config?.mandatoryDenySearchDepth ?? 3;
+ }
++// A manifest exception must never expand writes into SDK default temporary roots.
++function getGitManifestWriteRoots(customConfig) {
++    const filesystem = { ...config?.filesystem, ...customConfig?.filesystem };
++    if (filesystem.disabled || !(filesystem.gitManifestWriteRoots?.length))
++        return [];
++    const allowed = (filesystem.allowWrite ?? []).flatMap(entry => {
++        if (typeof entry === 'string')
++            return containsGlobChars(entry) ? [] : [normalizePathForSandbox(entry, { literal: true })];
++        return entry.literal === true ? [normalizePathForSandbox(entry.path, { literal: true })] : [];
++    });
++    return [...new Set(filesystem.gitManifestWriteRoots.map(root => {
++        if (typeof root !== 'string' || !isAbsolute(root))
++            throw new Error('gitManifestWriteRoots requires absolute literal write roots');
++        const normalized = normalizePathForSandbox(root, { literal: true });
++        if (!allowed.some(allow => isAtOrUnder(normalized, allow)))
++            throw new Error('gitManifestWriteRoots must be within explicit allowWrite');
++        return normalized;
++    }))];
++}
+ function getAllowGitConfig() {
+     return config?.filesystem?.allowGitConfig ?? false;
+ }
+@@ -1990,12 +2013,14 @@ async function wrapWithSandboxOnce(walkEnded, restarts, command, binShell, custo
+                 maskedFileBinds: credentialRestrictions.maskedFileBinds,
+                 degradeToDenyPaths: credentialRestrictions.degradeToDenyPaths,
+                 allowUnixSockets: getAllowUnixSockets(),
++                allowLoopbackPorts: getAllowLoopbackPorts(),
+                 allowAllUnixSockets: getAllowAllUnixSockets(),
+                 allowLocalBinding: getAllowLocalBinding(),
+                 allowMachLookup: getAllowMachLookup(),
+                 ignoreViolations: getIgnoreViolations(),
+                 allowPty,
+                 allowGitConfig: getAllowGitConfig(),
++                gitManifestWriteRoots: getGitManifestWriteRoots(customConfig),
+                 gitSafeDirectories,
+                 enableWeakerNetworkIsolation: getEnableWeakerNetworkIsolation(),
+                 allowAppleEvents: getAllowAppleEvents(),
+@@ -2035,6 +2060,7 @@ async function wrapWithSandboxOnce(walkEnded, restarts, command, binShell, custo
+                 ripgrepConfig: getRipgrepConfig(),
+                 mandatoryDenySearchDepth: getMandatoryDenySearchDepth(),
+                 allowGitConfig: getAllowGitConfig(),
++                gitManifestWriteRoots: getGitManifestWriteRoots(customConfig),
+                 gitSafeDirectories,
+                 seccompConfig: getSeccompConfig(),
+                 bwrapPath: config?.bwrapPath,
+diff --git a/dist/sandbox/sandbox-utils.d.ts b/dist/sandbox/sandbox-utils.d.ts
+index 80ae1fd68b53f1dfb216eda78e42dbff085fbc6a..88793e8ac1a70635c310c42d21f281b09cea2bf9 100644
+--- a/dist/sandbox/sandbox-utils.d.ts
++++ b/dist/sandbox/sandbox-utils.d.ts
+@@ -9,6 +9,8 @@ export declare const DANGEROUS_FILES: readonly [".gitconfig", ".gitmodules", ".b
+  * Dangerous directories that should be protected from writes.
+  * These directories contain sensitive configuration or executable files.
+  */
++/** Pi Bot patch: names beneath which the dangerous names are writable. */
++export declare const DEPENDENCY_DIRECTORIES: string[];
+ export declare const DANGEROUS_DIRECTORIES: readonly [".git", ".vscode", ".idea"];
+ /**
+  * Get the list of dangerous directories to deny writes to.
+diff --git a/dist/sandbox/sandbox-utils.js b/dist/sandbox/sandbox-utils.js
+index f2f122821ae19cc7d705f13eba853ed4d47f30dd..da40122e0d68c0d1e2e525ed577a8762a8aa5320 100644
+--- a/dist/sandbox/sandbox-utils.js
++++ b/dist/sandbox/sandbox-utils.js
+@@ -25,6 +25,13 @@ export const DANGEROUS_FILES = [
+  * These directories contain sensitive configuration or executable files.
+  */
+ export const DANGEROUS_DIRECTORIES = ['.git', '.vscode', '.idea'];
++/**
++ * Pi Bot patch: dependency folders. Packages ship editor and shell config names
++ * (.vscode, .github, .idea, .bashrc) that no editor or shell runs from there, so the dangerous
++ * file and directory names are writable beneath these names below the working directory. Git
++ * hooks and config stay protected on macOS; Linux keeps upstream's whole-folder exclusion.
++ */
++export const DEPENDENCY_DIRECTORIES = ['node_modules', '.venv', 'venv', 'vendor', 'target', 'site-packages'];
+ /**
+  * Get the list of dangerous directories to deny writes to.
+  * Excludes .git since we need it writable for git operations -

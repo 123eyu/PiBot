@@ -1,0 +1,17 @@
+{
+  "replies": [{ "text": "未匹配到演练身份。" }],
+  "routes": {
+    "writer": [
+      {
+        "toolCalls": [
+          {
+            "name": "ask_bot",
+            "arguments": { "bot": "研究员", "question": "暂停期间应拒绝这个自动请求。" }
+          }
+        ]
+      },
+      { "text": "显式 @ 仍可回答，自动提问被暂停。" }
+    ],
+    "researcher": [{ "text": "暂停时不应收到自动请求。" }]
+  }
+}

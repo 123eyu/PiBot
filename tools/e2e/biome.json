@@ -1,0 +1,18 @@
+{
+  "root": false,
+  "extends": ["../biome.json"],
+  "files": {
+    "includes": ["**/*.mts", "**/*.mjs", "**/*.json"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double"
+    }
+  }
+}

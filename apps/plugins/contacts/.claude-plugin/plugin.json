@@ -1,0 +1,5 @@
+{
+  "name": "contacts",
+  "version": "1.0.0",
+  "description": "Local contacts access through Pi Bot's fixed system service"
+}

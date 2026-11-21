@@ -1,0 +1,64 @@
+packages:
+  - apps/*
+  - apps/plugins/*
+  - packages/*
+  - sdk/*
+
+# pnpm 11+ reads non-auth settings here, not from the legacy project .npmrc.
+# Keep terminal and sandbox installs on the same project-owned store.
+storeDir: .pnpm-store
+cacheDir: .cache/pnpm
+saveExact: true
+
+# These exact versions were explicitly selected for this release; retain the age gate elsewhere.
+minimumReleaseAgeExclude:
+  - '@anthropic-ai/sandbox-runtime@0.0.81'
+  - '@silurus/ooxml@0.89.1'
+  # The only release compatible with Expo SDK 58 (peer expo ^58), published 2026-10-21.
+  - expo-share-intent@9.0.0
+  # Exact Gmail client releases and their MIME dependencies, selected explicitly.
+  - '@zone-eu/mailsplit@5.4.31'
+  - imapflow@2.12.1
+  - libmime@5.6.5
+  - libqp@3.0.2
+  - nodemailer@10.6.0
+
+ignoredOptionalDependencies:
+  - '@napi-rs/canvas'
+
+patchedDependencies:
+  '@earendil-works/pi-ai@1.4.0': patches/@earendil-works__pi-ai@1.4.0.patch
+  '@anthropic-ai/sandbox-runtime@0.0.81': patches/@anthropic-ai__sandbox-runtime@0.0.81.patch
+  '@earendil-works/pi-coding-agent@1.4.0': patches/@earendil-works__pi-coding-agent@1.4.0.patch
+  # Release phone builds printed every peer-connection call (rn-webrtc:pc:DEBUG); dev keeps it.
+  'react-native-webrtc@155.0.1': patches/react-native-webrtc@155.0.1.patch
+
+# Prebuilt dependencies for the supported packaging matrix (no cross-compiling native code).
+supportedArchitectures:
+  os: [darwin, win32, linux]
+  cpu: [x64, arm64]
+  libc: [glibc]
+
+# Keep unreviewed lifecycle scripts blocked; approve only the locked build-tool versions.
+strictDepBuilds: true
+allowBuilds:
+  'esbuild@0.25.12 || 0.28.2': true
+  # Published JS/WASM is used directly; Windows packaging uses NSIS, not Squirrel.
+  '@google/genai': false
+  electron-winstaller: false
+  protobufjs: false
+  tree-sitter-bash: false
+  # Code map: only the published .wasm and queries/tags.scm are used (copied at packaging).
+  tree-sitter-c: false
+  tree-sitter-c-sharp: false
+  tree-sitter-cpp: false
+  tree-sitter-go: false
+  tree-sitter-java: false
+  tree-sitter-javascript: false
+  tree-sitter-php: false
+  tree-sitter-python: false
+  tree-sitter-ruby: false
+  tree-sitter-rust: false
+  tree-sitter-typescript: false
+  # Wrangler uses the platform optional binary directly; no installer download/copy is needed.
+  'workerd@1.20261019.1': false

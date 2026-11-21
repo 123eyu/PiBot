@@ -1,0 +1,5 @@
+{
+  "name": "calendar",
+  "version": "1.0.0",
+  "description": "Local calendar access through Pi Bot's fixed system service"
+}

@@ -1,0 +1,27 @@
+{
+  "replies": [{ "text": "未匹配到演练身份。" }],
+  "routes": {
+    "writer": [
+      {
+        "toolCalls": [
+          {
+            "name": "run_command",
+            "arguments": { "command": "touch synthetic-only", "timeoutSec": 5 }
+          }
+        ]
+      },
+      { "text": "写手审批被拒绝，没有执行命令。" }
+    ],
+    "researcher": [
+      {
+        "toolCalls": [
+          {
+            "name": "run_command",
+            "arguments": { "command": "touch synthetic-only", "timeoutSec": 5 }
+          }
+        ]
+      },
+      { "text": "研究员自己的权限禁止命令。" }
+    ]
+  }
+}

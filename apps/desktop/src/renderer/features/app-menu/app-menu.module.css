@@ -1,0 +1,419 @@
+.archiveDeadline {
+  display: block;
+  margin: 0;
+}
+.trigger {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: var(--tert);
+  border: 1px solid var(--b2);
+  border-radius: 50%;
+  color: var(--text);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+/* The avatar opens the personal & app menu; a violet ring says it is clickable. */
+.trigger {
+  transition: box-shadow 200ms ease;
+}
+.trigger:hover,
+.trigger[aria-expanded="true"] {
+  background: var(--sel);
+  box-shadow:
+    0 0 0 2px var(--side),
+    0 0 0 4px color-mix(in srgb, var(--avatar-violet) 60%, transparent);
+}
+.trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 6px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
+  /* A floating card; items lead with coloured tiles. */
+  min-width: 280px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  animation: menuIn 180ms var(--ease-out);
+}
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.menu button {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 38px;
+  text-align: start;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.menu button svg {
+  flex: none;
+}
+.menu .profile {
+  padding: 10px 8px;
+  gap: 12px;
+}
+.profile span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.profile small {
+  font-weight: 400;
+  color: var(--text2);
+}
+.memoryCount {
+  margin-inline-start: auto;
+  color: var(--text2);
+  font-variant-numeric: tabular-nums;
+}
+.separator {
+  height: 1px;
+  background: var(--b1);
+  margin: 5px 6px;
+}
+.dialog.dialog {
+  width: min(520px, calc(100vw - 32px));
+  height: fit-content;
+  max-height: calc(100dvh - 48px);
+}
+/* The dialog's colour washes its top; the title leads with the same tile as the menu. */
+.dialog.dialog[style] {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--dialog-c) 14%, transparent),
+    transparent 160px
+  );
+  background-repeat: no-repeat;
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid transparent;
+  gap: 16px;
+}
+.header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  margin: 0;
+}
+.content {
+  padding: 24px;
+  max-height: calc(100dvh - 160px);
+  overflow: auto;
+  box-sizing: border-box;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  margin: 4px 0 24px;
+}
+.brand h2 {
+  font-size: 24px;
+  margin: 0;
+}
+.note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text2);
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.error {
+  font-size: 13px;
+  color: var(--danger);
+  margin: 10px 0;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.dependencies {
+  border: 0;
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.dependencies summary {
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+/* M-about: a soft search pill over a grey list card; each licence is a chip. */
+.dependencies input {
+  margin-top: 12px;
+}
+.dependencies input,
+.field textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  color: var(--text);
+  font: inherit;
+}
+.dependencies input[type="search"] {
+  border-color: transparent;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  padding-inline: 14px;
+}
+.dependencies input[type="search"]:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--avatar-violet) 55%, transparent);
+}
+.dependencies ul {
+  padding: 4px;
+  margin: 10px 0 0;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.dependencies ul:empty {
+  display: none;
+}
+.dependencies li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.dependencies li:hover {
+  background: var(--card);
+}
+.dependencies li strong {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.dependencies li span {
+  flex: none;
+  color: var(--text2);
+  font-variant-numeric: tabular-nums;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+}
+.field textarea {
+  resize: vertical;
+  min-height: 120px;
+  max-height: 35dvh;
+}
+.upload {
+  min-width: 0;
+}
+
+.prefs {
+  display: grid;
+  gap: 6px;
+  padding: 6px 8px 8px;
+}
+.pref {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.pref fieldset {
+  font-size: 12.5px;
+}
+
+/* In-app update prompt: a corner card that never blocks the window. */
+.notice {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 20;
+  box-sizing: border-box;
+  width: min(360px, calc(100vw - 32px));
+  padding: 16px 18px;
+  background: var(--card);
+  color: var(--text);
+  border: 0;
+  border-left: 4px solid var(--avatar-green);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  font-size: 14px;
+  animation: menuIn 300ms var(--ease-out);
+}
+.notice p {
+  margin: 0 0 6px;
+}
+.notice .actions {
+  margin-top: 12px;
+}
+.noticeTitle {
+  font-weight: 600;
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.progress {
+  display: block;
+  width: 100%;
+  height: 6px;
+  margin: 8px 0;
+  appearance: none;
+  border: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--tert);
+  accent-color: var(--avatar-green);
+}
+.progress::-webkit-progress-bar {
+  border-radius: 6px;
+  background: var(--tert);
+}
+.progress::-webkit-progress-value {
+  border-radius: 6px;
+  background: var(--avatar-green);
+  transition: width 400ms var(--ease-out);
+}
+
+.dialog.dialog[data-app-dialog="about-you"] {
+  width: min(500px, calc(100vw - 32px));
+}
+.dialog[data-app-dialog="about-you"] .header {
+  padding-bottom: 6px;
+  border-bottom: 0;
+}
+.dialog[data-app-dialog="about-you"] .header h1 {
+  font-size: 20px;
+}
+.dialog[data-app-dialog="about-you"] .content {
+  padding: 0 22px 16px;
+}
+
+/* Feedback dialog: the description leads, fields use the shared TextField look, actions sit in a
+   footer row with the browser hand-off as the primary action. */
+.feedbackForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.feedbackField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.feedbackLabel {
+  font-size: 13px;
+  font-weight: 600;
+}
+.feedbackField textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 120px;
+  max-height: 35dvh;
+  resize: vertical;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.feedbackField textarea::placeholder {
+  color: var(--text2);
+}
+.feedbackActions {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--b1);
+}
+.feedbackField textarea:focus-visible {
+  outline: 2px solid var(--avatar-orange);
+}
+/* The privacy line reads as an info band: only version and system go out. */
+.feedbackPrivacy {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--avatar-blue) 11%, transparent);
+  color: var(--ink-blue);
+}
+/* 整理归位 leads 关于你 as a soft pink card. */
+.sortCard.sortCard {
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--avatar-pink) 12%, var(--card)),
+    var(--card)
+  );
+  box-shadow: var(--shadow-soft);
+}
+/* The lead sentence sits between the mark and the button (chat m-aboutyou). */
+.sortHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sortHead > p {
+  flex: 1;
+  min-width: 0;
+}
+.sortCard [role="status"] p,
+.sortCard [role="alert"] {
+  margin: 0;
+  font-size: 12.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .notice {
+    animation: none;
+  }
+  .progress::-webkit-progress-value {
+    transition: none;
+  }
+}

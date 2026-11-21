@@ -1,0 +1,16 @@
+{
+  "replies": [
+    {
+      "toolCalls": [
+        {
+          "name": "list_dir",
+          "arguments": { "path": "." },
+          "thoughtSignature": "synthetic-google-signature"
+        }
+      ],
+      "reasoningTokens": 172,
+      "delayMs": 0
+    },
+    { "text": "合成工具回合完成。", "reasoningTokens": 17, "delayMs": 0 }
+  ]
+}

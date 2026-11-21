@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "WebWorker"],
+    "types": [],
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../i18n"
+    },
+    {
+      "path": "../protocol"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

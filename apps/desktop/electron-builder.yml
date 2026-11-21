@@ -1,0 +1,129 @@
+appId: app.pibot.desktop
+productName: Pi Bot
+artifactName: PiBot-${version}-${os}-${arch}-test.${ext}
+extraMetadata:
+  pibotBuildMode: test
+directories:
+  buildResources: build
+  output: dist
+files:
+  # Kept in sync with APP_FILES in scripts/package/package-options.ts (the packaging entry passes that list).
+  - out/main/**
+  - out/preload/**
+  - out/renderer/**
+  - out/builtin/**
+  - out/migrations/**
+  - out/third-party-dependencies.json
+  - resources/tray*.png
+  - package.json
+  # Direct builder runs also exclude the other CPU's esbuild and Windows SRT binaries.
+  # package.ts adds the full target OS/CPU exclusions from package-options.ts.
+  - "!node_modules/@esbuild/*-!(${arch})/**/*"
+  - "!node_modules/@anthropic-ai/sandbox-runtime/vendor/srt-win/!(${arch})/**/*"
+asar: true
+# Executables need real filesystem paths; parser assets are copied outside asar.
+asarUnpack:
+  # Only SRT's executables. Its JavaScript and out/main/sandbox-host.js (one process per
+  # background command) run from inside app.asar under ELECTRON_RUN_AS_NODE, which reads asar;
+  # unpacking them would break module resolution of their packed dependencies.
+  - node_modules/@anthropic-ai/sandbox-runtime/vendor/**
+  # Cua's N-API runtime dlopen()s its native library by real path; the whole SDK and
+  # its @ubjs runtime are loaded from app.asar.unpacked (packages/computer/src/cua/loader.ts).
+  - node_modules/@trycua/**
+  - node_modules/@ubjs/**
+beforePack: ./scripts/package/prepare-resources.mjs
+afterPack: ./scripts/package/linux-launcher.mjs
+extraResources:
+  - from: out/plugins
+    to: plugins
+  - from: out/native-resources/${os}-${arch}/bin
+    to: bin
+  - from: out/native-resources/wasm
+    to: wasm
+  # MIT notice, MPL-2.0 text and source locations for the bundled Cua Driver files.
+  - from: resources/licenses
+    to: licenses
+# SQLite is built into Electron's Node; there is no application addon to rebuild.
+npmRebuild: false
+# In-app updates (electron-updater, generic provider): builder writes latest*.yml next to the
+# installers and app-update.yml into the app. Packaging passes --publish never; the release script
+# (tools/release/publish.mjs) uploads installers to R2 and points the yml files' URLs at
+# https://pibot.space/downloads/<version>/ before writing them into the website's updates/ folder.
+publish:
+  provider: generic
+  url: https://pibot.space/updates/
+# The sign-in page's "back to Pi Bot" link (Info.plist on macOS, desktop file on Linux;
+# Windows registers at runtime, see src/main/window/app-url.ts).
+protocols:
+  - name: Pi Bot
+    schemes:
+      - pibot
+mac:
+  extraResources:
+    - from: out/native-resources/mac-${arch}/cua-driver
+      to: cua-driver
+    - from: build/Assets.car
+      to: Assets.car
+  # electron-builder resolves extra binary paths relative to the .app bundle.
+  binaries:
+    - Contents/Resources/cua-driver
+  target:
+    - dir
+    - dmg
+    # Squirrel.Mac installs updates from a zip, never from the disk image.
+    - zip
+  # build/icon.icon compiled by scripts/icons/gen-icon-composer.ts: Assets.car carries the icon
+  # for macOS 11+ (CFBundleIconName), icon.icns the same rendering for older systems.
+  icon: build/icon.icns
+  category: public.app-category.productivity
+  extendInfo:
+    CFBundleIconName: icon
+    PiBotBuildMode: test
+    LSUIElement: true
+    # Electron's app.getLocale() (and Chromium's navigator.language) on macOS only return languages
+    # the bundle declares; without these a Chinese system gets en-US and "follow system" shows English.
+    CFBundleDevelopmentRegion: en
+    CFBundleLocalizations:
+      - en
+      - zh_CN
+      - zh_TW
+    CFBundleAllowMixedLocalizations: true
+    NSCalendarsUsageDescription: Pi Bot accesses calendars only when you connect the calendar app and approve the operation.
+    NSCalendarsFullAccessUsageDescription: Pi Bot reads and edits selected calendar events after you enable the connection and approve the operation.
+    NSContactsUsageDescription: Pi Bot reads and edits contacts after you enable the connection and approve the operation.
+  # SMAppService rejects login item changes for an unsigned application.
+  identity: "-"
+  notarize: false
+dmg:
+  sign: false
+win:
+  target: nsis
+  icon: build/icon.ico
+# Standard wizard installer (maintainers 2026-10-30): pick per-user or all users and the folder,
+# shortcuts, finish page that can start the app. Updates still install silently in place.
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Pi Bot
+  runAfterFinish: true
+  # User data stays on uninstall; removing chats and keys is the user's own call.
+  deleteAppDataOnUninstall: false
+  multiLanguageInstaller: true
+  installerLanguages:
+    - zh_CN
+    - en_US
+linux:
+  executableName: pi-bot
+  target:
+    - AppImage
+    - tar.gz
+  icon: build/icons/linux
+  category: Utility
+
+# An empty list overrides builder's unsafe AppImage --no-sandbox default.
+appImage:
+  executableArgs: []

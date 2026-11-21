@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true,
+    "types": ["node"]
+  },
+  "references": [
+    {
+      "path": "../protocol"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

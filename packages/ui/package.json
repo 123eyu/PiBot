@@ -1,0 +1,29 @@
+{
+  "name": "@pibot/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/theme/tokens.css",
+    "./logo": "./src/brand/Logo.tsx",
+    "./tokens": "./src/theme/tokens.ts",
+    "./icon-paths": "./src/components/icon-paths.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit && tsc --ignoreConfig --noEmit --strict --noUncheckedIndexedAccess --target ES2023 --module ESNext --moduleResolution bundler --skipLibCheck --types node scripts/generate-tokens.ts",
+    "tokens:generate": "node scripts/generate-tokens.ts",
+    "tokens:check": "node scripts/generate-tokens.ts --check"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}

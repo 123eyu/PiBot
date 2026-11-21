@@ -1,0 +1,48 @@
+{
+  "scenario": 6,
+  "method": "fact-check",
+  "behaviour": "retry",
+  "requiredStrings": [
+    "合成公共交通"
+  ],
+  "deliverables": [
+    {
+      "id": "report",
+      "path": "事实核查.md",
+      "kind": "md",
+      "sections": [
+        "结论与把握",
+        "证据对照",
+        "来源链"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "exists",
+      "check": "exists",
+      "deliverable": "report"
+    },
+    {
+      "id": "sections",
+      "check": "sections",
+      "deliverable": "report"
+    },
+    {
+      "id": "sources",
+      "check": "minCitations",
+      "min": 3,
+      "deliverable": "report"
+    },
+    {
+      "id": "sourced",
+      "check": "sectionsSourced",
+      "deliverable": "report"
+    }
+  ],
+  "budget": {
+    "modelRequests": 100,
+    "costUsd": 1,
+    "activeSeconds": 300
+  }
+}

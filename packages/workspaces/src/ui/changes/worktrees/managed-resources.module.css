@@ -1,0 +1,367 @@
+.section {
+  padding: 12px 14px;
+  border-top: 1px solid var(--b1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hint {
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.path {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.preview {
+  font-size: 12px;
+  color: var(--text2);
+}
+.preview summary {
+  cursor: pointer;
+  padding: 4px 0;
+}
+.previewFile {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.previewFile span:last-child {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.error {
+  color: var(--danger);
+  margin: 0;
+  font-size: 12px;
+}
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  min-width: 0;
+}
+.check input {
+  flex: none;
+  margin-top: 2px;
+}
+.conflict {
+  background: var(--warnBg);
+  color: var(--warn);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+
+.workspaceAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 28px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.workspaceAction:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.workspaceAction:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.workspace {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+}
+.compactButton {
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 12.5px;
+  border-radius: 7px;
+}
+
+.scmSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 4px;
+  color: var(--text);
+}
+.treeList,
+.fileList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.treeItem {
+  min-width: 0;
+  border-bottom: 1px solid var(--b1);
+}
+.treeRow {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 40px;
+  gap: 2px;
+}
+.treeRow[data-selected] {
+  background: var(--hover);
+}
+.treeToggle {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  gap: 6px;
+  padding: 5px 2px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.treeToggle > svg,
+.treeArrow {
+  flex: none;
+}
+.treeArrow {
+  display: inline-flex;
+  transition: transform 120ms ease;
+}
+.treeArrow[data-open="true"] {
+  transform: rotate(90deg);
+}
+.treeIdentity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+.treeName {
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.treeBranch {
+  color: var(--text2);
+  font-size: 11px;
+  line-height: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.treeActions {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: 1px;
+}
+.treeReview {
+  min-height: 28px;
+  height: 28px;
+  padding: 3px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.treeIcon {
+  width: 28px;
+  min-height: 28px;
+  padding: 4px;
+  border-radius: 5px;
+}
+.treeMeta {
+  padding: 0 6px 5px 24px;
+}
+.treePath {
+  color: var(--text2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.treeFiles {
+  min-width: 0;
+  padding: 0 0 8px 18px;
+}
+.fileSummary {
+  color: var(--text2);
+  margin: 4px 6px;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.treeToggle:hover,
+.fileRow:hover {
+  background: var(--hover);
+}
+.treeToggle:focus-visible,
+.fileRow:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.fileTag {
+  flex: none;
+  width: 13px;
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+.fileName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fileStats {
+  display: flex;
+  flex: none;
+  gap: 5px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.added {
+  color: var(--ok);
+}
+.removed {
+  color: var(--danger);
+}
+.treeConfirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  margin: 3px 0 8px;
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  background: var(--bg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .treeArrow {
+    transition: none;
+  }
+}
+
+/* Independent workspaces as soft cards; the selected tree row is tinted teal. */
+.section {
+  border-top: 0;
+}
+.item {
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.treeRow {
+  border-radius: 10px;
+}
+.treeRow[data-selected] {
+  background: color-mix(in srgb, var(--avatar-teal) 11%, transparent);
+}
+
+/* The 独立工作区 entry is a teal pill, the
+   workspace list one soft card whose rows lead with teal tiles, confirmations tinted. */
+.workspaceAction.workspaceAction {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  color: var(--ink-teal);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--avatar-teal) 12%, transparent);
+}
+.workspaceAction.workspaceAction:hover {
+  color: var(--ink-teal);
+  background: color-mix(in srgb, var(--avatar-teal) 20%, transparent);
+}
+.treeList.treeList {
+  padding: 2px 8px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.treeList.treeList > .treeItem:last-child {
+  border-bottom: 0;
+}
+.treeToggle.treeToggle {
+  gap: 8px;
+}
+.treeConfirmation.treeConfirmation {
+  border: 0;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.conflict.conflict {
+  border-radius: 12px;
+  padding: 8px 12px;
+}

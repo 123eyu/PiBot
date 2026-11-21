@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "id": "calendar",
+  "order": 40,
+  "card": {
+    "name": {
+      "zh": "本机日历",
+      "en": "Local calendar"
+    },
+    "category": "local",
+    "platforms": ["darwin", "win32"],
+    "unsupportedReason": "eds_driver_unavailable",
+    "description": {
+      "zh": "读取和创建日程",
+      "en": "Read and create calendar events"
+    },
+    "modes": [
+      {
+        "id": "system",
+        "auth": "system",
+        "capability": {
+          "zh": "macOS 系统框架 / Windows 经典 Outlook；写入需确认。",
+          "en": "macOS system frameworks / Windows classic Outlook; writes require confirmation."
+        },
+        "help": {
+          "zh": "连接时会检查系统权限。Windows 需要经典 Outlook；新版 Outlook 不支持 COM。Linux EDS 驱动暂不可用。",
+          "en": "Connecting checks system access. Windows requires classic Outlook; new Outlook has no COM support. Linux EDS driver is currently unavailable."
+        },
+        "documentationUrl": "https://developer.apple.com/documentation/eventkit"
+      }
+    ]
+  },
+  "mcp": {
+    "presets": {
+      "system": {
+        "id": "calendar",
+        "transport": "stdio",
+        "fixedService": "calendar",
+        "env": {},
+        "auth": {
+          "kind": "system"
+        },
+        "networkDomains": []
+      }
+    },
+    "readOnlyTools": ["list_calendars", "list_events"],
+    "disabledTools": ["delete_event"],
+    "disabledToolPatterns": [
+      "(?:^|[_-])(?:delete|remove|merge|archive|transfer|force|revoke)(?:[_-]|$)"
+    ],
+    "capability": {
+      "id": "calendar",
+      "tools": {
+        "list_calendars": "calendar_list_calendars",
+        "list_events": "calendar_list_events",
+        "create_event": "calendar_create_event",
+        "update_event": "calendar_update_event",
+        "delete_event": "calendar_delete_event"
+      },
+      "readOnlyTools": ["list_calendars", "list_events"]
+    },
+    "draftBindings": [],
+    "trusted": {
+      "stdio": {
+        "machLookup": ["com.apple.CalendarAgent", "com.apple.tccd"],
+        "legacyBuiltinId": "calendar",
+        "openTimeoutMs": 130000
+      }
+    },
+    "toolDescriptions": {
+      "list_calendars": {
+        "zh": "列出可用日历",
+        "en": "List available calendars"
+      },
+      "list_events": {
+        "zh": "一次读取最多31天的多个日历；calendarIds可传多个ID，省略即全部可读日历，不用逐个调用。统一分页并带日历名及可写标记；nextCursor沿用同一日期与ID，calendarId仅兼容单选、不可与calendarIds同传。",
+        "en": "Read up to 31 days across calendars in one call. Pass calendarIds or omit for all readable calendars; do not call once per calendar. Sorted pages include calendarName/calendarWritable; use nextCursor with the same range/IDs. Legacy calendarId is single-select only; do not combine with calendarIds."
+      },
+      "create_event": {
+        "zh": "创建不含参会人的日程；无偏移ISO时间在确认前按本机时区确定化，夏令时歧义须明确偏移。用户拒绝即未创建，不自动重试。",
+        "en": "Create an event without attendees after user review. Offset-less ISO times use this computer's current time zone before review; DST ambiguity needs an explicit offset. User rejection means not created; do not retry automatically."
+      },
+      "update_event": {
+        "zh": "更新一条现有日程",
+        "en": "Update one existing event"
+      },
+      "delete_event": {
+        "zh": "删除一条日程，默认关闭",
+        "en": "Delete one event; disabled by default"
+      }
+    }
+  }
+}

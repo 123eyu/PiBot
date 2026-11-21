@@ -1,0 +1,35 @@
+{
+  "name": "@pibot/teams",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": {
+    "./brain": "./src/brain/index.ts",
+    "./store": "./src/store/index.ts",
+    "./ui": "./src/ui/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.ui.json"
+  },
+  "dependencies": {
+    "@pibot/agent": "workspace:0.0.0",
+    "@pibot/brain": "workspace:0.0.0",
+    "@pibot/i18n": "workspace:0.0.0",
+    "@pibot/protocol": "workspace:0.0.0",
+    "@pibot/renderer-kit": "workspace:0.0.0",
+    "@pibot/storage": "workspace:0.0.0",
+    "@pibot/ui": "workspace:0.0.0",
+    "react": "19.3.0",
+    "zod": "4.6.5",
+    "@pibot/observability": "workspace:0.0.0",
+    "@pibot/secrets": "workspace:0.0.0",
+    "@pibot/teams-contract": "workspace:0.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}

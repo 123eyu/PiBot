@@ -1,0 +1,73 @@
+.report {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 8px;
+  color: var(--text2);
+}
+.report p,
+.report ul {
+  margin: 0;
+}
+.report ul {
+  padding-inline-start: 20px;
+}
+.hints {
+  opacity: 0.75;
+}
+.pages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* Each rendered page is a soft thumbnail card; a page with problems is ringed amber. */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 112px;
+  padding: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text2);
+  font: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+.page:hover:enabled {
+  transform: translateY(-2px);
+}
+.page:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.page[data-issue] {
+  box-shadow:
+    0 0 0 1.5px var(--avatar-amber),
+    var(--shadow-soft);
+  color: var(--warn);
+}
+.page img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: contain;
+  border-radius: 7px;
+  background: var(--tert);
+}
+.page span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    transition: none;
+  }
+  .page:hover:enabled {
+    transform: none;
+  }
+}

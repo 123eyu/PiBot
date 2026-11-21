@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "gmail": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server.mjs"],
+      "env": {
+        "GMAIL_EMAIL": "${user_config.EMAIL}",
+        "GMAIL_LOGIN_MODE": "${user_config.LOGIN_MODE}",
+        "GMAIL_APP_PASSWORD": "${user_config.APP_PASSWORD}"
+      },
+      "networkDomains": ["imap.gmail.com", "smtp.gmail.com"]
+    }
+  }
+}

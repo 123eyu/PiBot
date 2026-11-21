@@ -1,0 +1,260 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.qr {
+  display: block;
+  width: min(240px, 100%);
+  height: auto;
+  margin: 16px auto;
+  color: var(--logo-paper-ink);
+  background: var(--logo-ink-ink);
+  shape-rendering: crispEdges;
+  border-radius: var(--radius-row);
+}
+.endpointList,
+.scopeEditor,
+.scope {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+/* Soft cards like the rest of the devices page. */
+.endpointCard,
+.scope {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+.endpointCard {
+  background: var(--card);
+  overflow-wrap: anywhere;
+}
+.endpointCard h3 {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: inherit;
+}
+.scopeEditor {
+  padding: 0 14px 14px;
+}
+.subhead {
+  margin: 0;
+  padding: 10px 14px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.scopeEditor p {
+  margin: 0;
+  color: var(--text2);
+}
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.choice input {
+  flex: none;
+  accent-color: var(--prim);
+}
+
+.deviceSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-top: 1px solid var(--b1);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.deviceSummary:first-of-type {
+  border-top: 0;
+}
+.deviceSummary:hover {
+  background: color-mix(in srgb, var(--page-c, var(--text2)) 5%, transparent);
+}
+.deviceSummary:focus-visible,
+.menuItem:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.deviceSummaryText {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+.deviceSummaryText strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.deviceSummaryText span {
+  color: var(--text2);
+  font-size: 12px;
+}
+.onlineDot,
+.offlineDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.offlineDot {
+  background: var(--b3);
+}
+.deviceChevron {
+  color: var(--text2);
+  font-size: 20px;
+}
+.addDeviceWrap {
+  position: relative;
+}
+.addDeviceMenu {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  min-width: 210px;
+  padding: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+/* The page lead with 「添加设备」 on its right (devices-page.html ①); menu items lead with a tile. */
+.leadRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.leadRow > p {
+  flex: 1;
+  min-width: 0;
+}
+.addDeviceMenu {
+  gap: 2px;
+  animation: menuIn 180ms var(--ease-out);
+}
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.menuItem:hover {
+  background: var(--hover);
+}
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .addDeviceMenu {
+    animation: none;
+  }
+}
+
+/* Device detail hero (devices-page.html ②): the device tile, its name as an editable title
+   that saves on blur / Enter, and its state as a chip. */
+.deviceHero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 16px;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--page-c, var(--avatar-teal)) 12%, var(--card)),
+    var(--card)
+  );
+}
+.deviceHeroTile {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+.deviceHeroText {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.deviceHeroText small {
+  color: var(--text2);
+  font-size: 12.5px;
+}
+.deviceName {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 2px -6px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  transition: background-color 150ms ease;
+}
+.deviceName:hover:not(:disabled),
+.deviceName:focus {
+  background: color-mix(in srgb, var(--page-c, var(--avatar-teal)) 10%, var(--card));
+  outline: none;
+}
+.deviceName:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.deviceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 12px 12px;
+}
+.dangerText {
+  color: var(--danger);
+}
+@media (prefers-reduced-motion: reduce) {
+  .deviceName {
+    transition: none;
+  }
+}
+
+/* The computer-issued runner code. */
+.runnerCode {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.runnerNote {
+  margin: 0;
+  color: var(--text2);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}

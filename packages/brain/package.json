@@ -1,0 +1,30 @@
+{
+  "name": "@pibot/brain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L3"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./kit": "./src/kit.ts",
+    "./orchestration-kit": "./src/orchestration-kit.ts"
+  },
+  "dependencies": {
+    "@pibot/agent": "workspace:0.0.0",
+    "@pibot/execution": "workspace:0.0.0",
+    "@pibot/observability": "workspace:0.0.0",
+    "@pibot/policy": "workspace:0.0.0",
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "@pibot/secrets": "workspace:0.0.0",
+    "@pibot/storage": "workspace:0.0.0",
+    "@pibot/tools": "workspace:0.0.0",
+    "mammoth": "1.13.0",
+    "pdfjs-dist": "6.4.299",
+    "zod": "4.6.5"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

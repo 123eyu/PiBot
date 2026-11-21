@@ -1,0 +1,199 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+/* A face inside the option button: the row already wraps lines, so it must not shrink. */
+.leading {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+}
+.value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.placeholder,
+.secondary,
+.message,
+.groupTitle {
+  color: var(--text2);
+}
+.group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.popup {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 6px;
+  /* The floating soft card shared by every menu. */
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  overflow: auto;
+  animation: popupIn 180ms var(--ease-out);
+}
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .popup {
+    animation: none;
+  }
+}
+.search {
+  flex: none;
+  margin-bottom: 6px;
+}
+.list {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding: 4px;
+}
+.option {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+/* Maintainers 2026-11-13: one line for the name, one smaller line for details (context, price…);
+   the full text stays in the option's title / the search. */
+.option > .primary,
+.option > .secondary {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.option > .secondary {
+  color: var(--text2);
+}
+/* The chosen option reads in the page's ink colour (blue outside a toned page). */
+.option[aria-selected="true"] .primary {
+  font-weight: 600;
+  color: var(--accent-ink, var(--ink-blue));
+}
+.option[aria-selected="true"] {
+  background: color-mix(in srgb, var(--accent-fill, var(--avatar-blue)) 11%, transparent);
+}
+.option[data-active="true"] {
+  background: var(--hover);
+  box-shadow: inset 0 0 0 1px var(--b3);
+}
+.option[aria-selected="true"][data-active="true"] {
+  background: color-mix(in srgb, var(--accent-fill, var(--avatar-blue)) 17%, transparent);
+}
+.option[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.secondary,
+.message,
+.groupTitle {
+  font-size: 12.5px;
+}
+.groupTitle {
+  padding: 8px 10px 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.message {
+  flex: none;
+  padding: 8px 10px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.inlineField {
+  /* Contains the visually hidden label: otherwise it escapes the nearest scroll panel, makes the
+     app shell scrollable, and a focus or scrollIntoView shifts the whole window up. */
+  position: relative;
+  min-width: 0;
+  max-width: 210px;
+}
+.hiddenLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.pill {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 10px 0 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  gap: 6px;
+}
+.badge {
+  min-height: 26px;
+  height: 26px;
+  padding: 0 6px 0 10px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--tert);
+  font-size: 12px;
+  gap: 4px;
+}
+.pill svg {
+  width: 13px;
+  height: 13px;
+}
+.badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.iconOnly.iconOnly {
+  width: 32px;
+  min-width: 32px;
+  padding: 6px;
+  justify-content: center;
+  gap: 0;
+}
+
+.popup[popover] {
+  margin: 0;
+  inset: auto;
+}
+/* An avatar or icon sits beside the name, not above it; a secondary line stays under the name. */
+.option:has(> .leading) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: center;
+}
+.option:has(> .leading) > .secondary {
+  grid-column: 2;
+}

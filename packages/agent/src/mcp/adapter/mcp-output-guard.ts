@@ -1,0 +1,495 @@
+// Derived from nicobailon/pi-mcp-adapter@5.3.1 (commit efe943e637e503e10af382d0ace1aec834989c69), MIT.
+// Copyright (c) 2026 Nico Bailon. Full license: packages/agent/src/mcp/adapter/LICENSE.
+// Modified by Pi Bot: host temp directories, global caches and environment switches removed; files and redaction go through Pi Bot ports.
+// Upstream file: mcp-output-guard.ts
+import {
+  DEFAULT_MAX_BYTES,
+  DEFAULT_MAX_LINES,
+  formatSize,
+  type TruncationResult,
+  truncateHead,
+} from "@earendil-works/pi-coding-agent/truncate";
+import type { ContentBlock, McpSettings } from "./types.ts";
+
+// Cut: temp-file spill of oversized output/raw results (Pi Bot never writes
+// model-visible files outside managed workspace ports) and the process.env kill
+// switch — the guard stays on unless Pi Bot settings disable it.
+
+export const DEFAULT_MCP_OUTPUT_MAX_BYTES = DEFAULT_MAX_BYTES;
+export const DEFAULT_MCP_OUTPUT_MAX_LINES = DEFAULT_MAX_LINES;
+export const DEFAULT_MCP_DETAILS_MAX_BYTES = 16 * 1024;
+
+const CONTENT_SUMMARY_LIMIT = 20;
+const KEY_PREVIEW_LIMIT = 20;
+const KEY_MAX_BYTES = 120;
+const STRUCTURED_CONTENT_PRESERVE_MAX_BYTES = 4 * 1024;
+const STRUCTURED_CONTENT_FIELD_PRESERVE_MAX_BYTES = 512;
+
+type Recordish = Record<string, unknown>;
+
+export interface McpOutputGuardDetails {
+  truncated: true;
+  originalBytes: number;
+  returnedBytes: number;
+  originalLines: number;
+  returnedLines: number;
+  /** Host truncation classification and preview counts for the composed text before the MCP notice is added. */
+  truncatedBy: TruncationResult["truncatedBy"];
+  totalLines: number;
+  totalBytes: number;
+  outputLines: number;
+  outputBytes: number;
+  lastLinePartial: boolean;
+  firstLineExceedsLimit: boolean;
+  maxLines: number;
+  maxBytes: number;
+  /** Number of image content blocks returned untouched alongside the truncated text. */
+  imageBlocksPassedThrough?: number;
+}
+
+export interface McpResultSummary {
+  omitted: true;
+  reason: string;
+  isError: boolean;
+  contentBlocks: number;
+  contentSummary: Array<Record<string, unknown>>;
+  structuredContent?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
+  extraFields?: Array<Record<string, unknown>>;
+  rawResultBytes: number;
+}
+
+export interface McpOutputGuardOptions {
+  enabled?: boolean;
+  prefix?: string;
+  suffix?: string;
+  /** Optional guidance appended when it fits the output limits. */
+  footer?: string;
+  emptyTextFallback?: string;
+  maxBytes?: number;
+  maxLines?: number;
+  detailsMaxBytes?: number;
+  /**
+   * Raw MCP result to expose as details.mcpResult. Kept raw when its JSON
+   * fits detailsMaxBytes (or when the guard is disabled); otherwise replaced
+   * with a compact summary and spilled to a temp file. Omit for call sites
+   * whose details never carried the raw result (e.g. direct tools).
+   */
+  rawMcpResult?: unknown;
+}
+
+export interface GuardedMcpOutput {
+  content: ContentBlock[];
+  outputGuard?: McpOutputGuardDetails;
+  mcpResult?: unknown;
+}
+
+export function resolveMcpOutputGuardOptions(
+  settings?: McpSettings,
+): Pick<McpOutputGuardOptions, "enabled" | "maxBytes" | "maxLines" | "detailsMaxBytes"> {
+  const configured = settings?.outputGuard;
+  const tuning = typeof configured === "object" && configured !== null ? configured : undefined;
+  return {
+    enabled: configured !== false,
+    maxBytes: positiveInt(tuning?.maxBytes) ?? DEFAULT_MCP_OUTPUT_MAX_BYTES,
+    maxLines: positiveInt(tuning?.maxLines) ?? DEFAULT_MCP_OUTPUT_MAX_LINES,
+    detailsMaxBytes: positiveInt(tuning?.detailsMaxBytes) ?? DEFAULT_MCP_DETAILS_MAX_BYTES,
+  };
+}
+
+/** Spread helper for tool-result details: includes mcpResult/outputGuard only when present. */
+export function guardedMcpDetails(guarded: GuardedMcpOutput): Record<string, unknown> {
+  return {
+    ...(guarded.mcpResult !== undefined ? { mcpResult: guarded.mcpResult } : {}),
+    ...(guarded.outputGuard ? { outputGuard: guarded.outputGuard } : {}),
+  };
+}
+
+/**
+ * Bound model-facing MCP output. Text output is capped at maxBytes/maxLines and
+ * spilled to a temp file when oversized. Image blocks pass through untouched —
+ * they are delivered to the provider as native image content, not text context.
+ */
+export async function guardMcpOutput(
+  content: ContentBlock[],
+  options: McpOutputGuardOptions = {},
+): Promise<GuardedMcpOutput> {
+  const maxBytes = options.maxBytes ?? DEFAULT_MCP_OUTPUT_MAX_BYTES;
+  const maxLines = options.maxLines ?? DEFAULT_MCP_OUTPUT_MAX_LINES;
+  const detailsMaxBytes = options.detailsMaxBytes ?? DEFAULT_MCP_DETAILS_MAX_BYTES;
+  const prefix = options.prefix ?? "";
+  const suffix = options.suffix ?? "";
+  const footer = options.footer ?? "";
+
+  const normalizedContent = withEmptyTextFallback(
+    content.length > 0
+      ? sanitizeContent(content)
+      : [{ type: "text" as const, text: options.emptyTextFallback ?? "(empty result)" }],
+    options.emptyTextFallback,
+  );
+
+  if (options.enabled === false) {
+    return {
+      content: addAffixes(normalizedContent, prefix, `${suffix}${footer}`),
+      ...(options.rawMcpResult !== undefined ? { mcpResult: options.rawMcpResult } : {}),
+    };
+  }
+
+  const imageBlocks = normalizedContent.filter((block) => block.type === "image");
+  const textOutput = normalizedContent
+    .filter((block) => block.type === "text")
+    .map((block) => (block as { text: string }).text)
+    .join("\n");
+  const composedOutput = `${prefix}${textOutput}${suffix}`;
+  const truncation = truncateHead(`${composedOutput}${footer}`, { maxBytes, maxLines });
+
+  let guardedContent: ContentBlock[] = addAffixes(normalizedContent, prefix, `${suffix}${footer}`);
+  let outputGuard: McpOutputGuardDetails | undefined;
+
+  if (truncation.truncated) {
+    const initialNotice = formatTruncationNotice(truncation);
+    // Footers are optional guidance: drop one that would not fit beside the notice rather than exceed the limits.
+    const noticeWithFooter = textStats(`\n\n${initialNotice}${footer}`);
+    const keptFooter =
+      noticeWithFooter.bytes < maxBytes && noticeWithFooter.lines < maxLines ? footer : "";
+    const previewBudget = reserveBudget(maxBytes, maxLines, `${initialNotice}${keptFooter}`);
+    const preview = truncateHead(composedOutput, {
+      maxBytes: previewBudget.maxBytes,
+      maxLines: previewBudget.maxLines,
+    });
+    const notice = formatTruncationNotice({
+      ...truncation,
+      outputLines: preview.outputLines,
+      outputBytes: preview.outputBytes,
+    });
+    const finalText = `${preview.content}\n\n${notice}${keptFooter}`;
+    const finalStats = textStats(finalText);
+
+    guardedContent = [{ type: "text" as const, text: finalText }, ...imageBlocks];
+    outputGuard = {
+      truncated: true,
+      originalBytes: truncation.totalBytes,
+      returnedBytes: finalStats.bytes,
+      originalLines: truncation.totalLines,
+      returnedLines: finalStats.lines,
+      truncatedBy: truncation.truncatedBy,
+      totalLines: truncation.totalLines,
+      totalBytes: truncation.totalBytes,
+      outputLines: preview.outputLines,
+      outputBytes: preview.outputBytes,
+      lastLinePartial: truncation.lastLinePartial,
+      firstLineExceedsLimit: truncation.firstLineExceedsLimit,
+      maxLines: truncation.maxLines,
+      maxBytes: truncation.maxBytes,
+      ...(imageBlocks.length > 0 ? { imageBlocksPassedThrough: imageBlocks.length } : {}),
+    };
+  }
+
+  const mcpResult =
+    options.rawMcpResult === undefined
+      ? undefined
+      : await boundMcpResult(options.rawMcpResult, detailsMaxBytes);
+
+  return {
+    content: guardedContent,
+    ...(outputGuard ? { outputGuard } : {}),
+    ...(mcpResult !== undefined ? { mcpResult } : {}),
+  };
+}
+
+function sanitizeContent(content: ContentBlock[]): ContentBlock[] {
+  return content.map((block) => {
+    if (block.type !== "image") return block;
+    const mimeType =
+      typeof block.mimeType === "string" && block.mimeType.trim()
+        ? block.mimeType.trim().slice(0, 100)
+        : "image/png";
+    return { ...block, mimeType };
+  });
+}
+
+function withEmptyTextFallback(
+  content: ContentBlock[],
+  fallback: string | undefined,
+): ContentBlock[] {
+  if (!fallback) return content;
+  const textOutput = content
+    .filter((block) => block.type === "text")
+    .map((block) => (block as { text: string }).text)
+    .join("\n");
+  if (textOutput) return content;
+  return [{ type: "text", text: fallback }, ...content.filter((block) => block.type === "image")];
+}
+
+function addAffixes(content: ContentBlock[], prefix: string, suffix: string): ContentBlock[] {
+  if (!prefix && !suffix) return content;
+  const next: ContentBlock[] = [...content];
+
+  if (prefix) {
+    const index = next.findIndex((block) => block.type === "text");
+    const block = next[index];
+    if (block?.type === "text") {
+      next[index] = { ...block, text: `${prefix}${block.text}` };
+    } else {
+      next.unshift({ type: "text", text: prefix });
+    }
+  }
+
+  if (suffix) {
+    let index = -1;
+    for (let i = next.length - 1; i >= 0; i--) {
+      if (next[i]?.type === "text") {
+        index = i;
+        break;
+      }
+    }
+    const block = next[index];
+    if (block?.type === "text") {
+      next[index] = { ...block, text: `${block.text}${suffix}` };
+    } else {
+      next.push({ type: "text", text: suffix });
+    }
+  }
+
+  return next;
+}
+
+function reserveBudget(
+  maxBytes: number,
+  maxLines: number,
+  notice: string,
+): { maxBytes: number; maxLines: number } {
+  const noticeStats = textStats(`\n\n${notice}`);
+  return {
+    maxBytes: Math.max(0, maxBytes - noticeStats.bytes),
+    maxLines: Math.max(0, maxLines - noticeStats.lines),
+  };
+}
+
+function truncateStringToBytes(value: string, maxBytes: number): string {
+  if (byteLength(value) <= maxBytes) return value;
+  const buffer = Buffer.from(value, "utf8");
+  let end = Number.isFinite(maxBytes) ? Math.max(0, Math.floor(maxBytes)) : 0;
+  while (end > 0 && (buffer.readUInt8(end) & 0xc0) === 0x80) end--;
+  return buffer.subarray(0, end).toString("utf8");
+}
+
+function formatTruncationNotice(truncation: TruncationResult): string {
+  let reason: string;
+  if (truncation.firstLineExceedsLimit) {
+    reason = `First line exceeds ${formatSize(truncation.maxBytes)} limit`;
+  } else if (truncation.truncatedBy === "lines") {
+    reason = `Truncated: showing ${truncation.outputLines} of ${truncation.totalLines} lines (${truncation.maxLines} line limit)`;
+  } else {
+    reason = `Truncated: ${truncation.outputLines} lines shown (${formatSize(truncation.maxBytes)} limit)`;
+  }
+  return `[MCP text output truncated: original ${truncation.totalLines.toLocaleString()} lines / ${formatSize(truncation.totalBytes)}. ${reason}.]`;
+}
+
+/**
+ * Bound details.mcpResult: keep the raw result when its JSON fits within
+ * detailsMaxBytes; otherwise replace it with a compact summary. There is no
+ * temp-file spill in the Pi Bot derivation.
+ */
+async function boundMcpResult(result: unknown, detailsMaxBytes: number): Promise<unknown> {
+  const raw = safeStringify(result);
+  const rawBytes = byteLength(raw);
+  if (rawBytes <= detailsMaxBytes) return result;
+  const marker = { omitted: true } as const;
+  if (byteLength(safeStringify(marker)) > detailsMaxBytes) return undefined;
+
+  const summary = summarizeMcpResult(result, rawBytes);
+  if (byteLength(safeStringify(summary)) <= detailsMaxBytes) return summary;
+  const withSize = { ...marker, rawResultBytes: summary.rawResultBytes };
+  return byteLength(safeStringify(withSize)) <= detailsMaxBytes ? withSize : marker;
+}
+
+function summarizeMcpResult(result: unknown, rawBytes: number): McpResultSummary {
+  const record = asRecord(result);
+  const content = Array.isArray(record?.content) ? record.content : [];
+  const summary: McpResultSummary = {
+    omitted: true,
+    reason:
+      "Raw MCP result exceeded the details size limit and was replaced with this summary to keep session context bounded.",
+    isError: record?.isError === true,
+    contentBlocks: content.length,
+    contentSummary: summarizeContent(content),
+    rawResultBytes: rawBytes,
+  };
+
+  if (record && "structuredContent" in record) {
+    summary.structuredContent = summarizeStructuredContent(record.structuredContent);
+  }
+  if (record && "_meta" in record) {
+    summary.meta = summarizeValue(record._meta);
+  }
+  if (record) {
+    const standard = new Set(["content", "isError", "structuredContent", "_meta"]);
+    const extraFields = Object.keys(record)
+      .filter((key) => !standard.has(key))
+      .slice(0, KEY_PREVIEW_LIMIT)
+      .map((key) => ({
+        key: truncateKey(key),
+        type: typeof record[key],
+        estimatedBytes: estimateValueBytes(record[key]),
+        omitted: true,
+      }));
+    if (extraFields.length > 0) summary.extraFields = extraFields;
+  }
+
+  return summary;
+}
+
+function summarizeContent(content: unknown[]): Array<Record<string, unknown>> {
+  const summaries: Array<Record<string, unknown>> = content
+    .slice(0, CONTENT_SUMMARY_LIMIT)
+    .map((block) => {
+      const record = asRecord(block);
+      if (!record) return { type: typeof block, omitted: true };
+      if (record.type === "text") {
+        const text = typeof record.text === "string" ? record.text : "";
+        return {
+          type: "text",
+          bytes: byteLength(text),
+          lines: textStats(text).lines,
+          textOmitted: true,
+        };
+      }
+      if (record.type === "image") {
+        const data = typeof record.data === "string" ? record.data : "";
+        return {
+          type: "image",
+          mimeType: typeof record.mimeType === "string" ? record.mimeType : undefined,
+          dataBytes: byteLength(data),
+          dataOmitted: true,
+        };
+      }
+      return {
+        type: typeof record.type === "string" ? record.type : "unknown",
+        estimatedBytes: estimateValueBytes(record),
+        omitted: true,
+      };
+    });
+  if (content.length > CONTENT_SUMMARY_LIMIT) {
+    summaries.push({ type: "omitted", count: content.length - CONTENT_SUMMARY_LIMIT });
+  }
+  return summaries;
+}
+
+function summarizeValue(value: unknown): Record<string, unknown> {
+  const record = asRecord(value);
+  if (!record) {
+    return {
+      type: value === null ? "null" : typeof value,
+      estimatedBytes: estimateValueBytes(value),
+      omitted: true,
+    };
+  }
+  const keys = Object.keys(record);
+  return {
+    type: Array.isArray(value) ? "array" : "object",
+    estimatedBytes: estimateValueBytes(value),
+    keyCount: keys.length,
+    keysPreview: uniqueBoundedKeys(keys.slice(0, KEY_PREVIEW_LIMIT)),
+    omitted: true,
+  };
+}
+
+function summarizeStructuredContent(value: unknown): Record<string, unknown> {
+  const record = asRecord(value);
+  if (!record || Array.isArray(value)) return summarizeValue(value);
+  const keys = Object.keys(record);
+  const entries = Object.entries(record).slice(0, KEY_PREVIEW_LIMIT);
+  const previewKeys = uniqueBoundedKeys(entries.map(([key]) => key));
+  const fields: Record<string, unknown> = {};
+  let preservedBytes = byteLength("{}");
+  for (const [key, field] of entries) {
+    const fieldBytes = byteLength(safeStringify(field));
+    const candidate =
+      fieldBytes <= STRUCTURED_CONTENT_FIELD_PRESERVE_MAX_BYTES ? field : summarizeValue(field);
+    const entryBytes = serializedObjectEntryBytes(key, candidate, Object.keys(fields).length > 0);
+    if (preservedBytes + entryBytes > STRUCTURED_CONTENT_PRESERVE_MAX_BYTES) continue;
+    fields[key] = candidate;
+    preservedBytes += entryBytes;
+  }
+  const preservedCount = Object.keys(fields).length;
+  return {
+    omitted: true,
+    preservedFields: fields,
+    summary: {
+      type: "object",
+      estimatedBytes: estimateValueBytes(value),
+      keyCount: keys.length,
+      preservedCount,
+      droppedCount: keys.length - preservedCount,
+      keysPreview: previewKeys,
+      omitted: true,
+    },
+  };
+}
+
+function estimateValueBytes(value: unknown, depth = 0): number {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "string") return byteLength(value);
+  if (typeof value === "number" || typeof value === "boolean" || typeof value === "bigint")
+    return byteLength(String(value));
+  const record = asRecord(value);
+  if (!record || depth >= 2) return 0;
+  const values = Array.isArray(value)
+    ? value.slice(0, KEY_PREVIEW_LIMIT)
+    : Object.values(record).slice(0, KEY_PREVIEW_LIMIT);
+  return values.reduce((total, item) => total + estimateValueBytes(item, depth + 1), 0);
+}
+
+function truncateKey(key: string): string {
+  if (byteLength(key) <= KEY_MAX_BYTES) return key;
+  const suffix = "…";
+  return `${truncateStringToBytes(key, KEY_MAX_BYTES - byteLength(suffix))}${suffix}`;
+}
+
+function uniqueBoundedKeys(keys: string[]): string[] {
+  const used = new Set<string>();
+  return keys.map((key) => {
+    let candidate = truncateKey(key);
+    let ordinal = 2;
+    while (used.has(candidate)) {
+      const suffix = `~${ordinal}`;
+      candidate = `${truncateStringToBytes(key, KEY_MAX_BYTES - byteLength(suffix))}${suffix}`;
+      ordinal += 1;
+    }
+    used.add(candidate);
+    return candidate;
+  });
+}
+
+function serializedObjectEntryBytes(key: string, value: unknown, hasPrevious: boolean): number {
+  const serialized = safeStringify({ [key]: value });
+  return Math.max(0, byteLength(serialized) - byteLength("{}")) + (hasPrevious ? 1 : 0);
+}
+
+function asRecord(value: unknown): Recordish | undefined {
+  return typeof value === "object" && value !== null ? (value as Recordish) : undefined;
+}
+
+function safeStringify(value: unknown): string {
+  try {
+    // The output guard measures and spills raw MCP results; it does not render this JSON for the model.
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function textStats(text: string): { bytes: number; lines: number } {
+  return { bytes: byteLength(text), lines: text.length === 0 ? 0 : text.split("\n").length };
+}
+
+function byteLength(text: string): number {
+  return Buffer.byteLength(text, "utf8");
+}
+
+function positiveInt(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) return undefined;
+  const integer = Math.floor(value);
+  return integer > 0 ? integer : undefined;
+}

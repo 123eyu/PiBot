@@ -1,0 +1,13 @@
+{
+  "replies": [
+    { "text": "Connection check succeeded." },
+    {
+      "toolCalls": [
+        { "name": "run_command", "arguments": { "command": "false", "timeoutSec": 30 } }
+      ]
+    },
+    { "text": "失败命令回归完成，请核对退出码 1 和始终展开的失败步骤。" },
+    { "text": "Model switch regression succeeded." },
+    { "text": "Development mode chat succeeded." }
+  ]
+}

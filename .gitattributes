@@ -1,0 +1,8 @@
+# Git for Windows defaults to core.autocrlf=true, which checks text files out with CRLF.
+# Biome's formatter (and .editorconfig) expect LF, so `pnpm lint` failed on every file of a
+# fresh Windows clone. Pin LF in the working tree on all platforms.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.icns binary

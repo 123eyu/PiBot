@@ -1,0 +1,23 @@
+{
+  "repository": "https://github.com/nicobailon/pi-mcp-adapter",
+  "version": "5.3.1",
+  "commit": "efe943e637e503e10af382d0ace1aec834989c69",
+  "files": {
+    "LICENSE": "2d20dfacd9742706e564470dc77438608a1e54b0ed46959f080709389209093c",
+    "host-managed.ts": "babbad7ad30c5f583ff320f5af7d37b32968e65de630af50699373b9cc854ccc",
+    "proxy-modes.ts": "a3f2580765ae037f447e67f2aa42ca9e3a3624d833a6e8ecdd04d851db333177",
+    "search-ranking.ts": "54befbabd7385903f6cc9ce0e689503baf1d9a833f8c9f5a58036bf223e031c5",
+    "tool-metadata.ts": "35e48f50b1346934f49712050ced0b073fcb1860ec0940c1b80b510d12e7f266",
+    "metadata-cache.ts": "9421f4299ca3ff6666274d2fa8b164dfd3601b46c7aadace05c632442904cdee",
+    "config.ts": "3afa4ad815ac15376b625dc7c1f40c6201c1a6a987ad9ffed64d947e04ff82b3",
+    "agent-plugin-loader.ts": "2a5d31fb062a99fbe379305481f263318bdb1b9a8a30105a507613d6058ead8e",
+    "json-schema-validator.ts": "1616d9a4eac036965b2fbc9ce8bfd4c7436bdd20d55b88f2f122a3ec7fef6805",
+    "tool-parameters.ts": "5510c8fefd966f18596b537b50f14c5a5864678bae0cd757bd64c6d31e503b5c",
+    "tool-registrar.ts": "7b4fb418c443e6e547225b1879ecec7a351c61571829854002133c420d3b3870",
+    "mcp-output-guard.ts": "52d37e39a7e4d6a156c1b2dd04d941c10841ce7634bfe482b6ed75034f2a27ec",
+    "utils.ts": "08b77c4fb449cdf41ac2f3911a3948e76d8f291ad0d8fb7434dec2b1a56eb7f8",
+    "types.ts": "fe183630f2ac62889271f5ea08fe6899d8607d65bba7b72dfba066415efdd1cd",
+    "abort.ts": "e73c182626cd187a3ae83254d146875ca6c71c911c6cdbe74890003b8811784a",
+    "runtime-owner.ts": "d1ffffdb436c7bf901e9555d2a4563136a754b7726b5d45c8461d76870635db7"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "replies": [
+    { "text": "第一轮合成历史。", "promptTokens": 7400 },
+    { "text": "第二轮合成历史。", "promptTokens": 52000 },
+    { "text": "故意截断的摘要", "finishReason": "length" },
+    { "text": "缩小目标后仍被截断", "finishReason": "length" },
+    { "text": "使用机械检查点继续。" }
+  ]
+}

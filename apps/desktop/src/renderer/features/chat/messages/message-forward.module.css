@@ -1,0 +1,166 @@
+/* Sits inside the user bubble, so it carries its own surface for readable text in both themes. */
+.card {
+  margin-top: 8px;
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  /* A forwarded chat card, led by a pink edge and washed header (design c-forwarded). */
+  border-left: 4px solid var(--avatar-pink);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  white-space: normal;
+  text-align: start;
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: color-mix(in srgb, var(--avatar-pink) 9%, transparent);
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+.count {
+  flex: none;
+  color: var(--text2);
+  font-size: 11.5px;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  max-height: 480px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.body > * {
+  max-width: 100%;
+}
+.body > div:not([hidden]) {
+  align-self: stretch;
+}
+.source {
+  margin: 0;
+  color: var(--text2);
+  font-size: 11.5px;
+}
+.preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text2);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+}
+.preview > span + span::before {
+  content: " · ";
+}
+.preview b {
+  color: var(--text);
+  font-weight: 600;
+}
+.files {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-pink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toggle:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.toggle:focus-visible {
+  outline: 2px solid var(--avatar-pink);
+  outline-offset: 2px;
+}
+.records {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.record {
+  min-width: 0;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.meta strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.quote {
+  margin: 4px 0 0;
+  padding-left: 9px;
+  border-left: 2px solid var(--b3);
+  color: var(--text2);
+  font-size: 12px;
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.text {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.notice {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.summary {
+  align-self: stretch;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--tert);
+}
+.summary h4 {
+  margin: 0 0 2px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+/* Doubled: the shared bubble is a shadowed card now; a quoted record inside stays flat. */
+.markdown.markdown {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 13px;
+}

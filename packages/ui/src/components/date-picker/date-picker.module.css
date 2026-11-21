@@ -1,0 +1,413 @@
+/*
+ * The approved date / date-time picker. `--dp-c` is the
+ * accent fill and `--dp-ink` its readable text colour: a `tone` sets both inline, otherwise they
+ * follow the host page or dialog (`--page-c` / `--accent-ink`), else the primary blue.
+ */
+.root,
+.popup {
+  --dp-c: var(--page-c, var(--accent-fill, var(--avatar-blue)));
+  --dp-ink: var(--accent-ink, var(--ink-blue));
+}
+.root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+}
+.trigger {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--tert);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
+    background-color 160ms var(--ease-out);
+}
+.root[data-open] .trigger,
+.trigger:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--dp-c) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--dp-c) 18%, transparent);
+  background: var(--card);
+}
+.trigger[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.placeholder {
+  color: var(--text2);
+}
+.icon {
+  flex: none;
+  color: var(--dp-ink);
+}
+/* The ✕ sits inside the field, just before the calendar icon; the trigger reserves its room. */
+.trigger[data-clearable] .icon {
+  margin-left: 28px;
+}
+.clear {
+  position: absolute;
+  right: 37px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--b2);
+  color: var(--text2);
+  cursor: pointer;
+}
+.clear:hover:not(:disabled) {
+  color: var(--text);
+}
+.clear:focus-visible {
+  outline: 2px solid var(--dp-c);
+  outline-offset: 1px;
+}
+
+/* The routines editor's accent-washed time: compact, larger digits, no border. */
+.root[data-appearance="tinted"] {
+  width: auto;
+  align-self: flex-start;
+  max-width: 100%;
+}
+.root[data-appearance="tinted"] .trigger {
+  min-width: 128px;
+  border-color: transparent;
+  background: color-mix(in srgb, var(--dp-c) 12%, var(--card));
+  color: var(--dp-ink);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.popup {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  padding: 14px;
+  border: 1px solid var(--b1);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.4;
+  animation: popupIn 180ms var(--ease-out);
+}
+.popup[popover] {
+  margin: 0;
+  inset: auto;
+  overflow: visible;
+}
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.popup button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.popup button:focus-visible {
+  outline: 2px solid var(--dp-c);
+  outline-offset: 1px;
+}
+/* A focused segment is shown by its accent wash (the design's highlighted HH), not a ring. */
+.segment:focus-visible {
+  outline: none;
+}
+.segment::selection {
+  background: color-mix(in srgb, var(--dp-c) 28%, transparent);
+}
+
+.calendar {
+  width: 276px;
+  flex: none;
+}
+.monthHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 2px 4px 10px;
+}
+.monthHeader b {
+  font-size: 15px;
+}
+.nav {
+  display: flex;
+  gap: 4px;
+}
+.popup .nav button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--tert);
+  color: var(--text2);
+}
+.popup .nav button:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+/* The spacing's outer 2px is pulled back so the days line up with the header and the chips. */
+.grid {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 2px;
+  margin: -2px;
+  width: calc(100% + 4px);
+  text-align: center;
+}
+.grid td {
+  padding: 0;
+}
+.weekday {
+  padding: 4px 0 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text2);
+}
+.weekday[data-weekend] {
+  color: color-mix(in srgb, var(--dp-ink) 70%, var(--text2));
+}
+.popup .day {
+  position: relative;
+  width: 100%;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.popup .day:hover {
+  background: var(--hover);
+}
+.day[data-past] {
+  color: color-mix(in srgb, var(--text) 38%, transparent);
+}
+.day[data-outside] {
+  color: color-mix(in srgb, var(--text) 28%, transparent);
+}
+.day[data-today] {
+  font-weight: 700;
+  color: var(--dp-ink);
+}
+.day[data-today]::after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  translate: -50% 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--dp-c);
+}
+.popup .day[data-selected] {
+  background: var(--dp-c);
+  color: var(--on-tone);
+  font-weight: 700;
+  box-shadow: 0 4px 10px -4px var(--dp-c);
+}
+.day[data-selected]::after {
+  background: var(--on-tone);
+}
+.popup .day[aria-disabled="true"] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.quick,
+.timeChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.quick {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--b1);
+}
+.popup .chip {
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--dp-c) 12%, transparent);
+  color: var(--dp-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.popup .chip:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--dp-c) 20%, transparent);
+}
+.popup .chip[aria-pressed="true"] {
+  background: var(--dp-c);
+  color: var(--on-tone);
+}
+.popup .chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.popup .ghost {
+  margin-left: auto;
+  background: transparent;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.time {
+  width: 150px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+}
+.calendar + .time {
+  padding-left: 14px;
+  border-left: 1px solid var(--b1);
+}
+.timeTitle {
+  margin: 6px 2px 8px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.timeBig {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin: 2px 0 10px;
+  font-size: 30px;
+  font-weight: 700;
+}
+.segment {
+  box-sizing: border-box;
+  width: calc(2ch + 12px);
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  caret-color: var(--dp-c);
+}
+.segment:focus {
+  background: color-mix(in srgb, var(--dp-c) 14%, transparent);
+  color: var(--dp-ink);
+}
+.columns {
+  display: flex;
+  gap: 6px;
+}
+/* Padding lets the first and last values scroll to the centre, where the choice is read; the
+   column is positioned so a value's offsetTop is measured from it when centring. */
+.column {
+  position: relative;
+  flex: 1;
+  height: 176px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 73px 0;
+  border: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  mask-image: linear-gradient(transparent, currentColor 22%, currentColor 78%, transparent);
+}
+.popup .column button {
+  flex: none;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--text2);
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.popup .column button:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.popup .column button[aria-pressed="true"] {
+  background: var(--dp-c);
+  color: var(--on-tone);
+  font-weight: 700;
+}
+/* The three times share the 150px column in one row instead of wrapping the last one. */
+.timeChips {
+  flex-wrap: nowrap;
+  margin-top: 10px;
+  gap: 4px;
+}
+.popup .timeChips .chip {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A narrow window stacks the time under the month instead of pushing the card off-screen. */
+@media (max-width: 520px) {
+  .popup {
+    flex-direction: column;
+  }
+  .calendar + .time {
+    width: 276px;
+    padding-left: 0;
+    padding-top: 12px;
+    border-left: 0;
+    border-top: 1px solid var(--b1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trigger {
+    transition: none;
+  }
+  .popup {
+    animation: none;
+  }
+}

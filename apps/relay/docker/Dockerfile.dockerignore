@@ -1,0 +1,18 @@
+# Build context is the repository root: send only what the relay image needs.
+*
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!.npmrc
+!apps/relay/package.json
+!apps/relay/tsconfig.json
+!apps/relay/wrangler.jsonc
+!apps/relay/src
+!apps/relay/tools
+!apps/relay/docker
+!packages/link/package.json
+!packages/link/tsconfig.json
+!packages/link/src
+!tsconfig*.json
+**/node_modules
+!patches

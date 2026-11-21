@@ -1,0 +1,1163 @@
+.shell {
+  position: relative;
+  display: flex;
+  height: calc(100vh - var(--titlebar-height, 0px));
+  /* Not hidden: that still lets focus / scrollIntoView scroll the whole app up when anything
+     overflows; clip makes the shell a non-scrolling box, so the window can never shift. */
+  overflow: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-wrap: anywhere;
+  /* The conversation's colour washes the top of the chat; a group main has no --chat-c on
+     itself, so it falls back to the group teal. */
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--chat-c, var(--avatar-teal)) 15%, transparent),
+    transparent 240px
+  );
+  background-repeat: no-repeat;
+}
+.scrollViewport {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.jumpLatest {
+  position: absolute;
+  z-index: 3;
+  right: 18px;
+  bottom: 14px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--b2);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+.jumpLatest:hover {
+  transform: translateY(-1px);
+}
+.jumpCount {
+  position: absolute;
+  right: -5px;
+  top: -6px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--chat-c, var(--accent));
+  color: var(--onPrim);
+  font-size: 11px;
+  line-height: 17px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .jumpLatest {
+    transition: none;
+  }
+}
+.header {
+  container: chat-header / inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 64px;
+  flex: none;
+  box-sizing: border-box;
+  /* The Windows/Linux window controls live in the separate title strip above, so this header
+     never sits under them; reserving their inset here pushed the actions ~140px left. */
+  padding: 0 20px 0 16px;
+  /* No rule under the header; the colour wash carries into the messages. */
+  border-bottom: 1px solid transparent;
+  -webkit-app-region: drag;
+}
+.profileTrigger {
+  display: block;
+  align-self: flex-start;
+  min-width: 0;
+  max-width: 100%;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.profileTrigger:focus:not(:focus-visible) {
+  outline: none;
+}
+.profileTrigger:hover:not(:disabled) {
+  background: var(--hover);
+}
+.headerLead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+.headerAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+}
+.headerAvatarButton {
+  /* The header is a window drag region; without this macOS takes real clicks as a window drag. */
+  -webkit-app-region: no-drag;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.headerAvatarButton:disabled {
+  cursor: default;
+}
+.headerIdentity {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.headerSubtitle {
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.headerSubline {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 20px;
+}
+/* Reserve readable topic text before truncating the folder; the menu chevron is not a title. */
+.headerTopic {
+  display: flex;
+  flex: 0 1 auto;
+  /* A short topic keeps its own width; only a long one reserves 8em before the folder shrinks. */
+  min-width: calc-size(max-content, min(size, 8em + 22px));
+}
+.headerSeparator {
+  flex: none;
+  margin: 0 8px;
+}
+.headerFolder {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+.headerTopic ~ .headerFolder {
+  max-width: calc(100% - 8em - 44px);
+}
+.headerFolder > .subtitleText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.composerControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin: 0 0 8px;
+}
+.composerControls:empty {
+  display: none;
+}
+.draftFolders {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0 4px;
+  color: var(--text2);
+  font-size: 13px;
+}
+.draftFoldersNote {
+  font-size: 12px;
+}
+.newTopic {
+  flex: none;
+  height: 34px;
+  min-height: 34px;
+  padding: 0 14px 0 11px;
+  border-radius: 17px;
+  font-size: 13px;
+  -webkit-app-region: no-drag;
+  /* Header buttons float as soft cards over the colour wash. */
+  border-color: transparent;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  transition: transform 150ms ease;
+}
+.newTopic:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: var(--card);
+}
+/* The header's content width includes sidebar and window-control space, on every platform. */
+@container chat-header (max-width: 900px) {
+  .headerLead {
+    min-width: calc(8 * 12.5px + 70px);
+  }
+  .newTopicLabel {
+    display: none;
+  }
+  .newTopic {
+    width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+.mentionText {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* A pibot:// reference looks like a link, but opens in-app instead of leaving the window. */
+.topicReference {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.topicReference:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+/* An Obsidian note reads like the topic link above, with the action spelled out beside it
+   so the click does not look like leaving the app. */
+.noteReference {
+  composes: topicReference;
+}
+.noteAction {
+  margin-left: 4px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.noteError {
+  margin-left: 6px;
+  color: var(--danger);
+  font-size: 12px;
+}
+.body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+/* Group sender sits above the avatar, aligned with the content column. */
+.sender {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sender, var(--text2));
+  margin-bottom: 4px;
+}
+.chatColumn {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-anchor: none;
+}
+.messages {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 28px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.notice {
+  color: var(--text2);
+  font-size: 12px;
+  margin: 0;
+}
+/* What the Bot is doing right now reads as a pill in the conversation's colour. */
+/* Status bands: interrupted / auth (warn), compact / reconnecting (info), failure (danger). */
+.band {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 7px 8px 7px 14px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  animation: drop 350ms var(--ease-out);
+}
+.band[data-tone="info"] {
+  background: color-mix(in srgb, var(--avatar-blue) 11%, transparent);
+  color: var(--ink-blue);
+}
+.band[data-tone="warn"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.band[data-tone="danger"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.band .notice {
+  color: inherit;
+  font-size: inherit;
+}
+.band > button {
+  min-height: 28px;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--text);
+  font-size: 12px;
+}
+.runActivity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--chat-c, var(--text2)) 12%, transparent);
+  color: var(--chat-ink, var(--text2));
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.runActivity::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--chat-c, var(--text2));
+  animation: breathe 1.6s ease-in-out infinite;
+}
+@keyframes breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+/* A reply with no words yet is a typing pill in its speaker's colour. */
+.typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--chat-c, var(--text2)) 12%, transparent);
+  color: var(--chat-ink, var(--text2));
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.typing[data-waiting] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.typingDots {
+  display: inline-flex;
+  gap: 3px;
+}
+.typingDots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: typingDot 1.2s infinite;
+}
+.typingDots i:nth-child(2) {
+  animation-delay: 150ms;
+}
+.typingDots i:nth-child(3) {
+  animation-delay: 300ms;
+}
+@keyframes typingDot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: none;
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+/* C-recover: the stopped line and its model action share one band. */
+.stoppedBand {
+  align-self: flex-start;
+}
+.health {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 760px;
+  margin: 12px auto 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  animation: drop 350ms var(--ease-out);
+  background: var(--warnBg);
+  color: var(--warn);
+  font-size: 12px;
+}
+.health > span {
+  flex: 1 1 200px;
+}
+.messages > .notice {
+  align-self: center;
+  /* A centered flex item sizes to its content; without a cap a long background command line
+     overflowed both sides instead of ellipsizing. */
+  max-width: 100%;
+  min-width: 0;
+}
+.earlier {
+  align-self: center;
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 56px 16px 32px;
+}
+/* The hello avatar floats on a soft glow in the Bot's colour. */
+.empty > :first-child {
+  /* A drop shadow follows the avatar's own shape (blob, circle, square …). */
+  filter: drop-shadow(0 14px 18px color-mix(in srgb, var(--chat-c, var(--b3)) 40%, transparent));
+  animation: rise 450ms var(--ease-out) both;
+}
+.empty h1 {
+  margin: 20px 0 6px;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+.empty p {
+  color: var(--text2);
+  margin: 0 0 26px;
+}
+/* The starters after a role Bot's greeting sit centred under it (StarterCards draws them). */
+.suggestions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.user {
+  align-self: flex-end;
+  max-width: 78%;
+  box-sizing: border-box;
+  /* The conversation's colour, deepened so white text keeps its contrast. */
+  background: linear-gradient(
+    135deg,
+    var(--userBubble),
+    color-mix(in srgb, var(--userBubble) 84%, var(--chat-c, var(--userBubble)))
+  );
+  color: var(--onUser);
+  padding: 10px 14px;
+  border-radius: 18px 18px 4px 18px;
+  box-shadow: 0 6px 16px -10px var(--chat-c, var(--b3));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+/* The first line beside the avatar is always content, with or without a group sender line. */
+.assistant {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+.avatar {
+  grid-column: 1;
+  display: flex;
+}
+.reply {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.reply > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.reply > div:not(.bubble) {
+  align-self: stretch;
+}
+.withSender > .avatar,
+.withSender > .reply {
+  grid-row: 2;
+}
+/* One Bot's split replies in a turn read as one stretch — the avatar
+   shows on the first only, and the following ones sit closer. */
+.assistant[data-continued] > .avatar {
+  visibility: hidden;
+}
+.assistant[data-continued] {
+  margin-top: -6px;
+}
+.bubble {
+  max-width: 100%;
+  box-sizing: border-box;
+  /* Bot replies are soft cards; the tail corner points at the avatar. */
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  border-radius: 4px 18px 18px 18px;
+  padding: 10px 14px;
+  overflow-wrap: anywhere;
+}
+.bubble p {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+.bubble p:last-child {
+  margin-bottom: 0;
+}
+.bubble a {
+  color: var(--chat-ink, var(--accent));
+  text-underline-offset: 3px;
+}
+.bubble:has(table) {
+  width: 100%;
+}
+.bubble pre {
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--tert);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.bubble code {
+  font-family: var(--font-mono);
+  background: var(--tert);
+  border-radius: 4px;
+  padding: 1px 3px;
+}
+.bubble pre code {
+  padding: 0;
+}
+.bubble ul,
+.bubble ol {
+  padding-left: 24px;
+}
+.bubble table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.bubble th,
+.bubble td {
+  padding: 6px 10px;
+  border: 1px solid var(--b3);
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* C-cite: Markdown footnotes close the reply as a soft 脚注 card in the chat's colour. */
+.bubble sup a {
+  text-decoration: none;
+  font-weight: 600;
+}
+.bubble section[data-footnotes] {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--chat-c, var(--text2)) 7%, var(--tert));
+  font-size: 12px;
+}
+.bubble section[data-footnotes] > h2 {
+  margin: 0 0 4px;
+  color: var(--text2);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.bubble section[data-footnotes] ol {
+  margin: 0;
+  padding-left: 18px;
+}
+.bubble blockquote {
+  margin: 8px 0;
+  padding-left: 12px;
+  border-left: 3px solid color-mix(in srgb, var(--chat-c, var(--b3)) 55%, transparent);
+  color: var(--text2);
+}
+.cursor {
+  display: inline-block;
+  width: 6px;
+  height: 16px;
+  border-radius: 2px;
+  vertical-align: middle;
+  background: var(--chat-c, var(--text));
+  animation: blink 1s steps(2, start) infinite;
+}
+.error {
+  background: var(--dangerBg);
+  border-color: transparent;
+  border-left: 4px solid var(--danger);
+  border-radius: 4px 16px 16px 16px;
+  max-width: 100%;
+}
+.error p {
+  color: var(--danger);
+  margin: 0 0 10px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.loadError {
+  align-self: center;
+}
+.loadError p {
+  margin-top: 0;
+}
+.composerArea,
+.composerNotice {
+  width: 100%;
+  max-width: 760px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding-inline: 24px;
+}
+.composerArea {
+  padding-block: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.composerNotice {
+  padding-block: 8px;
+  color: var(--danger);
+  font-size: 12px;
+}
+.noModel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 8px 7px 14px;
+  border-radius: 12px;
+  background: var(--warnBg);
+  color: var(--warn);
+  font-size: 12.5px;
+  animation: drop 350ms var(--ease-out);
+}
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+.noModel button {
+  flex: none;
+}
+.composer {
+  --composer-max-height: 160px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 6px 6px 6px 8px;
+  /* The composer is ringed in the conversation's colour and glows when focused. */
+  border: 1.5px solid color-mix(in srgb, var(--chat-c, var(--b3)) 45%, transparent);
+  border-radius: 24px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+/* The send button is filled with the conversation's colour; Stop and confirm keep their look. */
+.composer button[type="submit"]:not(:disabled) {
+  background: var(--chat-c, var(--prim));
+  color: var(--on-tone);
+  box-shadow: 0 6px 16px -8px var(--chat-c, var(--b3));
+  transition: transform 120ms ease;
+}
+.composer button[type="submit"]:not(:disabled):active {
+  transform: scale(0.92);
+}
+.sendOptions {
+  flex: none;
+}
+.sendOptions button {
+  width: 28px;
+  min-height: 38px;
+  padding: 6px;
+  gap: 0;
+}
+.sendOptions button > span {
+  display: none;
+}
+.additionStatus {
+  margin: 6px 0 0;
+  font-size: 12px;
+  opacity: 0.8;
+  white-space: normal;
+}
+/* Same quiet inline link as the sandbox notice's "see approval". */
+.additionSwitch {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.additionSwitch:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+/* Text fields count as focus-visible even on mouse clicks, so they get a quiet border, not the accent ring. */
+.composer:focus-within {
+  border-color: var(--chat-c, var(--text2));
+  box-shadow:
+    var(--shadow-soft),
+    0 0 0 4px color-mix(in srgb, var(--chat-c, var(--b3)) 15%, transparent);
+}
+.composerButton {
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+}
+.input {
+  resize: none;
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  min-height: 38px;
+  /* Reserve the outer padding and border within the composer's height limit. */
+  max-height: calc(var(--composer-max-height) - 14px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 8px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  line-height: 22px;
+}
+.input::placeholder {
+  color: var(--text2);
+}
+/* Files past the per-reply limit: a quiet line with their folder, under the file cards. */
+.attachmentOverflow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text2);
+}
+@keyframes blink {
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor,
+  .typingDots i {
+    animation: none;
+  }
+}
+
+.workplaceButton {
+  margin-left: auto;
+  flex: none;
+  -webkit-app-region: no-drag;
+}
+.subtitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.subtitle .modelLink {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 55%;
+}
+.workplaceLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 0 1 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.workplaceLink:hover {
+  color: var(--text);
+}
+.workplaceLink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.workplaceLink > span:first-child {
+  flex: none;
+}
+.middlePath {
+  display: flex;
+  min-width: 0;
+}
+.middlePath > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.middlePath > span:last-child {
+  flex: none;
+}
+
+.input:focus-visible {
+  outline: none;
+}
+.header > .headerActions {
+  flex: none;
+  flex-direction: row;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  min-width: 0;
+  -webkit-app-region: no-drag;
+}
+.folderName {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.timeSeparator {
+  align-self: center;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text2);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+}
+
+/* Chat system records (browser hand-back): same quiet line as the time separator. */
+.systemLine {
+  align-self: center;
+  max-width: 90%;
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+
+.sandboxLine {
+  box-sizing: border-box;
+  align-self: stretch;
+  max-width: 100%;
+  text-align: start;
+  padding-inline: 24px;
+}
+
+.sandboxLink {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sandboxWebsiteDialog {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: start;
+}
+
+.messageFocus {
+  background: var(--accentBg);
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 12px;
+  animation: messageFocusReveal 180ms ease-out;
+}
+.user.messageFocus {
+  color: var(--text);
+}
+@keyframes messageFocusReveal {
+  from {
+    background: var(--hover);
+  }
+  to {
+    background: var(--accentBg);
+  }
+}
+.focusNotice {
+  flex: none;
+  margin: 0 20px 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--avatar-blue) 11%, transparent);
+  color: var(--ink-blue);
+  font-size: 12.5px;
+  animation: drop 350ms var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .messageFocus,
+  .empty > :first-child,
+  .noModel,
+  .health,
+  .focusNotice,
+  .band,
+  .runActivity::before {
+    animation: none;
+  }
+  .composer,
+  .composer button[type="submit"],
+  .newTopic {
+    transition: none;
+  }
+}
+
+.chatViewport {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+.chatViewport[hidden] {
+  display: none;
+}
+
+.imageDelivery {
+  color: var(--text2);
+  font-size: 12px;
+  padding: 10px 12px;
+  max-width: 100%;
+}
+.imagePath {
+  overflow-wrap: anywhere;
+}
+.profileTrigger:focus-visible {
+  outline: 1px solid var(--b3);
+  outline-offset: 0;
+  background: var(--hover);
+}
+.planModeHint {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-radius: 12px;
+  color: var(--ink-blue);
+  background: color-mix(in srgb, var(--avatar-blue) 11%, transparent);
+  padding: 6px 10px;
+  margin: 0;
+  font-size: 12.5px;
+}
+.user[data-selecting="true"],
+.assistant[data-selecting="true"] {
+  position: relative;
+  box-sizing: border-box;
+  padding-right: 34px;
+  cursor: pointer;
+}
+.user[data-selecting="true"],
+.assistant[data-selecting="true"] {
+  border-radius: 14px;
+  transition: background-color 180ms ease;
+}
+/* A picked message is washed in the conversation's colour rather than outlined. */
+.user[data-selected="true"],
+.assistant[data-selected="true"] {
+  outline: 2px solid color-mix(in srgb, var(--chat-c, var(--accent)) 55%, transparent);
+  outline-offset: 3px;
+}
+.assistant[data-selected="true"] {
+  background: color-mix(in srgb, var(--chat-c, var(--accent)) 8%, transparent);
+}
+
+/* Maintainers 2026-11-13: 执行 / 只规划 as a small segmented switch right above the composer. */
+.modeSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  /* Spacing comes from .composerControls, the row it shares with a draft's folder line. */
+  margin: 0;
+  padding: 0 4px;
+  font-size: 12.5px;
+  --accent-ink: var(--chat-ink, var(--text));
+}
+.modeEntry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.modeName {
+  color: var(--text2);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.modeSwitch fieldset label span {
+  padding: 4px 12px;
+}
+/* Maintainers 2026-11-13 (layout A): one soft card closes a direct chat's turn, washed in its colour. */
+.turnEnd {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: stretch;
+  max-width: 540px;
+  box-sizing: border-box;
+  padding: 6px;
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--chat-c, var(--text2)) 9%, transparent),
+      transparent 140px
+    ),
+    var(--card);
+  box-shadow: var(--shadow-soft);
+  animation: drop 350ms var(--ease-out);
+}
+.turnEnd:empty {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .turnEnd {
+    animation: none;
+  }
+}
+/* Maintainers 2026-11-13: a reply's send time waits beside it and shows on hover or focus. */
+.bubbleRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.bubbleRow > .bubble {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.sentAt {
+  flex: none;
+  padding-bottom: 2px;
+  color: var(--text2);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+.assistant:hover .sentAt,
+.assistant:focus-within .sentAt {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sentAt {
+    transition: none;
+  }
+}
+
+.jumpLatest {
+  display: grid;
+  place-items: center;
+}
+.jumpLatest[data-visible="false"] {
+  opacity: 0;
+  pointer-events: none;
+}
+.jumpLatest > svg {
+  transform: rotate(180deg);
+}

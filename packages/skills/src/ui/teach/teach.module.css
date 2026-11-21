@@ -1,0 +1,645 @@
+/* "Teach it once". Colors only from theme tokens. */
+.page {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+}
+.head {
+  flex: none;
+  min-height: 64px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px 10px 24px;
+  border-bottom: 1px solid var(--b1);
+  box-sizing: border-box;
+}
+.title {
+  flex: 1 1 220px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.title h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.stepper {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stepper li {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  white-space: nowrap;
+  background: var(--hover);
+  color: var(--text2);
+}
+.stepper .stepOn {
+  background: var(--prim);
+  color: var(--onPrim);
+  font-weight: 600;
+}
+.stepper .stepDone {
+  background: var(--okBg);
+  color: var(--ok);
+}
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 28px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.error {
+  margin: 8px 24px 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--dangerBg);
+  color: var(--danger);
+  font-size: 13px;
+}
+.card {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--b2);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.actions,
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.actions {
+  justify-content: flex-end;
+}
+.spacer {
+  flex: 1;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Recording */
+.recording {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 16px;
+}
+.strip {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 22px;
+  background: var(--prim);
+  color: var(--onPrim);
+}
+.recDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.recDotPaused {
+  animation: none;
+  background: var(--text2);
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recDot {
+    animation: none;
+  }
+}
+.stripText {
+  flex: 1 1 260px;
+  font-size: 14px;
+}
+.stripButton,
+.stripPrimary {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--onPrim);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+.stripPrimary {
+  background: var(--onPrim);
+  color: var(--prim);
+  box-shadow: none;
+  font-weight: 600;
+}
+.stripButton:disabled,
+.stripPrimary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--warnBg);
+  color: var(--text);
+  font-size: 13px;
+}
+.confirm > span {
+  flex: 1 1 240px;
+}
+.recordBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 12px;
+}
+.browser {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 360px;
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.liveSteps {
+  flex: 0 0 320px;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+.asideTitle,
+.label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+@media (max-width: 900px) {
+  .recordBody {
+    flex-direction: column;
+  }
+  .liveSteps {
+    flex: none;
+    max-height: 40vh;
+  }
+}
+
+/* Step list */
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--b1);
+}
+.step:first-child {
+  border-top: 0;
+}
+.stepGone {
+  color: var(--text2);
+}
+.stepNo {
+  flex: none;
+  width: 20px;
+  font-size: 12px;
+  color: var(--text2);
+  text-align: right;
+}
+.thumb {
+  flex: none;
+  width: 112px;
+  height: 70px;
+  border-radius: 8px;
+  background: var(--tert);
+  object-fit: cover;
+  object-position: top left;
+}
+/* 64×40 was too small to read; the row copy opens the whole keyframe. */
+.thumbButton {
+  flex: none;
+  display: flex;
+  padding: 0;
+  border: 1px solid var(--b1);
+  border-radius: 9px;
+  background: none;
+  cursor: zoom-in;
+}
+.thumbButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.viewer {
+  box-sizing: border-box;
+  width: min(760px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
+  border: 1px solid var(--b2);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  padding: 16px 18px 18px;
+}
+.viewer::backdrop {
+  background: var(--overlay);
+}
+.viewerHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.viewerHeader strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+}
+.viewerImage {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+}
+.stepGone .thumb {
+  opacity: 0.35;
+}
+.stepText {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.site,
+.tag {
+  flex: none;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  white-space: nowrap;
+  background: var(--hover);
+  color: var(--text2);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The site chip sits under the step text: beside it (and beside the larger thumbnail)
+   the narrow live-steps column left the text a few characters wide. A block box lets the
+   ellipsis apply (it does not in an inline-flex box). */
+.stepMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.site {
+  display: block;
+  line-height: 22px;
+  max-width: 100%;
+}
+.stepToggle {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+}
+.stepToggle:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+
+/* Draft */
+.say {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.bubble {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 6px;
+  background: var(--bubble);
+}
+.draft {
+  border: 1px solid var(--b3);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.draftHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--b1);
+}
+.draftHead > input:last-child {
+  flex: 1 1 100%;
+}
+.input,
+.textarea {
+  min-width: 0;
+  height: 34px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--card);
+}
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.nameInput {
+  flex: 1 1 280px;
+  height: 38px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.textarea {
+  width: 100%;
+  height: auto;
+  padding: 8px 10px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.draftBody {
+  display: flex;
+  flex-wrap: wrap;
+}
+.draftSteps {
+  flex: 1 1 360px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-right: 1px solid var(--b1);
+}
+.draftSide {
+  flex: 1 1 260px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.bodyList {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.chip {
+  padding: 0 6px;
+  border-radius: 6px;
+  background: var(--accentBg);
+  color: var(--accent);
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.paramRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.paramRow .input {
+  flex: 1 1 0;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.mini {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+.trial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-top: 1px solid var(--b1);
+  background: var(--accentBg);
+  font-size: 13px;
+}
+.trial > span {
+  flex: 1 1 240px;
+}
+.trial[data-status="done"] {
+  background: var(--okBg);
+}
+.trial[data-status="failed"] {
+  background: var(--dangerBg);
+}
+.trial strong {
+  margin-right: 4px;
+}
+.draftFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--b1);
+}
+
+/* Saved */
+.saved {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px 0;
+  text-align: center;
+}
+.savedTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+/* Entry in the profile panel */
+.entry {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--b1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.trialReturn {
+  margin-top: 8px;
+}
+
+/* Lively 教它做一次: violet page. The top washes violet; primary buttons, switches and the
+   current stage chip take the colour; recorded steps sit in soft cards with lifted thumbnails. */
+.page {
+  --prim: var(--avatar-violet);
+  --onPrim: var(--on-tone);
+  --accent-fill: var(--avatar-violet);
+  --accent-knob: var(--on-tone);
+  --accent-ink: var(--ink-violet);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--avatar-violet) 13%, transparent),
+      transparent 240px
+    )
+    no-repeat,
+    var(--bg);
+}
+.head {
+  border-bottom: 0;
+}
+.stepper li {
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
+}
+.stepper .stepOn {
+  color: var(--ink-violet);
+  background: color-mix(in srgb, var(--avatar-violet) 16%, var(--card));
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--avatar-violet) 45%, transparent);
+}
+.card {
+  border: 0;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.strip {
+  color: var(--text);
+  background: var(--card);
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--danger) 35%, transparent),
+    var(--shadow-soft);
+}
+.stripPrimary {
+  color: var(--on-tone);
+  background: var(--avatar-violet);
+}
+.steps {
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.step {
+  padding: 10px 12px;
+}
+.step:first-child {
+  border-top: 0;
+}
+.steps .thumb {
+  border-radius: 9px;
+  box-shadow: var(--shadow-soft);
+}
+.chip {
+  border-radius: var(--radius-pill);
+  padding: 0 8px;
+  color: var(--ink-violet);
+  background: color-mix(in srgb, var(--avatar-violet) 13%, transparent);
+}
+.trial {
+  background: color-mix(in srgb, var(--avatar-violet) 9%, transparent);
+}
+.savedTitle {
+  font-size: 19px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .stepper li {
+    transition: none;
+  }
+}

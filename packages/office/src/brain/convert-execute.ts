@@ -1,0 +1,285 @@
+import { basename, extname, join } from "node:path";
+import type { BinaryToolRun, PreparedTool } from "@pibot/brain/kit";
+import { convertOfficeDocument, type OfficeConvertSource, owningWriteRoot } from "@pibot/execution";
+import type { OfficeFormat, OfficeToolInput } from "@pibot/office-contract/full";
+import { OFFICE_FAILURES, OfficeError } from "./errors.ts";
+import { officeFileContext } from "./file-context.ts";
+import type { OfficeWorkers } from "./worker.ts";
+
+type ConvertInput = Extract<OfficeToolInput, { tool: "office_convert" }>;
+
+/** LibreOffice renders a paginated PDF, so a source that the 20 MiB in-process reads refuse may still be valid. */
+const CONVERT_MAX_BYTES = 100 * 1024 * 1024;
+
+/** Reasons are fixed strings; the note only explains what the user can do next. */
+const LIBREOFFICE_NOTES: Record<string, string> = {
+  libreoffice_missing:
+    "LibreOffice is not installed on this computer. Install it to convert to PDF or from DOC/XLS/PPT; Pi Bot never installs it for you. / 这台电脑没有安装 LibreOffice。安装后才能输出 PDF 或从 DOC/XLS/PPT 转换；Pi Bot 不会替你安装。",
+  libreoffice_isolation_unavailable:
+    "LibreOffice conversion needs the command sandbox, which is unavailable on this computer right now. / LibreOffice 转换需要命令沙箱，这台电脑上目前不可用。",
+  libreoffice_timeout:
+    "The conversion did not finish within 120 seconds and was stopped. / 转换在 120 秒内没有完成，已停止。",
+  libreoffice_unsupported_format:
+    "This source and target combination is not supported. / 不支持这组源格式与目标格式。",
+  libreoffice_failed:
+    "LibreOffice could not convert this file; the file itself may be damaged or password protected. / LibreOffice 无法转换这个文件，它可能已损坏或受密码保护。",
+};
+
+/**
+ * Legacy formats only convert to their OOXML counterpart; everything else maps by extension so a
+ * rename cannot smuggle a different source family into a conversion.
+ */
+function convertSource(path: string): OfficeFormat | "markdown" | "csv" | "legacy" | undefined {
+  const extension = extname(path).toLowerCase().slice(1);
+  if (extension === "md" || extension === "markdown") return "markdown";
+  if (extension === "csv") return "csv";
+  if (extension === "docx" || extension === "xlsx" || extension === "pptx") return extension;
+  if (extension === "doc" || extension === "xls" || extension === "ppt") return "legacy";
+  return undefined;
+}
+
+const PURE_PAIRS = new Set([
+  "docx:markdown",
+  "xlsx:csv",
+  "pptx:markdown",
+  "markdown:docx",
+  "markdown:pptx",
+  "csv:xlsx",
+]);
+
+async function executeConvertInner(
+  run: BinaryToolRun,
+  prepared: PreparedTool,
+  input: ConvertInput,
+  signal: AbortSignal,
+  workers: OfficeWorkers,
+  json: (value: unknown) => string,
+  assertCurrent: () => void,
+) {
+  const { local, context, target } = run;
+  const args = input.args;
+  const from = convertSource(args.path);
+  if (!from) throw new OfficeError("office_unsupported");
+  const extension = extname(args.path).toLowerCase().slice(1);
+  const legacyTarget: OfficeFormat | undefined =
+    extension === "doc"
+      ? "docx"
+      : extension === "xls"
+        ? "xlsx"
+        : extension === "ppt"
+          ? "pptx"
+          : undefined;
+  if (args.to === "pdf") {
+    // LibreOffice renders any of the six Office sources; the in-process converter has no PDF route.
+    if (!["docx", "xlsx", "pptx", "doc", "xls", "ppt"].includes(extension))
+      throw new OfficeError("office_unsupported");
+  } else if (from === "legacy" ? legacyTarget !== args.to : !PURE_PAIRS.has(`${from}:${args.to}`))
+    throw new OfficeError("office_unsupported");
+  const to = args.to;
+  // A legacy input converts to its own OOXML family or to PDF; both run the LibreOffice recipe.
+  const libreOffice = to === "pdf" || from === "legacy";
+  const answer = await run.approve(
+    { id: prepared.call.id, tool: "read_file", input: { path: args.path, limit: 1 } },
+    signal,
+  );
+  if (typeof answer === "string") return { text: answer, isError: true };
+  const source = answer;
+  if (source.result.category === "read_ai_config") throw new OfficeError("office_invalid");
+  const sourcePath = source.result.path?.path;
+  if (!sourcePath || convertSource(sourcePath) !== from) throw new OfficeError("office_invalid");
+  const read = await target.readBinary({
+    ...officeFileContext(run, source, signal),
+    path: sourcePath,
+    ...(libreOffice ? { maxBytes: CONVERT_MAX_BYTES } : {}),
+  });
+  await run.assertDerivedRead(source, signal);
+  if (args.expectedRevision && args.expectedRevision !== read.revision)
+    throw new OfficeError("office_changed");
+  assertCurrent();
+  const output = prepared.result.path?.path;
+  if (!output) throw new OfficeError("office_invalid");
+  if (prepared.result.path?.exists) throw new OfficeError("office_output_exists");
+  const encoder = new TextEncoder();
+  let candidates: { path: string; data: Uint8Array | undefined }[];
+  if (libreOffice) {
+    // One fixed recipe inside the execution sandbox; the model never supplies a program or argument.
+    const converted = await convertOfficeDocument(
+      {
+        platform: local.deps.platform,
+        env: local.deps.env,
+        systemHome: local.deps.userHome,
+        tempDir: local.deps.tempDir,
+        ...(local.deps.resourcesDir ? { resourcesDir: local.deps.resourcesDir } : {}),
+        redactor: local.deps.redactor,
+        ...(local.deps.proxy ? { proxy: local.deps.proxy } : {}),
+        dataDir: local.deps.dataDir,
+      },
+      {
+        bytes: read.bytes,
+        source: extension as OfficeConvertSource,
+        // The checks above only admit PDF or a legacy source's own OOXML target here.
+        target: (to === "pdf" ? "pdf" : (legacyTarget as OfficeConvertSource)) as
+          | "docx"
+          | "xlsx"
+          | "pptx"
+          | "pdf",
+        signal,
+        assertCurrent,
+      },
+    );
+    if (converted.status === "unavailable")
+      return {
+        text: json({
+          status: "unsupported",
+          reason: converted.reason,
+          to,
+          source: sourcePath,
+          note: LIBREOFFICE_NOTES[converted.reason],
+        }),
+        isError: true,
+      };
+    assertCurrent();
+    candidates = [{ path: output, data: converted.bytes }];
+  } else {
+    let text: string | undefined;
+    if (from === "markdown" || from === "csv") {
+      try {
+        text = new TextDecoder("utf-8", { fatal: true }).decode(read.bytes);
+      } catch {
+        throw new OfficeError("office_invalid");
+      }
+    }
+    const work = await workers.run(
+      {
+        action: "convert",
+        from,
+        to,
+        ...(text !== undefined ? { text, name: basename(sourcePath) } : { bytes: read.bytes }),
+      },
+      signal,
+    );
+    const converted = work.converted;
+    if (!converted) throw new OfficeError("office_invalid");
+    assertCurrent();
+    // XLSX→CSV always publishes a directory of files; accepting "x.csv" would silently create a
+    // directory with that name instead of the requested workbook.
+    if (to === "csv" && /\.csv$/i.test(output)) throw new OfficeError("office_invalid");
+    candidates = converted.files
+      ? converted.files.map((file) => {
+          const name = basename(file.name);
+          if (!name || name !== file.name || name === "." || name === "..")
+            throw new OfficeError("office_invalid");
+          return { path: join(output, name), data: encoder.encode(file.text) };
+        })
+      : [
+          {
+            path: output,
+            data:
+              converted.bytes ??
+              (converted.text !== undefined ? encoder.encode(converted.text) : undefined),
+          },
+        ];
+  }
+  // Check every output before the first write so a failure cannot leave a half-converted set.
+  for (const file of candidates) {
+    if (!file.data || file.data.byteLength === 0) throw new OfficeError("office_content_limit");
+  }
+  const onLocalTarget = (context.runWorkplace?.boundary.location?.target ?? "local") === "local";
+  const revalidate = async () => {
+    assertCurrent();
+    await run.assertDerivedRead(source, signal);
+    const current = await target.readBinary({
+      ...officeFileContext(run, source, signal),
+      path: sourcePath,
+    });
+    if (current.revision !== read.revision) throw new OfficeError("office_changed");
+    await run.assertDerivedRead(source, signal);
+    assertCurrent();
+  };
+  const outputs: { path: string; bytes: number }[] = [];
+  for (const file of candidates) {
+    if (!file.data) throw new OfficeError("office_invalid");
+    const before = onLocalTarget
+      ? await local.changes.turn.beforeWrite(context, file.path, undefined)
+      : undefined;
+    let written: Awaited<ReturnType<typeof target.writeBinary>>;
+    try {
+      written = await target.writeBinary({
+        ...officeFileContext(run, prepared, signal),
+        path: file.path,
+        expectedPath: file.path,
+        bytes: file.data,
+        revalidate,
+        assertCurrent,
+      });
+    } catch (error) {
+      // Published files cannot be rolled back; report exactly what exists before stopping.
+      if (!outputs.length) throw error;
+      return {
+        text: json({
+          status: "partial",
+          to,
+          written: outputs,
+          failed: file.path,
+          error: error instanceof OfficeError ? OFFICE_FAILURES[error.code] : String(error),
+        }),
+        isError: true,
+      };
+    }
+    if (before)
+      await local.changes.turn.afterWrite(
+        context,
+        before,
+        file.path,
+        owningWriteRoot(file.path, prepared.boundary?.writeRoots ?? [], local.deps.platform) ??
+          prepared.cwd,
+        written.revision,
+      );
+    local.approvals.audit.append({
+      botId: context.botId,
+      runId: context.runId,
+      kind: "file.written",
+      summary: "Office conversion written / 已写入转换结果",
+      detail: {
+        toolName: input.tool,
+        toolCallId: prepared.call.id,
+        path: written.path,
+        bytes: written.bytes,
+      },
+    });
+    outputs.push({ path: written.path, bytes: written.bytes });
+  }
+  return {
+    text: json({
+      status: "converted",
+      to,
+      source: sourcePath,
+      revision: read.revision,
+      files: outputs,
+      layoutVerified: false,
+    }),
+  };
+}
+
+/** Only fixed format/result labels leave the conversion boundary, never document names or errors. */
+export async function executeConvert(...args: Parameters<typeof executeConvertInner>) {
+  const [run, , input, signal] = args;
+  const started = performance.now();
+  let outcome = "failed";
+  try {
+    const result = await executeConvertInner(...args);
+    outcome = "isError" in result && result.isError ? "conversion_failed" : "ok";
+    return result;
+  } finally {
+    run.local.deps.logger.info(
+      JSON.stringify({
+        module: "file-preview",
+        event: "office_convert",
+        kind: convertSource(input.args.path) ?? "unknown",
+        target: input.args.to,
+        outcome: signal.aborted ? "aborted" : outcome,
+        durationMs: Math.round(performance.now() - started),
+      }),
+    );
+  }
+}

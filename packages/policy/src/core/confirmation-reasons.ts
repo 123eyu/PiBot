@@ -1,0 +1,9 @@
+export const GIT_CONFIGURATION_CONFIRMATION_REASON = "git_configuration_confirmation_required";
+export const GIT_HOOK_CONFIRMATION_REASON = "git_hook_confirmation_required";
+export const GIT_HOOKS_PATH_CONFIRMATION_REASON = "git_hooks_path_confirmation_required";
+export const OUTSIDE_WRITE_REASON = "outside_workplace_write";
+/**
+ * Maintainers 2026-11-14: a local-network target (router page, device on the LAN) is asked each time,
+ * per target and task; never remembered, preauthorized or answered by YOLO.
+ */
+export const PRIVATE_NETWORK_REASON = "private_network_confirmation";

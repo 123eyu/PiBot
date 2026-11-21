@@ -1,0 +1,46 @@
+name: Bug report / 问题报告
+description: Something does not work as described. / 某个功能和说明的不一样。
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problems: please do not file them here; see SECURITY.md.
+        安全问题请不要在这里提交，见 SECURITY.md。
+  - type: input
+    id: version
+    attributes:
+      label: Version / 版本
+      description: Settings → About. / 设置 → 关于。
+      placeholder: 0.0.2
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform / 平台
+      multiple: true
+      options: [macOS, Windows, Linux, Android, Runner / 执行端, Relay / 中继]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual result / 期望结果与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots / 日志或截图
+      description: Exported logs help. Remove anything you do not want to share. / 导出的日志有帮助，请先去掉不想公开的内容。

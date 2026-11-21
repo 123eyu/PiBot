@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "id": "contacts",
+  "order": 50,
+  "card": {
+    "name": {
+      "zh": "本机通讯录",
+      "en": "Local contacts"
+    },
+    "category": "local",
+    "platforms": ["darwin", "win32"],
+    "unsupportedReason": "eds_driver_unavailable",
+    "description": {
+      "zh": "查找联系人",
+      "en": "Find contacts"
+    },
+    "modes": [
+      {
+        "id": "system",
+        "auth": "system",
+        "capability": {
+          "zh": "macOS 系统框架 / Windows 经典 Outlook；写入需确认。",
+          "en": "macOS system frameworks / Windows classic Outlook; writes require confirmation."
+        },
+        "help": {
+          "zh": "连接时会检查系统权限。Windows 需要经典 Outlook；新版 Outlook 不支持 COM。Linux EDS 驱动暂不可用。",
+          "en": "Connecting checks system access. Windows requires classic Outlook; new Outlook has no COM support. Linux EDS driver is currently unavailable."
+        },
+        "documentationUrl": "https://developer.apple.com/documentation/contacts"
+      }
+    ]
+  },
+  "mcp": {
+    "presets": {
+      "system": {
+        "id": "contacts",
+        "transport": "stdio",
+        "fixedService": "contacts",
+        "env": {},
+        "auth": {
+          "kind": "system"
+        },
+        "networkDomains": []
+      }
+    },
+    "readOnlyTools": ["list_contacts", "search_contacts", "count_contacts"],
+    "disabledTools": ["delete_contact"],
+    "disabledToolPatterns": [
+      "(?:^|[_-])(?:delete|remove|merge|archive|transfer|force|revoke)(?:[_-]|$)"
+    ],
+    "capability": {
+      "id": "contacts",
+      "tools": {
+        "list_contacts": "contacts_list",
+        "search_contacts": "contacts_search",
+        "create_contact": "contacts_create",
+        "update_contact": "contacts_update",
+        "delete_contact": "contacts_delete",
+        "count_contacts": "contacts_count"
+      },
+      "readOnlyTools": ["list_contacts", "search_contacts", "count_contacts"]
+    },
+    "draftBindings": [],
+    "trusted": {
+      "stdio": {
+        "machLookup": [
+          "com.apple.contactsd.contact-provider",
+          "com.apple.contactsd.persistence",
+          "com.apple.contactsd.support",
+          "com.apple.AddressBook.ContactsAccountsService",
+          "com.apple.contacts.account-caching",
+          "com.apple.askto.client.com.apple.contacts.commlimits",
+          "com.apple.AddressBook.abd",
+          "com.apple.accountsd.accountmanager",
+          "com.apple.cfprefsd.daemon",
+          "com.apple.cfprefsd.agent",
+          "com.apple.tccd"
+        ],
+        "legacyBuiltinId": "contacts",
+        "openTimeoutMs": 130000
+      }
+    },
+    "toolDescriptions": {
+      "list_contacts": {
+        "zh": "分页列出本机联系人姓名，按 nextCursor 继续；问数量用 count_contacts",
+        "en": "List local contact names with bounded pagination; follow nextCursor for more. For counts use count_contacts"
+      },
+      "search_contacts": {
+        "zh": "按姓名、电话数字、邮箱或公司搜索，分页返回；失败或无结果时说明下一步，不改用操作电脑点通讯录",
+        "en": "Search contacts by name, phone digits, email or company, with bounded pagination; explain failures or empty results without clicking Contacts"
+      },
+      "create_contact": {
+        "zh": "创建本机联系人",
+        "en": "Create a local contact"
+      },
+      "update_contact": {
+        "zh": "更新本机联系人",
+        "en": "Update an existing local contact"
+      },
+      "delete_contact": {
+        "zh": "删除一个联系人，默认关闭",
+        "en": "Delete one contact; disabled by default"
+      },
+      "count_contacts": {
+        "zh": "只统计本机联系人数量，不返回姓名、电话或邮箱；问数量时使用此工具",
+        "en": "Count local contacts without returning names, phones or emails; use for quantity questions"
+      }
+    }
+  }
+}

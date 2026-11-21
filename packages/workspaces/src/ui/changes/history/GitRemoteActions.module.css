@@ -1,0 +1,173 @@
+.controls {
+  min-width: 0;
+  max-width: 100%;
+}
+.toolbar {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 28px;
+}
+.actionHint {
+  display: inline-flex;
+}
+/* Disabled buttons do not consistently receive hover events for native tooltips. */
+.actionHint > button:disabled {
+  pointer-events: none;
+}
+.action,
+.failure {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 5px;
+  border-radius: 8px;
+  color: var(--text2);
+}
+.failure {
+  color: var(--danger);
+}
+.done {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px;
+  color: var(--ok);
+}
+.progress {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+.progress > span {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--b2);
+  border-top-color: var(--text2);
+  border-radius: 50%;
+  animation: rotate 0.8s linear infinite;
+}
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.error {
+  margin: 4px 0 0;
+  color: var(--danger);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  max-width: 280px;
+}
+.error > button {
+  padding: 2px 5px;
+  min-height: 24px;
+  font-size: inherit;
+}
+.dialog {
+  width: min(360px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  box-sizing: border-box;
+  padding: 20px;
+  overflow: auto;
+  border: 1px solid var(--b2);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-family: var(--font-sans);
+}
+.dialog::backdrop {
+  background: var(--overlay);
+}
+.dialog h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 650;
+}
+.dialog p {
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text2);
+}
+.dialog p.error {
+  color: var(--danger);
+  max-width: none;
+}
+.dialog .hint {
+  font-size: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-weight: 400;
+}
+.details {
+  margin: 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+.details > div {
+  display: grid;
+  grid-template-columns: minmax(70px, auto) minmax(0, 1fr);
+  gap: 14px;
+}
+.details dt {
+  color: var(--text2);
+}
+.details dd {
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+}
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+.dialogActions > button {
+  min-height: 34px;
+  padding: 5px 16px;
+  font-size: 13px;
+}
+
+/* The push / pull confirmation is a soft dialog; the remote facts read as a card. */
+.dialog {
+  border-color: var(--b1);
+  background: var(--bg);
+  box-shadow: var(--shadow-soft);
+}
+.dialog::backdrop {
+  backdrop-filter: blur(2px);
+}
+.details {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}

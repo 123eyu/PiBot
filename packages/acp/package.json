@@ -1,0 +1,21 @@
+{
+  "name": "@pibot/acp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L4"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@agentclientprotocol/sdk": "2.0.2",
+    "@pibot/acp-schemas": "workspace:0.0.0",
+    "@pibot/execution": "workspace:*",
+    "zod": "4.6.5"
+  }
+}

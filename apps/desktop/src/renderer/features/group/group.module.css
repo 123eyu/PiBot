@@ -1,0 +1,1733 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 64px;
+  flex: none;
+  box-sizing: border-box;
+  padding: 0 20px 0 16px;
+  border-bottom: 1px solid var(--b1);
+  -webkit-app-region: drag;
+}
+.activeTasks {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 9px;
+  background: var(--accentBg);
+  color: var(--accent);
+  font-size: 11px;
+}
+.header > button {
+  -webkit-app-region: no-drag;
+}
+.subtitle,
+.note {
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 18px;
+}
+.note {
+  line-height: 1.6;
+  margin: 8px 0;
+}
+.notice,
+.rounds {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 20px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12px;
+  border-bottom: 1px solid var(--b1);
+}
+/* Rounds bar: a soft band with a violet-to-pink progress line; paused turns amber. */
+.rounds {
+  margin: 0 20px 8px;
+  padding: 7px 8px 7px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+  box-shadow: var(--shadow-soft);
+  font-size: 12.5px;
+}
+.rounds[data-paused] {
+  background: var(--warnBg);
+  color: var(--warn);
+  box-shadow: none;
+}
+.roundsText {
+  flex: none;
+  min-width: 0;
+}
+.roundsBar {
+  flex: 1;
+  min-width: 40px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--tert);
+}
+.roundsBar > i {
+  display: block;
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--avatar-violet), var(--avatar-pink));
+  transition: width 400ms var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .roundsBar > i {
+    transition: none;
+  }
+}
+.notice {
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+}
+.rounds .toggle {
+  flex: none;
+}
+.tasks {
+  padding: 0;
+  margin: 0;
+}
+.taskHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  padding-bottom: 8px;
+}
+.taskHeader > span {
+  color: var(--text2);
+}
+.task {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 0;
+  border: 0;
+  border-bottom: 1px solid var(--b1);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.task:hover {
+  background: var(--hover);
+}
+.taskDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--b3);
+  border-radius: 50%;
+}
+.taskDot[data-done="true"] {
+  background: var(--okBg);
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.taskText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.taskText strong {
+  display: block;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 400;
+}
+.taskText > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.taskRow {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--b1);
+}
+.taskRow .task {
+  border-bottom: 0;
+}
+.taskFilters {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  gap: 4px 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+/* Task states are chips — blue running, amber waiting, red failed, green done. */
+.taskStatus {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--text2);
+  background: var(--tert);
+}
+.taskStatus[data-status="running"],
+.taskStatus[data-status="open"] {
+  color: var(--ink-blue);
+  background: color-mix(in srgb, var(--avatar-blue) 13%, transparent);
+}
+.taskStatus[data-status="waiting"],
+.taskStatus[data-status="paused"] {
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.taskStatus[data-status="error"] {
+  color: var(--danger);
+  background: var(--dangerBg);
+}
+.taskStatus[data-status="done"] {
+  color: var(--ok);
+  background: var(--okBg);
+}
+.taskSource,
+.assignmentLine,
+.closedTasks {
+  display: block;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+}
+button.taskSource,
+.assignmentLine,
+.closedTasks {
+  cursor: pointer;
+}
+button.taskSource:hover,
+.assignmentLine:hover {
+  color: var(--accent);
+}
+.taskSource {
+  padding: 0 0 0 23px;
+}
+/* G-main: 任务线程 · title, a status chip and 查看线程 › on one soft card. */
+.assignmentLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 520px;
+  box-sizing: border-box;
+  margin: 6px 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font-size: 12px;
+  transition: background-color 160ms ease;
+}
+.assignmentLine:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-teal)) 7%, var(--card));
+}
+.assignmentTitle {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.assignmentOpen {
+  flex: none;
+  color: var(--chat-ink, var(--ink-blue));
+}
+.assignmentOnUser,
+.assignmentOnUser:hover {
+  color: var(--onUser);
+  background: color-mix(in srgb, var(--onUser) 14%, transparent);
+  box-shadow: none;
+}
+.assignmentOnUser .assignmentOpen {
+  color: inherit;
+}
+@media (prefers-reduced-motion: reduce) {
+  .assignmentLine {
+    transition: none;
+  }
+}
+.closedTasks {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 8px;
+  padding: 0;
+}
+.folderRow,
+.threadMetadata {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.threadMetadata {
+  padding: 0 16px 8px;
+  font-size: 12px;
+}
+.folderText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.folderText small {
+  display: block;
+  color: var(--text2);
+  font-size: 11px;
+}
+button.taskSource:focus-visible,
+.assignmentLine:focus-visible,
+.closedTasks:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.taskActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 0;
+}
+.field select {
+  width: 100%;
+  padding: 9px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+  font: inherit;
+}
+/* Panel tabs: the panel frame already pads its content. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.stack > .note {
+  margin: 0;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.label,
+.threadTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+.field input,
+.field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px;
+  border: 1px solid var(--b2);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.field textarea {
+  resize: vertical;
+}
+.member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.memberName {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.memberName small {
+  display: block;
+  color: var(--text2);
+  font-size: 12px;
+}
+.memberOpen {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: var(--radius-row);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.memberOpen:hover:not(:disabled) {
+  background: var(--hover);
+}
+.memberOpen:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.memberOpen:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.memberOpen > svg {
+  flex: none;
+  color: var(--text2);
+}
+.memberAdd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.memberAdd > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+.memberBack {
+  align-self: flex-start;
+}
+.memberFacts {
+  display: grid;
+  grid-template-columns: minmax(60px, auto) minmax(0, 1fr);
+  gap: 10px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+.memberFacts dt,
+.memberLegacy {
+  color: var(--text2);
+}
+.memberFacts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.memberLegacy {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.confirm {
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-row);
+  padding: 12px;
+  font-size: 12px;
+}
+.error {
+  color: var(--danger);
+  font-size: 12px;
+  padding: 8px 16px;
+  margin: 0;
+}
+.file {
+  justify-content: flex-start;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.runs {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 20px;
+}
+.run {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+/* Who is replying reads as a breathing pill in the group colour. */
+.run > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-teal)) 12%, transparent);
+  color: var(--chat-ink, var(--ink-teal));
+  font-weight: 600;
+}
+.run > span:first-child::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--chat-c, var(--avatar-teal));
+  animation: runBreath 1.6s ease-in-out infinite;
+}
+@keyframes runBreath {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .run > span:first-child::before {
+    animation: none;
+  }
+}
+/* G-main: stopping says whose run it stops. */
+.run > .stopRun {
+  gap: 6px;
+  min-height: 28px;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  color: var(--danger);
+  font-size: 12px;
+}
+.run > .stopRun:hover:not(:disabled) {
+  background: var(--dangerBg);
+}
+.workingMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.mentionAnchor {
+  position: relative;
+}
+.composerArea {
+  position: relative;
+}
+/* G-mention: a compact soft card anchored over the caret's side, headed by its purpose. */
+.mentions {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 12px;
+  width: min(260px, calc(100% - 24px));
+  max-height: 240px;
+  overflow: auto;
+  padding: 5px;
+  z-index: 3;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.mentionHeading {
+  padding: 6px 10px 4px;
+  color: var(--text2);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.mention {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mention:hover,
+.mention[aria-selected="true"] {
+  background: var(--hover);
+}
+.mention small {
+  color: var(--text2);
+  font-size: 11px;
+}
+.mentionName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.mentionName > span {
+  display: flex;
+  flex: none;
+}
+.threadPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  height: calc(100vh - 280px);
+}
+.threadTitle {
+  padding: 10px 16px;
+  overflow-wrap: anywhere;
+}
+.threadConversation {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.threadMessages {
+  padding: 16px 12px;
+}
+/* C-thread: title and scope of a task thread on one soft card. */
+.threadCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 12px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.threadCard b {
+  color: var(--text);
+  font-size: 13px;
+}
+.task:focus-visible,
+.mention:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* Same rule as the rest of the app: text fields get a quiet border, not the accent ring. */
+.field input:focus-visible,
+.field textarea:focus-visible {
+  outline: none;
+  border-color: var(--text2);
+}
+@media (max-width: 700px) {
+  .header {
+    padding: 0 8px;
+  }
+  .notice,
+  .rounds {
+    padding: 8px;
+  }
+  .rounds {
+    flex-wrap: wrap;
+  }
+  .subtitle {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.resultPreview {
+  max-height: 240px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+}
+
+/* Group panel cleanup. Theme tokens only. */
+.panelName {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 650;
+}
+.panelLine {
+  font-size: 13px;
+  color: var(--text2);
+}
+.memberList {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-card);
+  background: var(--card);
+}
+.memberRemove {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  color: var(--text2);
+}
+.filterText {
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.filterText[aria-pressed="true"] {
+  color: var(--text);
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 5px;
+}
+.filterText:hover {
+  color: var(--text);
+}
+.filterText:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.fieldTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.fieldNote {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+.fieldRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.emptyCard {
+  align-items: center;
+  gap: 10px;
+  padding: 22px 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text2);
+}
+.emptyCard > strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--hover);
+}
+.emptyButton {
+  min-height: 34px;
+  padding: 6px 16px;
+  font-size: 13px;
+}
+.fileRow {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.fileRow:hover:not(:disabled) {
+  background: var(--hover);
+}
+.fileRow:disabled {
+  cursor: default;
+}
+.fileRow:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.fileRow:first-child {
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+}
+.fileRow:last-child {
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+}
+.fileRow:only-child {
+  border-radius: var(--radius-card);
+}
+
+.taskDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+.taskDetailTitle {
+  margin: 0;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.taskDetailOwner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.taskFold {
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.taskFold > summary {
+  cursor: pointer;
+  padding: 6px 0;
+}
+.taskInstructions {
+  margin: 6px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+.taskHistory {
+  display: flex;
+  height: 420px;
+  min-height: 240px;
+  border: 1px solid var(--b1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.taskSupplement {
+  flex-shrink: 0;
+}
+.taskSupplement[open] {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.taskSupplement .field {
+  align-self: stretch;
+}
+.planHistory[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.executionTaskTree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.executionTaskTree .executionTaskTree {
+  margin-inline-start: 10px;
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid var(--b1);
+}
+.executionTaskNode {
+  min-width: 0;
+}
+.taskText > b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.taskWorkspace {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+.taskBack {
+  align-self: flex-start;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.taskWorkspace h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+.taskExecutionGroup {
+  margin-top: 12px;
+}
+.taskExecutionGroup h4 {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text2);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.groupBudget {
+  border-top: 1px solid var(--b1);
+  padding-top: 16px;
+}
+.groupUsage {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+  font-size: 12px;
+}
+.groupUsage > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.groupUsage dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* G-main: a running task is a borderless soft row; its stop sits at the end. */
+.taskRun {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-radius: 12px;
+  padding: 0 10px;
+  min-width: 0;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.taskRun > .task {
+  flex: 1 1 220px;
+  border: 0;
+  border-radius: 10px;
+}
+.taskRun > .task:hover {
+  background: transparent;
+}
+
+.taskHistoryRecords {
+  max-height: 460px;
+  overflow-y: auto;
+  border: 1px solid var(--b1);
+  border-radius: 12px;
+  padding: 10px;
+}
+.taskFailure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-card);
+  background: var(--dangerBg);
+  color: var(--text);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.taskFailure > strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger);
+}
+.taskFailure > p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+.taskFailureTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.resourceText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.resourceActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* Hand-off card: expected output, completion condition and the program's check. */
+.handoff {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  font-size: 12px;
+  min-width: 0;
+}
+.handoffHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text);
+  font-weight: 600;
+}
+.handoffState {
+  flex: none;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text2);
+}
+.handoffState[data-state="met"] {
+  color: var(--ok);
+}
+.handoffState[data-state="returned"] {
+  color: var(--warn);
+}
+.handoffState[data-state="unmet"] {
+  color: var(--danger);
+}
+.handoffList {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 10px;
+  margin: 0;
+  color: var(--text2);
+}
+.handoffList dd {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.handoffList code,
+.handoff .note code {
+  margin-right: 6px;
+  font-size: 11px;
+}
+.handoffItems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.handoffItems li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text2);
+}
+.handoffItems li > span:last-child {
+  flex: none;
+  max-width: 60%;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.handoffItems li[data-tone="ok"] > span:last-child {
+  color: var(--ok);
+}
+.handoffItems li[data-tone="warn"] > span:last-child {
+  color: var(--warn);
+}
+.handoffItems li[data-tone="danger"] > span:last-child {
+  color: var(--danger);
+}
+
+/* Lively group tasks pane (scoped to the pane so the chat keeps its own look): section dots,
+   task cards with the assignee's colour bar, status chips, soft cards for every detail block. */
+.taskWorkspace {
+  gap: 14px;
+}
+.taskWorkspace h3[data-tone] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 2px 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text2);
+}
+.taskWorkspace h3[data-tone]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sect-c);
+}
+.taskWorkspace h3[data-tone="teal"] {
+  --sect-c: var(--avatar-teal);
+}
+.taskWorkspace h3[data-tone="blue"] {
+  --sect-c: var(--avatar-blue);
+}
+.taskWorkspace .executionTaskTree {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.taskWorkspace .executionTaskTree .executionTaskTree {
+  margin-top: 8px;
+  border-inline-start-color: var(--b2);
+}
+.taskWorkspace .taskRow {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px 2px 12px;
+  border: 0;
+  border-left: 4px solid var(--bar, var(--b3));
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform 180ms var(--ease-out),
+    box-shadow 180ms ease;
+}
+.taskWorkspace .taskRow:hover {
+  transform: translateY(-1px);
+}
+.taskWorkspace .taskRow .task {
+  flex: 1;
+  padding: 9px 4px;
+  font-size: 12.5px;
+  border-radius: 10px;
+}
+.taskWorkspace .taskRow .task:hover {
+  background: transparent;
+}
+.taskWorkspace .taskText > b {
+  font-weight: 600;
+}
+.taskWorkspace .taskStatus {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  background: var(--tert);
+}
+.taskWorkspace .taskStatus:is([data-status="running"], [data-status="open"]) {
+  color: var(--ink-blue);
+  background: color-mix(in srgb, var(--avatar-blue) 13%, transparent);
+}
+.taskWorkspace .taskStatus:is([data-status="waiting"], [data-status="paused"]) {
+  background: var(--warnBg);
+}
+.taskWorkspace .taskStatus[data-status="error"] {
+  background: var(--dangerBg);
+}
+.taskWorkspace .taskStatus[data-status="done"] {
+  background: var(--okBg);
+}
+.taskWorkspace .closedTasks {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.taskWorkspace .taskFailure {
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+.taskWorkspace .groupBudget {
+  padding: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.taskDetailHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 12px 12px 14px;
+  border-left: 4px solid var(--bar, var(--b3));
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.taskDetailHead .taskSource {
+  padding-left: 0;
+}
+.taskWorkspace .taskFold,
+.taskWorkspace .handoff {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.taskWorkspace .taskFold > summary {
+  padding: 0;
+  font-weight: 600;
+  color: var(--text);
+}
+.taskWorkspace .taskFold[open] > summary {
+  margin-bottom: 6px;
+}
+.taskWorkspace .handoffList {
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 6px 12px;
+  font-size: 12.5px;
+}
+.taskWorkspace .handoffState {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+}
+.taskWorkspace .handoffState[data-state="met"] {
+  background: var(--okBg);
+}
+.taskWorkspace .handoffState[data-state="returned"] {
+  background: var(--warnBg);
+}
+.taskWorkspace .handoffState[data-state="unmet"] {
+  background: var(--dangerBg);
+}
+.taskWorkspace .taskActions > button {
+  min-height: 32px;
+  padding: 4px 14px;
+  font-size: 13px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .taskWorkspace .taskRow {
+    transition: none;
+  }
+  .taskWorkspace .taskRow:hover {
+    transform: none;
+  }
+}
+
+/* Group panel: members as an avatar wall (the coordinator ringed in amber; remove stays on
+   each tile), soft cards for the add form and removal confirmation. */
+.memberList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 6px;
+  padding: 10px;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+.memberList > .member {
+  position: relative;
+  padding: 0;
+}
+.memberList .memberOpen {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 10px 6px 8px;
+  text-align: center;
+  transition:
+    background-color 150ms ease,
+    transform 180ms var(--ease-out);
+}
+.memberList .memberOpen:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.memberList .memberOpen > svg {
+  display: none;
+}
+.memberList .memberName {
+  font-size: 12.5px;
+}
+.memberList .memberName small {
+  font-size: 11.5px;
+}
+.memberList > .member[data-coordinator] .memberOpen > :first-child {
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px var(--card),
+    0 0 0 4px var(--avatar-amber);
+}
+.memberList .memberRemove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.memberList > .member:hover .memberRemove,
+.memberList > .member:focus-within .memberRemove {
+  opacity: 1;
+}
+@media (hover: none) {
+  .memberList .memberRemove {
+    opacity: 1;
+  }
+}
+/* D-remove: a soft red confirm — tile, the question, then the actions on one row. */
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--dangerBg);
+}
+.confirm > p {
+  flex: 1 1 200px;
+  margin: 0;
+  color: var(--text);
+}
+.confirm > button:first-of-type {
+  background: var(--danger);
+  color: var(--on-tone);
+}
+@media (prefers-reduced-motion: reduce) {
+  .memberList .memberOpen {
+    transition: none;
+  }
+  .memberList .memberOpen:hover:not(:disabled) {
+    transform: none;
+  }
+}
+/* Group settings: each field is a soft card; inputs sit on the grey fill like the prototype. */
+.stack > .field {
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.stack > .field input,
+.stack > .field textarea {
+  border-color: transparent;
+  border-radius: 10px;
+  background: var(--tert);
+}
+.stack > .field input:focus-visible,
+.stack > .field textarea:focus-visible {
+  border-color: color-mix(in srgb, var(--avatar-teal) 55%, transparent);
+}
+.panelAvatar {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+/* Gt-done: tinted note field and the member's replies as option cards. */
+.field.resolveField textarea {
+  border-color: transparent;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.field.resolveField textarea:focus-visible {
+  border-color: color-mix(in srgb, var(--avatar-teal) 55%, transparent);
+}
+.resultOptions {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.resultOptions legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+.resultOptions .note {
+  margin-top: 2px;
+}
+.resultOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  background: var(--tert);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+.resultOption[data-on] {
+  border-color: var(--avatar-teal);
+  background: color-mix(in srgb, var(--avatar-teal) 10%, transparent);
+}
+.resultOption.resultOption input {
+  flex: none;
+  margin: 0;
+  accent-color: var(--avatar-teal);
+}
+.resultOption > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.resultOption > span > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text2);
+}
+.resultOption:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .resultOption {
+    transition: none;
+  }
+}
+
+/* A member's overview is a centred card over a facts card;
+   adding a member is a soft card holding the picker and a teal 加入. */
+.memberCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 14px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.memberCardAvatar {
+  line-height: 0;
+  margin-bottom: 6px;
+  border-radius: 50%;
+}
+.memberCardAvatar[data-coordinator] {
+  box-shadow:
+    0 0 0 2px var(--card),
+    0 0 0 4px var(--avatar-amber);
+}
+.memberCard > strong {
+  font-size: 15px;
+}
+.memberCardRole {
+  color: var(--text2);
+  font-size: 12px;
+}
+.stack > .memberFacts {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 12.5px;
+}
+.memberEdit {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.memberEdit > .note {
+  margin: 0;
+}
+.stack > .memberAdd {
+  padding: 10px 10px 10px 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.memberAdd > .memberJoin {
+  flex: none;
+  background: color-mix(in srgb, var(--avatar-teal) 18%, transparent);
+  color: var(--ink-teal);
+  font-weight: 600;
+}
+.memberAdd > .memberJoin:disabled {
+  background: var(--tert);
+  color: var(--text2);
+}
+.stack > .confirm {
+  border: 0;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Group settings are tiled rows in one soft card; the name is a
+   tinted field on its row, the announcement a soft card with a tinted text area. */
+.settingsInput {
+  flex: 0 1 160px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  transition: box-shadow 150ms ease;
+}
+.settingsInput:focus-visible,
+.announcementInput:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--avatar-teal) 55%, transparent);
+}
+.announcementCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.announcementInput {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  resize: vertical;
+  transition: box-shadow 150ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .settingsInput,
+  .announcementInput {
+    transition: none;
+  }
+}
+
+.taskDetailTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.taskDetailTitleRow .taskActions {
+  margin: -6px -8px 0 0;
+}
+.taskDetailTitleRow .taskActions > button {
+  min-height: 28px;
+  padding: 3px 8px;
+}
+.taskDetailTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.taskDetailTags > span {
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 11.5px;
+}
+.taskDetailTags > span[data-tone="ok"] {
+  background: var(--okBg);
+  color: var(--ok);
+}
+.taskDetailTags > span[data-tone="danger"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.taskResultButton {
+  align-self: flex-start;
+  padding: 3px 8px;
+  color: var(--ok);
+}
+.taskCheckpoint {
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.taskTabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.taskTab,
+.taskTabActive {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 9px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.taskTab {
+  color: var(--text2);
+}
+.taskTabActive {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--text) 10%, transparent);
+}
+.taskPanelCard {
+  min-width: 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.taskPanelCard .taskSupplement {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--b1);
+}
+
+.handoffItems li {
+  justify-content: flex-start;
+  align-items: baseline;
+}
+.handoffCheckIcon {
+  width: 18px;
+  flex: none;
+  text-align: center;
+  font-weight: 700;
+}
+.handoffItems li[data-tone="ok"] .handoffCheckIcon {
+  color: var(--ok);
+}
+.handoffItems li[data-tone="danger"] .handoffCheckIcon {
+  color: var(--danger);
+}
+.handoffItems li[data-tone="warn"] .handoffCheckIcon {
+  color: var(--text2);
+}
+.handoffCheckLabel {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+}
+.handoffCheckReason {
+  flex: 0 1 52%;
+  color: var(--danger);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.taskCheckpoint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.taskCheckpoint .hint {
+  margin: 0;
+}
+.taskCheckpoint button {
+  margin: 0;
+}
+
+/* Maintainers 2026-11-20: the pause / continue bar above the group input. */
+.runBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: var(--shadow-soft);
+  font-size: 13px;
+  color: var(--text);
+}
+.runBar[data-paused] {
+  background: color-mix(in srgb, var(--warn) 12%, var(--card));
+}
+.runBarDot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 18%, transparent);
+}
+.runBarIcon {
+  flex: none;
+  color: var(--warn);
+}
+.runBarText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text2);
+}
+.runBarText b {
+  color: var(--text);
+  font-weight: 600;
+}
+.runBarPause,
+.runBarContinue {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.runBarPause {
+  background: var(--tert);
+  color: var(--text);
+}
+.runBarContinue {
+  background: var(--ok);
+  color: var(--card);
+}
+.runBarPause:disabled,
+.runBarContinue:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .runBarDot {
+    animation: runBarPulse 1.6s ease-in-out infinite;
+  }
+}
+@keyframes runBarPulse {
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--ok) 6%, transparent);
+  }
+}

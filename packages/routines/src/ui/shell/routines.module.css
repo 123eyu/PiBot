@@ -1,0 +1,795 @@
+.page {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
+  background: var(--bg);
+  color: var(--text);
+}
+.pageHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 24px 8px;
+}
+.pageTitle {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pageTitle h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.pageScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.pageContent {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 20px 24px 32px;
+  box-sizing: border-box;
+}
+.pageTitle h1:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.pageContent h2 {
+  overflow-wrap: anywhere;
+}
+@container (max-width: 360px) {
+  .pageHeader {
+    padding-inline: 12px;
+  }
+  .pageContent {
+    padding: 16px 12px 24px;
+  }
+  .pageContent .card {
+    padding: 12px;
+  }
+  .pageContent .ticks span:nth-child(2),
+  .pageContent .ticks span:nth-child(4) {
+    display: none;
+  }
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.card {
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+.grow {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.note {
+  color: var(--text2);
+  font-size: 12.5px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.error {
+  color: var(--danger);
+  background: var(--dangerBg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.warn {
+  color: var(--warn);
+  background: var(--warnBg);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.confirmation {
+  /* Keep nearest scrolling clear of the dialog's sticky heading. */
+  scroll-margin-block-start: 90px;
+  scroll-margin-block-end: 20px;
+}
+.ok {
+  color: var(--ok);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  min-width: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 12px;
+}
+.stack input:not([type="checkbox"]):not([type="radio"]),
+.stack select,
+.stack textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--tert);
+  color: var(--text);
+  padding: 9px 12px;
+  font: inherit;
+}
+.stack textarea {
+  resize: vertical;
+}
+.stack input[type="checkbox"] {
+  accent-color: var(--page-c, var(--avatar-orange));
+}
+.stack h2,
+.stack h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.stack fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.stack fieldset.confirmation {
+  padding: 12px;
+}
+/* Routines are cards in a grid; the top edge carries the state's colour. */
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 12px;
+}
+.list:empty {
+  display: none;
+}
+.item {
+  --rc: var(--avatar-orange);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  border-top: 3px solid var(--rc);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  transition: transform 160ms var(--ease-out);
+}
+.item:hover {
+  transform: translateY(-2px);
+}
+/* Maintainers 2026-11-19 (design routine-cards.png): cards in a row share one height, the result is three
+   lines in a soft box and "next run" sits on the card's bottom edge. */
+.item > .open {
+  align-self: stretch;
+}
+.itemTitle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.itemSummary {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.itemSummary > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.itemMore {
+  color: var(--ink-blue);
+  font-size: 12px;
+}
+.itemNext {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--b1);
+  color: var(--text2);
+  font-size: 12px;
+}
+.item[data-tone="blue"] {
+  --rc: var(--avatar-blue);
+}
+.item[data-tone="amber"] {
+  --rc: var(--avatar-amber);
+}
+.item[data-tone="red"] {
+  --rc: var(--danger);
+}
+.item[data-tone="neutral"] {
+  --rc: var(--b3);
+}
+.item > [role="alert"] {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.item .warn,
+.item .error {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+.stateChip {
+  align-self: flex-start;
+  margin: 2px 0;
+}
+.open {
+  text-align: start;
+  border-radius: 10px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-wrap: anywhere;
+}
+.open:hover {
+  background: var(--hover);
+}
+/* Bot panel: one row per scheduled task (name, cadence · next run, switch). */
+.panelOpen {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.panelOpen:hover {
+  background: var(--hover);
+}
+.panelOpen:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.panelOpen strong {
+  font-weight: 600;
+}
+.panelOpen small {
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.panelOpen small.panelWarn {
+  color: var(--warn);
+}
+.tag {
+  align-self: flex-start;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--radius-pill);
+  padding: 2px 9px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.dialog {
+  width: min(760px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px - var(--titlebar-height, 0px));
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--bg);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--avatar-orange) 10%, transparent),
+    transparent 200px
+  );
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  /* 长表单会覆盖聊天标题栏，必须排除 Electron 原生拖拽命中区域。 */
+  -webkit-app-region: no-drag;
+}
+.dialog::backdrop {
+  background: var(--overlay);
+}
+.header {
+  position: sticky;
+  top: 0;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  z-index: 1;
+  padding: 14px 16px 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header h2 {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 17px;
+  margin: 0;
+}
+.body {
+  padding: 20px;
+}
+.invalid {
+  opacity: 0.65;
+}
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sleep {
+  position: absolute;
+  height: 100%;
+  border-radius: 8px;
+  background: repeating-linear-gradient(135deg, var(--b3) 0 6px, transparent 6px 12px);
+}
+.now {
+  position: absolute;
+  pointer-events: none;
+  top: -4px;
+  height: calc(100% + 8px);
+  width: 2px;
+  border-radius: 2px;
+  background: var(--danger);
+}
+.ticks {
+  position: relative;
+  margin-inline: 12px;
+  height: 18px;
+  font-size: 11px;
+  color: var(--text2);
+}
+.ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+.ticks span:first-child {
+  transform: none;
+}
+.ticks span:last-child {
+  transform: translateX(-100%);
+}
+.stack :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.unknown {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(135deg, var(--hover) 0 4px, var(--b2) 4px 6px);
+}
+
+/* Inline tag in the computer pre-authorization note (mirrors the computer settings tag). */
+.appTag {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--hover);
+  color: var(--text2);
+}
+
+/* Page pieces: coloured action, background service card, banners, sections, empty. */
+.toneButton {
+  color: var(--on-tone);
+  background: var(--page-c, var(--avatar-orange));
+}
+.serviceCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--avatar-green) 12%, var(--card)),
+    var(--card)
+  );
+}
+.serviceCard strong {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.banner button {
+  min-height: 32px;
+  padding: 5px 14px;
+  font-size: 13px;
+}
+.banner button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 2px var(--page-c);
+}
+.section {
+  margin: 4px 0 -6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+}
+.section::before,
+.formCard > h2::before,
+.formCard > legend::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mark, var(--page-c, var(--avatar-orange)));
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 56px 16px;
+  text-align: center;
+}
+.emptyMark {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+}
+
+/* The editor groups its fields into cards: 做什么 / 触发器 / 预授权 / 运行方式 (+ 运行记录). */
+.formCard {
+  --mark: var(--avatar-orange);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.formCard[data-mark="pink"] {
+  --mark: var(--avatar-pink);
+}
+.formCard[data-mark="amber"] {
+  --mark: var(--avatar-amber);
+}
+.formCard[data-mark="teal"] {
+  --mark: var(--avatar-teal);
+}
+.stack .formCard > h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.formActions {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 0 4px;
+  background: linear-gradient(180deg, transparent, var(--bg) 30%);
+}
+.trigTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+.trigTiles button {
+  flex-direction: column;
+  gap: 6px;
+  min-height: 72px;
+  padding: 10px 8px;
+  border-radius: 14px;
+  border-color: var(--b1);
+  background: var(--card);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
+}
+.trigTiles button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+.trigTiles button:disabled {
+  opacity: 0.5;
+}
+.manageRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.manageRow button {
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+.dangerButton {
+  margin-inline-start: auto;
+  color: var(--danger);
+}
+.runCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.runCard button {
+  min-height: 30px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+}
+.pageTitle > .note {
+  padding-left: 42px;
+}
+.formCard .card,
+.formCard .runCard {
+  box-shadow: none;
+  background: var(--tert);
+}
+.ledger summary {
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--ink-blue);
+}
+.ledger[open] summary {
+  margin-bottom: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item,
+  .trigTiles button {
+    transition: none;
+  }
+  .item:hover,
+  .trigTiles button:not(:disabled):hover {
+    transform: none;
+  }
+}
+
+/* Editor controls: choice chips, round weekday toggles, tinted time, switch and option rows. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  min-height: 30px;
+  padding: 5px 13px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--text2) 11%, transparent);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+.chip:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text2) 18%, transparent);
+}
+.chip[aria-pressed="true"] {
+  background: var(--page-c, var(--avatar-orange));
+  color: var(--on-tone);
+  font-weight: 600;
+}
+.chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.day {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  min-height: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+}
+.day[aria-pressed="true"] {
+  transform: scale(1.04);
+}
+.label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.stack input.small {
+  width: 84px;
+  border: 0;
+  background: color-mix(in srgb, var(--page-c, var(--avatar-orange)) 10%, var(--card));
+  font-variant-numeric: tabular-nums;
+}
+.stack .seg {
+  padding: 3px;
+  max-width: 100%;
+}
+.switchRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  font-size: 13px;
+}
+.switchRow > span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* A number beside a label (cooldown minutes): a full-width input squeezed the label to one
+   character per line in the folder trigger, which is not inside .stack. */
+.switchRow > input.small {
+  flex: 0 0 84px;
+  width: 84px;
+}
+.triggerNotes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.optRows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: 14px;
+  background: var(--tert);
+}
+.optRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 11px 14px;
+  min-width: 0;
+}
+.optRow + .optRow {
+  border-top: 1px solid var(--b1);
+}
+.optText {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.optText strong {
+  font-weight: 600;
+}
+.optText small {
+  color: var(--text2);
+  font-size: 12px;
+}
+.optBody {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding-left: 44px;
+}
+.opList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.opChip {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition: none;
+  }
+  .day[aria-pressed="true"] {
+    transform: none;
+  }
+}
+.pathField {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 6px 6px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--avatar-amber) 10%, var(--card));
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 700;
+}

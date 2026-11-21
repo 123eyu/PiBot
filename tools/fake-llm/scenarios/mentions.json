@@ -1,0 +1,8 @@
+{
+  "replies": [{ "text": "未匹配到演练身份。" }],
+  "routes": {
+    "writer": [{ "text": "只有被 @ 的写手回答。" }],
+    "researcher": [{ "text": "研究员按多 @ 首次出现顺序回答。" }],
+    "coordinator": [{ "text": "统筹不应在显式 @ 场景收到请求。" }]
+  }
+}

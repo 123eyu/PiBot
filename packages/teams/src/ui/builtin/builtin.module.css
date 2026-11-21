@@ -1,0 +1,530 @@
+/* Shared role and template surfaces keep installation states aligned with theme tokens. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.heading {
+  margin: 0;
+  font-size: 17px;
+}
+.subheading {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.warn {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--radius-row);
+  background: var(--warnBg);
+  color: var(--text);
+}
+.error {
+  margin: 0;
+  color: var(--danger);
+}
+/* A soft search field led by its icon. */
+.searchField {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text2);
+  border: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+.searchField:focus-within {
+  border-color: color-mix(in srgb, var(--avatar-violet) 55%, transparent);
+}
+.search {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+.search:focus-visible {
+  outline: none;
+}
+/* Category filter chips; the active one is filled. */
+.cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.cats button {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+.cats button:hover {
+  background: var(--hover);
+}
+.cats button[aria-pressed="true"] {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+.cats button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.importRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.choice {
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--b1);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+.choice:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.choice:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.choice[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accentBg);
+}
+.choiceText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.choiceName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.choiceBlurb {
+  font-size: 13px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+/* Secondary line under a blurb (a template's member count and coordinator). */
+.choiceMeta {
+  font-size: 12px;
+  opacity: 0.85;
+}
+/* The role grid: three soft cards a row, avatar on top, one line of description. */
+.roles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.roles > /* Borderless soft cards; hover lifts with a glow in the card's colour (--c, set per role),
+   the picked one is ringed and washed in it. */
+.choice {
+  --c: var(--avatar-violet);
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    box-shadow 200ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+.choice:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -14px var(--c);
+}
+.choice:focus-visible {
+  outline: 2px solid var(--c);
+  outline-offset: 2px;
+}
+.choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.choice[aria-pressed="true"] {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 8%, var(--card));
+}
+.choiceText {
+  width: 100%;
+}
+.roles .choiceBlurb {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 720px) {
+  .roles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--avatar-violet) 14%, transparent);
+  color: var(--ink-violet);
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
+}
+/* A role's summary: a soft card washed in the role colour (welcome Bot step, role detail). */
+.summary {
+  --c: var(--avatar-violet);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--c) 14%, transparent), transparent 70%),
+    var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+.list {
+  margin: 0;
+  padding-inline-start: 18px;
+  font-size: 13px;
+}
+.pre {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-row);
+  background: var(--tert);
+  font-size: 13px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  unicode-bidi: plaintext;
+}
+.code {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: var(--radius-row);
+  background: var(--tert);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.normsPreview {
+  max-height: 16rem;
+  overflow: auto;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  font-size: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.input,
+.textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  /* Tinted fields; the edge shows on focus or when invalid. */
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+}
+.textarea {
+  resize: vertical;
+  min-height: 64px;
+}
+.input:focus-visible,
+.textarea:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--avatar-violet) 55%, transparent);
+}
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.check {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+.badge {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12px;
+}
+
+/* Profession picks: each card takes the colour of the Bots it brings (avatar tokens),
+   so the page reads as "these are the teammates you get" rather than a plain list. */
+.profession {
+  --c: var(--tone);
+  --tone: var(--text2);
+  --tone-deep: var(--text);
+  --tone-on: var(--bg);
+  --tone-fg: var(--tone-deep);
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+[data-theme="dark"] .profession {
+  --tone-fg: var(--tone);
+}
+.profession .icon {
+  background: var(--tone);
+  color: var(--on-tone);
+}
+.profession[aria-pressed="true"] {
+  border-color: var(--tone-fg);
+  background: color-mix(in srgb, var(--tone) 8%, var(--card));
+}
+.professionHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+.professionHead .choiceText {
+  flex: 1;
+}
+.tick {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--b3);
+  border-radius: 50%;
+  color: var(--tone-on);
+}
+.profession[aria-pressed="true"] .tick {
+  border-color: var(--tone-deep);
+  background: var(--tone-deep);
+}
+/* The card aligns its children to the start; stretching keeps a long line inside the card so
+   the ellipsis applies instead of the text running past the edge. */
+.team {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-inline-start: 42px;
+}
+.teamAvatars {
+  display: flex;
+  flex: none;
+  gap: 3px;
+}
+.teamLine {
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (prefers-reduced-motion: reduce) {
+  .choice,
+  .cats button,
+  .searchField {
+    transition: none;
+  }
+  .choice:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Role detail (RoleCreate): the main action and focus rings take the role's colour. */
+.roleForm {
+  --button-fill: var(--c);
+  --button-on: var(--on-tone);
+}
+.roleForm .input:focus-visible,
+.roleForm .textarea:focus-visible {
+  border-color: color-mix(in srgb, var(--c) 55%, transparent);
+}
+.hero {
+  padding: 16px;
+}
+.back {
+  min-height: 30px;
+  padding: 4px 12px 4px 8px;
+  gap: 4px;
+  color: var(--text2);
+}
+.backIcon {
+  transform: rotate(180deg);
+}
+.foot {
+  justify-content: flex-end;
+}
+/* A quick prompt reads as a starter chip, not a bullet. */
+.prompt {
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--c, var(--text2)) 12%, transparent);
+  color: var(--ci, var(--text));
+  font-size: 12.5px;
+}
+
+/* Refresh stays beside search; longer locales may wrap below it. */
+.catalogSearch {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.catalogSearch .searchField {
+  flex: 1;
+  min-width: 160px;
+}
+.catalogRefresh {
+  margin-inline-start: auto;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.catalogRefresh:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.catalogRefresh:disabled {
+  color: var(--text2);
+  cursor: default;
+}
+.catalogCard {
+  position: relative;
+  padding-inline-end: 28px;
+}
+.catalogDownload {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 10px;
+  color: var(--text2);
+}
+.catalogUpdateNote {
+  color: var(--text2);
+  font-size: 11px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.catalogCard[data-offline="true"] {
+  color: var(--text2);
+  filter: grayscale(1);
+}

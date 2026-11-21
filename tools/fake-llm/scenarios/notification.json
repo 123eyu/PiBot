@@ -1,0 +1,25 @@
+{
+  "replies": [
+    { "text": "Connection check succeeded." },
+    {
+      "delayMs": 2000,
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": { "command": "true notification-check", "timeoutSec": 30 }
+        }
+      ]
+    },
+    { "text": "请核对通知内容、语言和聊天中的审批结果。" },
+    {
+      "delayMs": 2000,
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": { "command": "true notification-check", "timeoutSec": 30 }
+        }
+      ]
+    },
+    { "text": "Check the notification language and the approval result in chat." }
+  ]
+}

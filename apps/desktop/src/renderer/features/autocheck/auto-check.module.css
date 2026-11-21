@@ -1,0 +1,286 @@
+/* Automatic check: result record, proposal card, folder menu. Theme tokens only.
+   The record is a soft card with a status dot and a coloured edge; output
+   folds into a dark terminal; proposal / runner-move cards follow the in-chat approval cards. */
+.result {
+  --res-c: var(--b3);
+  align-self: center;
+  width: min(560px, 92%);
+  margin: 4px 0;
+  overflow: hidden;
+  border: 0;
+  border-left: 4px solid var(--res-c);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 12.5px;
+  line-height: 18px;
+  overflow-wrap: anywhere;
+  animation: rise 300ms var(--ease-out) both;
+}
+.result[data-tone="ok"] {
+  --res-c: var(--avatar-green);
+}
+.result[data-tone="danger"] {
+  --res-c: var(--danger);
+}
+.result[data-tone="warn"] {
+  --res-c: var(--avatar-amber);
+}
+.result[data-state="running"] {
+  --res-c: var(--avatar-blue);
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: var(--text);
+}
+.title {
+  flex: 1;
+  min-width: 0;
+}
+.round {
+  flex: none;
+}
+/* Text under the head lines up with the title, after the 9px dot and its 8px gap. */
+.followUp {
+  margin: 0;
+  padding: 0 12px 8px 29px;
+  color: var(--text2);
+}
+.limit {
+  margin: 0 12px 8px 29px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.details {
+  padding: 0 12px 2px;
+}
+.details summary {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 8px 17px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12px;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.details summary::-webkit-details-marker {
+  display: none;
+}
+.details summary:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.details summary:focus-visible {
+  outline: 2px solid var(--res-c);
+  outline-offset: 2px;
+}
+/* A dark terminal in both themes, like the background-command output. */
+.tail {
+  margin: 0 0 10px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--avatar-ink);
+  color: color-mix(in srgb, var(--on-tone) 90%, transparent);
+  color-scheme: dark;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 16px;
+  white-space: pre-wrap;
+}
+
+.card {
+  /* Starts where assistant message content starts: the 28px avatar column plus the 10px gap of
+     `.assistant` in chat/chat.module.css, so the card reads as part of the Bot's turn. */
+  /* Maintainers 2026-11-13: cards in a chat take the chat's Bot colour. */
+  --card-c: var(--chat-c, var(--avatar-teal));
+  align-self: flex-start;
+  width: min(560px, calc(100% - 38px));
+  margin-block: 8px;
+  margin-inline: 38px 0;
+  border: 0;
+  border-left: 4px solid var(--card-c);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  animation: rise 350ms var(--ease-out) both;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--card-c) 12%, transparent);
+  font-weight: 600;
+}
+.cardHead > span:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.cardSub {
+  margin: 0;
+  padding: 0 14px 8px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.commands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0 14px 10px;
+  list-style: none;
+}
+.commands code,
+.command {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card-c, var(--avatar-teal)) 11%, var(--tert));
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.editor,
+.panelEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.editor {
+  padding: 0 14px 10px;
+}
+.editor textarea,
+.panelEditor textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--tert);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.editor textarea:focus-visible,
+.panelEditor textarea:focus-visible {
+  outline: 2px solid var(--card-c, var(--avatar-teal));
+  outline-offset: 1px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--b1);
+}
+.actions > button {
+  min-height: 32px;
+  padding: 4px 14px;
+  font-size: 13px;
+}
+/* The accepting action takes the card's colour, like the question card's main button. */
+.actions > .accept:enabled {
+  background: var(--card-c);
+  color: var(--on-tone);
+}
+.cardResult {
+  display: flex;
+  padding: 0 14px 12px;
+}
+.error {
+  margin: 0;
+  padding: 0 14px 10px;
+  color: var(--danger);
+  font-size: 12.5px;
+}
+
+/* Inside the conversation's folder popover. */
+.folder {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.folderName {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+.folderCommands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* Small text buttons in one row (gaps-bits b-folder). */
+.folderActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-left: -6px;
+}
+.folderActions > button {
+  min-height: 28px;
+  padding: 2px 10px;
+  font-size: 12.5px;
+}
+.menu {
+  margin-top: 4px;
+  padding: 4px 8px 6px;
+  border-top: 1px solid var(--b1);
+}
+.menuHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  color: var(--text2);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.menuHeading::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--avatar-green);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .result,
+  .card {
+    animation: none;
+  }
+  .details summary {
+    transition: none;
+  }
+}

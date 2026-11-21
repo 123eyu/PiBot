@@ -1,0 +1,9 @@
+export { ChangesPane, type ChangesRequest } from "./changes/ChangesPane.tsx";
+export { type ChangesLink, ChangesLinkContext, useChangesLink } from "./changes/context.ts";
+export { formatCount } from "./changes/diff/FileList.tsx";
+export { RestoreRequestProvider } from "./changes/history/restore-requests.tsx";
+export { TurnCard } from "./changes/history/TurnCard.tsx";
+export { ChangesIcon } from "./changes/icons.tsx";
+export type { SourceState } from "./changes/store.ts";
+export { useChatChanges } from "./changes/use-chat-changes.ts";
+export { type WorkspacesUiPorts, WorkspacesUiProvider } from "./shell/ports.tsx";

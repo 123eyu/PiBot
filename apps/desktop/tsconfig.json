@@ -1,0 +1,173 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts", "electron.vite.config.ts"],
+  "references": [
+    {
+      "path": "../../packages/acp"
+    },
+    {
+      "path": "../../packages/acp-schemas"
+    },
+    {
+      "path": "../../packages/agent"
+    },
+    {
+      "path": "../../packages/brain"
+    },
+    {
+      "path": "../../packages/brain-app"
+    },
+    {
+      "path": "../../packages/browser"
+    },
+    {
+      "path": "../../packages/browser-contract"
+    },
+    {
+      "path": "../../packages/client-core"
+    },
+    {
+      "path": "../../packages/computer"
+    },
+    {
+      "path": "../../packages/computer-use"
+    },
+    {
+      "path": "../../packages/computer-use-contract"
+    },
+    {
+      "path": "../../packages/credentials"
+    },
+    {
+      "path": "../../packages/credentials-contract"
+    },
+    {
+      "path": "../../packages/execution"
+    },
+    {
+      "path": "../../packages/external-agents"
+    },
+    {
+      "path": "../../packages/external-agents-contract"
+    },
+    {
+      "path": "../../packages/i18n"
+    },
+    {
+      "path": "../../packages/images"
+    },
+    {
+      "path": "../../packages/images-contract"
+    },
+    {
+      "path": "../../packages/link"
+    },
+    {
+      "path": "../../packages/memory"
+    },
+    {
+      "path": "../../packages/models"
+    },
+    {
+      "path": "../../packages/models-contract"
+    },
+    {
+      "path": "../../packages/observability"
+    },
+    {
+      "path": "../../packages/office"
+    },
+    {
+      "path": "../../packages/office-contract"
+    },
+    {
+      "path": "../../packages/orchestration"
+    },
+    {
+      "path": "../../sdk/plugin-sdk"
+    },
+    {
+      "path": "../../packages/plugins"
+    },
+    {
+      "path": "../../packages/plugins-contract"
+    },
+    {
+      "path": "../../packages/policy"
+    },
+    {
+      "path": "../../packages/protocol"
+    },
+    {
+      "path": "../../packages/protocol-base"
+    },
+    {
+      "path": "../../packages/remote"
+    },
+    {
+      "path": "../../packages/remote-contract"
+    },
+    {
+      "path": "../../packages/renderer-kit"
+    },
+    {
+      "path": "../../packages/routines"
+    },
+    {
+      "path": "../../packages/routines-contract"
+    },
+    {
+      "path": "../../packages/runner"
+    },
+    {
+      "path": "../../packages/scheduler"
+    },
+    {
+      "path": "../../packages/sdk"
+    },
+    {
+      "path": "../../packages/secrets"
+    },
+    {
+      "path": "../../packages/skills"
+    },
+    {
+      "path": "../../packages/skills-contract"
+    },
+    {
+      "path": "../../packages/storage"
+    },
+    {
+      "path": "../../packages/teams"
+    },
+    {
+      "path": "../../packages/teams-contract"
+    },
+    {
+      "path": "../../packages/tools"
+    },
+    {
+      "path": "../../packages/ui"
+    },
+    {
+      "path": "../../packages/workspaces"
+    },
+    {
+      "path": "../../packages/workspaces-contract"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

@@ -1,0 +1,260 @@
+/* Work receipt: a soft card with one row of coloured chips; details open below. */
+.card {
+  align-self: stretch;
+  min-width: 0;
+  max-width: 560px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 12.5px;
+}
+/* Under changed files (or alone in a turn's end card): a strip tinted in the chat's colour. */
+.footer {
+  margin: 2px 4px 4px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--chat-c, var(--text2)) 6%, transparent);
+  font-size: 12.5px;
+}
+.failed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  color: var(--text2);
+}
+.link {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--chat-ink, var(--accent));
+  font: inherit;
+  cursor: pointer;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 8px 8px 8px 12px;
+}
+.icon {
+  flex: none;
+}
+.title {
+  flex: none;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+.chips li {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+.chips li > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muted {
+  color: var(--text2);
+}
+.ok {
+  color: var(--ok);
+}
+.warn {
+  color: var(--warn);
+}
+.danger {
+  color: var(--danger);
+}
+.toggle {
+  display: inline-flex;
+  flex: none;
+  white-space: nowrap;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  margin-left: auto;
+  padding: 0 6px 0 8px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--chat-ink, var(--accent));
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toggle > svg {
+  transition: transform 220ms var(--ease-out);
+}
+.toggle:hover {
+  background: var(--hover);
+}
+.toggle:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.up {
+  transform: rotate(180deg);
+}
+.sections {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 10px;
+  animation: unfold 260ms var(--ease-out);
+}
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+/* Each section is a band with its own colour dot, like the prototype's 明细 cards. */
+.section {
+  --tone: var(--chat-c, var(--avatar-blue));
+  padding: 8px 14px;
+  border-top: 1px solid var(--b1);
+}
+.section[data-tone="red"] {
+  --tone: var(--danger);
+}
+.section[data-tone="green"] {
+  --tone: var(--avatar-green);
+}
+.section[data-tone="amber"] {
+  --tone: var(--avatar-amber);
+}
+.section[data-tone="orange"] {
+  --tone: var(--avatar-orange);
+}
+.section[data-tone="teal"] {
+  --tone: var(--avatar-teal);
+}
+.section h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.section h4::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tone);
+}
+.section dl {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+}
+.section dl > div {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+.section dt {
+  flex: none;
+  min-width: 104px;
+  color: var(--text2);
+}
+.section dd {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.section .warn dd,
+.section .warn dt {
+  color: var(--warn);
+}
+.section .danger dd,
+.section .danger dt {
+  color: var(--danger);
+}
+.section .ok dt {
+  color: var(--ok);
+}
+.code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.empty,
+.footnote {
+  margin: 0;
+  color: var(--text2);
+}
+.footnote {
+  padding: 8px 14px 0;
+  border-top: 1px solid var(--b1);
+  font-size: 11.5px;
+}
+.execution {
+  margin: 0;
+  padding: 0 14px 8px;
+  color: var(--text2);
+  font-size: 12.5px;
+}
+/* 「预算用完 · 加预算继续」 line. */
+.budget {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 8px 14px 9px;
+  border-top: 1px solid var(--b1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sections {
+    animation: none;
+  }
+  .toggle > svg {
+    transition: none;
+  }
+}
+
+/* Maintainers 2026-11-13: in a chat the receipt's own accent (title tile, plain chips, section dots) is
+   the Bot colour; ok / warn / danger chips and the coloured sections keep their meaning. */
+.icon.icon.icon {
+  --tile: var(--chat-c, var(--avatar-teal));
+}
+.chips li > [data-tone="blue"] {
+  --tint: var(--chat-ink, var(--ink-blue));
+}
+/* Maintainers 2026-11-13: a budget stop offers its raise right in the summary row, filled. */
+.budgetInline {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+.budgetInline > .budgetAction {
+  min-height: 26px;
+  padding: 2px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--avatar-amber);
+  color: var(--on-tone);
+  font-size: 12px;
+}

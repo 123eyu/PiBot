@@ -1,0 +1,35 @@
+const initials: Record<string, string> = {
+  anthropic: "A",
+  openai: "O",
+  google: "G",
+  xai: "x",
+  deepseek: "DS",
+  zai: "Z",
+  "moonshotai-cn": "M",
+  "kimi-coding": "K",
+  "minimax-cn": "MM",
+  "xiaomi-token-plan-cn": "Mi",
+  openrouter: "OR",
+  "vercel-ai-gateway": "V",
+  "amazon-bedrock": "AWS",
+  "google-vertex": "Vx",
+  "azure-openai-responses": "Az",
+  "cloudflare-workers-ai": "CF",
+  "cloudflare-ai-gateway": "CF",
+  groq: "Gq",
+  cerebras: "Cb",
+  fireworks: "FW",
+  huggingface: "HF",
+  mistral: "Mi",
+  "openai-codex": "O",
+  "openai-chatgpt": "C",
+  "github-copilot": "GH",
+  ollama: "Ol",
+  lmstudio: "LM",
+  vllm: "vL",
+  "new-custom": "+",
+};
+
+export function providerMonogram(id: string, name: string): string {
+  return initials[id] ?? name.slice(0, 1);
+}

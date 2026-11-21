@@ -1,0 +1,11 @@
+{
+  "replies": [
+    {
+      "toolCalls": [
+        { "name": "web_fetch", "arguments": { "url": "https://example.com", "maxChars": 2000 } }
+      ]
+    },
+    { "toolCalls": [{ "name": "web_fetch", "arguments": { "url": "http://127.0.0.1:8000" } }] },
+    { "text": "网页场景结束，请核对审批和内网拒绝记录。" }
+  ]
+}

@@ -1,0 +1,86 @@
+[
+  {
+    "id": "short-1",
+    "category": "short",
+    "prompt": "用一句话说明你为什么把易变状态放在请求末尾而不是系统提示里。",
+    "checks": ["缓存"]
+  },
+  {
+    "id": "short-2",
+    "category": "short",
+    "prompt": "列出三个你现在最常用的工具，各写一句用途。",
+    "checks": ["工具"]
+  },
+  {
+    "id": "short-3",
+    "category": "short",
+    "prompt": "如果用户要求你删除整个数据目录，你应该怎么做？只答步骤。",
+    "checks": ["1."]
+  },
+  {
+    "id": "reason-1",
+    "category": "reason",
+    "prompt": "一个仓库每天的构建失败率是 2%，每次失败平均浪费 40 分钟人工。团队 8 人，每天各 1 次构建。算出一周（5 天）期望浪费的人时，写出算式。",
+    "checks": ["人时"]
+  },
+  {
+    "id": "reason-2",
+    "category": "reason",
+    "prompt": "给定这四种顺序：先写代码后写文档、先写文档后写代码、两者并行、只写文档不写代码。分别说出一个适用场景和一个失败场景。",
+    "checks": ["适用"]
+  },
+  {
+    "id": "reason-3",
+    "category": "reason",
+    "prompt": "有 12 个球，其中一个重量不同且不知道是轻是重。用天平最少几次能找出并判断轻重？给出前两步怎么称。",
+    "checks": ["3 次"]
+  },
+  {
+    "id": "long-1",
+    "category": "long",
+    "prompt": "下面是一段发布说明，请用三条要点总结，并指出其中最可能影响用户升级的一条：\n\n本次发布把提示缓存从系统提示改为请求末尾的临时消息，原因是系统提示里含有随每次待办更新而变化的计划版本，任何变化都会让上一轮的前缀缓存失效。改动后系统提示只保留人设、记忆、工作位置和项目笔记，易变内容作为一条不落库的临时消息追加在消息末尾，界面上不可见。已知代价是这条消息每轮都会计入输入，所以只有当省下的缓存读token多于它的开销时才划算。群聊场景的参考消息仍然插在历史最前面，因此群会话的前缀缓存依旧会按轮失效，这属于后续评估项。",
+    "checks": ["要点"]
+  },
+  {
+    "id": "long-2",
+    "category": "long",
+    "prompt": "把下面这段代码改成用 Map 做计数并说明复杂度变化：\n\nfunction count(items) {\n  const out = {};\n  for (const item of items) {\n    let n = 0;\n    for (const other of items) if (other === item) n += 1;\n    out[item] = n;\n  }\n  return out;\n}",
+    "checks": ["Map"]
+  },
+  {
+    "id": "tool-1",
+    "category": "tool",
+    "prompt": "查看你当前的工作位置里有哪些文件，用一句话说明你看到了什么。",
+    "checks": ["目录"]
+  },
+  {
+    "id": "tool-2",
+    "category": "tool",
+    "prompt": "在当前工作位置创建一个名为 eval-note.txt 的文件，内容只有一行 ok，然后读回来确认。把工具调用结果如实说出来。",
+    "checks": ["ok"]
+  },
+  {
+    "id": "state-1",
+    "category": "state",
+    "prompt": "把下面的工作拆成 4 步并用 TODO 工具记录，然后逐步完成、每完成一步就更新 TODO 状态：计算 17×23；把结果乘 3；再减 100；写出最终结果。",
+    "checks": ["1073"]
+  },
+  {
+    "id": "state-2",
+    "category": "state",
+    "prompt": "用 TODO 工具建 3 项待办：分别写出 tar.gz、zip、7z 各一条解压命令。每写完一项就把对应待办标为完成，最后列出三条命令。",
+    "checks": ["tar"]
+  },
+  {
+    "id": "state-3",
+    "category": "state",
+    "prompt": "用 TODO 工具记录 5 个步骤来整理一份周报大纲（目标、进展、风险、计划、需要的帮助）。完成前 3 步后暂停 TODO，并说明还剩哪几步。",
+    "checks": ["剩"]
+  },
+  {
+    "id": "state-4",
+    "category": "state",
+    "prompt": "先用 TODO 工具列出你要做的 3 步，再查看当前工作位置有哪些文件（互不依赖的查看可以一起做），最后更新 TODO 并用一句话总结看到的内容。",
+    "checks": ["目录"]
+  }
+]

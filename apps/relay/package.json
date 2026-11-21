@@ -1,0 +1,22 @@
+{
+  "name": "@pibot/relay",
+  "version": "0.0.0",
+  "private": true,
+  "pibot": {
+    "layer": "L5"
+  },
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "dev": "node tools/wrangler.ts dev --ip 127.0.0.1",
+    "deploy": "node tools/wrangler.ts deploy",
+    "image": "docker build -t pibot-relay:${npm_package_version} -f docker/Dockerfile ../.."
+  },
+  "dependencies": {
+    "@pibot/link": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261019.1",
+    "wrangler": "4.151.3"
+  }
+}

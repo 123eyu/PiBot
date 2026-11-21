@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Pi Bot 标志</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>body{margin:0}</style></helmet>
+<div style="display: inline-block; width: {{size}}px; height: {{size}}px; line-height: 0; flex: none">
+<svg viewBox="0 0 100 100" width="100%" height="100%" role="img" aria-label="Pi Bot">
+<defs>
+<g id="{{faceId}}" fill="none" stroke-width="{{faceW}}" stroke-linecap="round">
+<path d="M38 41 L40 57"></path>
+<path d="M62 41 L60 57"></path>
+</g>
+<mask id="{{maskId}}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+<rect width="100" height="100" fill="#FFFFFF"></rect>
+<use href="#{{faceId}}" stroke="#000000"></use>
+</mask>
+</defs>
+<path d="{{shapeD}}" fill="{{shapeFill}}" stroke="{{shapeFill}}" stroke-width="{{shapeW}}" stroke-linejoin="round" mask="{{shapeMask}}"></path>
+<use href="#{{faceId}}" stroke="{{faceInk}}" opacity="{{faceOpacity}}"></use>
+</svg>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"variant":{"editor":"enum","options":["mark","app-mac","app-win","app-linux","tray"],"default":"mark"},"tone":{"editor":"enum","options":["violet","ink","paper","night"],"default":"violet"},"size":{"editor":"int","min":12,"max":512,"default":96},"$preview":{"width":96,"height":96}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var v = this.props.variant ?? 'mark';
+    var tone = this.props.tone ?? 'violet';
+    var size = this.props.size ?? 96;
+    var BLOB = 'M50 6 C80 6 94 20 94 50 C94 80 80 94 50 94 C20 94 6 80 6 50 C6 20 20 6 50 6 Z';
+    var SQUARE = 'M0 0 H100 V100 H0 Z';
+    var ROUNDED_SQUARE = 'M22 0 H78 Q100 0 100 22 V78 Q100 100 78 100 H22 Q0 100 0 78 V22 Q0 0 22 0 Z';
+    var CIRCLE = 'M50 3 A47 47 0 1 1 49.9 3 Z';
+    var BODY_W = 6;
+    var FACE_W = 9.5;
+    var SMALL_FACE_W = 10.5;
+    var SMALL_SIZE = 22;
+    var TONES = {
+      violet: { fill: '#9159FE', ink: '#FFFFFF' },
+      ink: { fill: '#141414', ink: '#FCFCFC' },
+      paper: { fill: '#F0F0F0', ink: '#141414' },
+      night: { fill: '#1F1F1F', ink: '#9159FE' }
+    };
+    var t = TONES[tone] || TONES.violet;
+    var tray = v === 'tray';
+    var shape = v === 'app-mac' ? SQUARE : v === 'app-linux' ? CIRCLE : (v === 'app-win' || tray) ? BLOB : ROUNDED_SQUARE;
+    // IDs belong to each instance so multiple marks do not share masks.
+    this.faceId = this.faceId || ('pi-face-' + Math.random().toString(36).slice(2));
+    return {
+      size: size, shapeD: shape, shapeFill: tray ? (tone === 'paper' ? '#FFFFFF' : '#000000') : t.fill,
+      shapeW: v === 'app-win' || tray ? BODY_W : 0,
+      faceInk: t.ink, faceW: size <= SMALL_SIZE ? SMALL_FACE_W : FACE_W,
+      faceId: this.faceId, maskId: this.faceId + '-mask',
+      shapeMask: tray ? 'url(#' + this.faceId + '-mask)' : 'none', faceOpacity: tray ? 0 : 1
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "root": false,
+  "extends": ["../biome.json"],
+  "files": {
+    "includes": ["**/*.ts", "**/*.js", "**/*.json", "!dev/builtin-minimal.d.ts"]
+  },
+  "overrides": [
+    {
+      "includes": ["ui/actions.js"],
+      "javascript": { "globals": ["ObjC", "$", "Ref", "Application", "delay"] }
+    }
+  ]
+}

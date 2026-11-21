@@ -1,0 +1,30 @@
+{
+  "name": "gmail",
+  "version": "0.0.2",
+  "description": "Gmail via app password / 使用应用专用密码连接 Gmail",
+  "userConfig": {
+    "LOGIN_MODE": {
+      "type": "string",
+      "title": "登录方式 / Login method",
+      "description": "开源版暂不提供 Google OAuth 开箱即用登录。Gmail 读取、草稿和修改权限需要 Google 的生产验证；涉及受限权限时还可能需要 CASA 安全评估。当前请使用应用专用密码，通过本机 IMAP/SMTP 连接。 / The open-source release does not provide Google OAuth out of the box for now. Gmail read, draft, and modify scopes require Google's production verification and may require a CASA security assessment. Use an app password with the local IMAP/SMTP connection.",
+      "enum": ["app_password"],
+      "options": [{ "value": "app_password", "label": "应用专用密码 / App password" }],
+      "default": "app_password",
+      "required": true
+    },
+    "EMAIL": {
+      "type": "string",
+      "title": "Gmail 邮箱 / Gmail address",
+      "description": "填写完整 Gmail 地址。 / Enter the full Gmail address.",
+      "required": true
+    },
+    "APP_PASSWORD": {
+      "type": "string",
+      "title": "应用专用密码 / App password",
+      "description": "先开启 Google 两步验证，再创建 16 位应用专用密码；不要填普通登录密码。 / Enable Google 2-Step Verification, then create a 16-character app password; do not use your normal password.",
+      "sensitive": true,
+      "required": true,
+      "visibleWhen": { "key": "LOGIN_MODE", "equals": "app_password" }
+    }
+  }
+}

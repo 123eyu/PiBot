@@ -1,0 +1,202 @@
+/* "Come help for a moment" card. Colours: theme tokens only. */
+.row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+.row > * {
+  grid-column: 2;
+  min-width: 0;
+}
+.card {
+  box-sizing: border-box;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-card);
+  background: var(--card);
+}
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.top strong {
+  font-size: 14.5px;
+}
+.pill {
+  padding: 1px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.app {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.say {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.say.compact {
+  font-size: 13.5px;
+}
+.meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* Nested so the compact size wins over the shared button size whatever the stylesheet order. */
+.actions .button {
+  min-height: 32px;
+  padding: 5px 14px;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.actions .quiet {
+  color: var(--text2);
+  font-weight: 500;
+}
+.result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 2px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--b3);
+}
+.dot[data-tone="ok"] {
+  background: var(--ok);
+}
+.error {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--danger);
+}
+.inboxCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  background: var(--card);
+}
+.who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  min-width: 0;
+}
+.who small {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Lively layer: a soft card whose
+ * edge, washed header, hand tile, waiting pill and continue button take the chat's Bot colour
+ * (`--chat-c` / `--chat-ink`; the 操作电脑 pink outside a chat, e.g. the inbox). The answered
+ * line is a small toned pill.
+ */
+.card.card {
+  gap: 10px;
+  padding: 0 0 14px;
+  border: 0;
+  border-left: 4px solid var(--chat-c, var(--avatar-pink));
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  animation: rise 350ms var(--ease-out) both;
+}
+.card.card > * {
+  margin-inline: 14px;
+}
+.card.card > .top {
+  margin: 0;
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 12%, transparent);
+}
+.chatTile.chatTile.chatTile {
+  --tile: var(--chat-c, var(--avatar-pink));
+}
+.top strong {
+  flex: 1;
+  min-width: 0;
+}
+.pill.pill {
+  color: var(--chat-ink, var(--ink-pink));
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-pink)) 14%, transparent);
+}
+.app.app {
+  align-self: flex-start;
+  padding: 2px 9px 2px 3px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+}
+.actions .go:enabled {
+  color: var(--on-tone);
+  background: var(--chat-c, var(--avatar-pink));
+}
+.result.result {
+  align-self: flex-start;
+  width: fit-content;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+}
+.result.result[data-tone="ok"] {
+  color: var(--ok);
+  background: var(--okBg);
+}
+.inboxCard.inboxCard {
+  border: 0;
+  border-left: 3px solid var(--chat-c, var(--avatar-pink));
+  box-shadow: var(--shadow-soft);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card.card {
+    animation: none;
+  }
+}

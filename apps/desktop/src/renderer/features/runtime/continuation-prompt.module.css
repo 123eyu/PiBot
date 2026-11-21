@@ -1,0 +1,35 @@
+/* Same warning bar as the drain failure (chat .health); colours stay in tokens. */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: 760px;
+  margin: 12px auto 0;
+  padding: 8px 8px 8px 14px;
+  /* The same toned band as the chat's other status lines, dropping in. */
+  border-radius: 12px;
+  background: var(--warnBg);
+  color: var(--warn);
+  font-size: 12.5px;
+  animation: barIn 350ms var(--ease-out);
+}
+@keyframes barIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+  }
+}
+.actions {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.note {
+  flex-basis: 100%;
+}

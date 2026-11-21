@@ -1,0 +1,464 @@
+// chat 相关的界面文字。zh 为准，en 的键必须完全一致（由类型强制）。
+// T11（外壳、侧栏、私聊）往这里加。
+
+export const chatZh = {
+  "chat.citationsUnread": "引用提示：{count} 个链接未在本轮成功读取，请核对后再使用。",
+  "chat.citationsIncomplete": "引用提示：本轮来源记录或回复超出核对范围，未能完整核对。",
+  "chat.citationsScope": "此检查仅核对链接是否读过，不证明页面含有所引数字或结论正确。",
+
+  "recovery.title": "查看恢复状态",
+  "recovery.help":
+    "先核对已有成果，再接续未完成部分。接续会重新核验当前模型、权限、工作目录和预算；不会回放原始请求或自动恢复文件。工具结果缺失不代表操作没有执行，需要先核对实际影响。",
+  "recovery.readFailed": "恢复状态暂时无法读取，请刷新核对。",
+  "recovery.run": "原运行",
+  "recovery.task": "群子任务",
+  "recovery.session": "会话记录",
+  "recovery.entries": "当前会话分支有 {count} 条历史记录（含已整理的历史）。",
+  "recovery.checkpoint": "最近整理点：{time}（整理前约 {tokens} tokens）",
+  "recovery.noCheckpoint": "尚无上下文整理点；接续使用现有会话记录。",
+  "recovery.filesRetained": "已保留文件检查点。可在改动页核对是否仍可恢复；接续不会自动恢复文件。",
+  "recovery.filesUnavailable": "此运行没有可用的文件检查点收据；上下文整理点不能用于恢复文件。",
+  "recovery.openFiles": "查看本轮文件与恢复记录",
+  "recovery.refresh": "刷新状态",
+  "recovery.run.queued": "排队中",
+  "recovery.run.running": "运行中",
+  "recovery.run.waiting": "等待审批",
+  "recovery.run.done": "已结束",
+  "recovery.run.error": "失败",
+  "recovery.run.aborted": "已中断",
+  "recovery.session.available": "可读取",
+  "recovery.session.missing": "没有会话记录",
+  "recovery.session.unavailable": "无法安全读取，状态未知",
+  "recovery.session.busy": "正在使用，暂不读取",
+  "recovery.continuation.ready": "可选择当前模型或更换模型接续。",
+  "recovery.continuation.busy": "该话题仍有任务在运行或清理，请结束后刷新。",
+  "recovery.continuation.newer_run": "已有后续运行，请从最新的失败或中断位置核对。",
+  "recovery.continuation.unavailable":
+    "当前状态不支持从此处接续。请核对话题、成员、子任务或会话记录。",
+  "recovery.continuation.already_requested": "已经请求接续；再次确认只会查询原请求，不会重复派发。",
+
+  "chat.groupAdditionTarget":
+    "有多位成员正在工作，请 @ 一位成员来补充当前任务；追加内容不会重新派发原任务。",
+  "chat.progress.label": "过程说明",
+  "chat.progress.expand": "展开过程说明",
+  "chat.progress.collapse": "收起过程说明",
+  "errors.quota_exhausted":
+    "当前模型服务的使用额度已用尽。请切换有可用额度的模型或账号，或等待额度恢复后继续。",
+  "chat.changeModel": "更换模型",
+  "chat.adjustModel": "调整模型或思考并接续",
+  "errors.output_limit":
+    "本次模型输出已达上限（包含思考），已自动续写 2 次仍超出，任务尚未完整交付。可让 Bot 分步做，或降低思考强度、更换模型后接续，已有成果会保留。",
+  "chat.recoverModel": "更换模型并接续",
+  "chat.recoverModelHelp":
+    "选择模型后接续这个话题或子任务的未完成部分，保留已有成果。所选模型会存为这个 Bot 的模型，之后的消息也用它；全局默认模型不变。",
+  "chat.retryAfterQuota": "额度恢复后重试",
+  "nextReply.label": "下一步建议",
+  "nextReply.hint": "Tab 采纳，Esc 隐藏；采纳后仍需手动发送。",
+  "nextReply.accept": "采纳建议到草稿：{text}",
+  "nextReply.investigate": "请先分析这次失败，说明原因和可行的处理步骤，不要直接重试或绕过限制。",
+  "nextReply.clarify": "请列出需要我补充或确认的具体事项，以及各选项的影响。",
+  "nextReply.review": "请整理待审查的改动、验证结果和未确认事项，不要直接合并。",
+  "nextReply.children": "请核对子任务的实际状态，汇总已完成的结果和仍未完成的工作。",
+  "nextReply.stopped": "请先核对停止后的执行状态和已完成内容，说明继续前需要确认什么。",
+  "nextReply.nextSteps": "请总结当前结果，并说明接下来可以做什么。",
+  "nextReply.plan": "请检查这份计划的遗漏、风险和验收方法，先不要开始执行。",
+  "nextReply.continue": "继续处理计划中已授权的未完成项；需要新增授权时，请先说明。",
+  "nextReply.image": "请在这张图片的基础上调整：",
+  "chat.quote": "引用",
+  "chat.revealImage": "在文件夹中打开",
+  "chat.attachmentOverflow": "还有 {count} 个文件没附上，在 {folder}",
+  "chat.copyImage": "复制图片",
+  "chat.copyingImage": "正在复制图片…",
+  "chat.revealingImage": "正在打开…",
+  "chat.revealImageFailed": "无法定位图片文件，请重试。",
+  "chat.quoting": "引用回复",
+  "chat.cancelQuote": "取消引用",
+  "chat.quoteImage": "图片",
+  "chat.quoteAttachment": "附件",
+  "chat.quoteImages": "{count} 张图片",
+  "chat.quoteUnavailable": "引用的消息已不可用，请取消引用后重新选择。",
+  "errors.budget_exhausted": "本轮执行预算已用尽，任务已停止。请查看用量与子任务状态后再继续。",
+  "errors.repeated_operation": "同一步骤重复了太多次，已停止。请看最近的步骤是否卡住",
+  "errors.computer_stalled":
+    "操作电脑没有取得进展，已停止。请查看最近失败的步骤，确认窗口与输入焦点后再继续。",
+  "chat.readingWindow": "正在读取窗口内容",
+  "chat.startingAgent": "正在启动 {name}…（{seconds} 秒）",
+  "errors.task_unavailable": "子任务或来源会话已变化，当前无法继续。请刷新任务状态。",
+  "errors.task_workplace_changed":
+    "子任务记录的工作文件夹已不是同一个文件夹（被移动、替换或无法确认身份），没有继续运行。请确认文件夹后重新派发。",
+  "chat.sendOptions": "发送选项",
+  "chat.addition.steer": "立即补充当前任务",
+  "chat.addition.followUp": "等当前任务结束后处理",
+  "chat.additionHint.steer": "在当前步骤后的安全边界补充，不会瞬间打断或另开任务。",
+  "chat.additionHint.followUp": "等当前回复和工具工作结束后，在同一任务中继续处理。",
+  "chat.additionWaiting": "先处理审批；这条消息会在审批处理后作为新请求发送。",
+  "chat.additionState.queued": "等待送入当前任务",
+  "chat.additionState.queuedFollowUp": "等待任务结束后处理",
+  "chat.addition.switchToFollowUp": "改为等任务结束后",
+  "chat.addition.switchToSteer": "改为立即补充",
+  "chat.addition.switchLate": "已送入任务，来不及切换",
+  "chat.additionState.unsent": "任务已停止，这条没有送入",
+  "chat.addition.restore": "放回输入框",
+  "chat.addition.restored": "已放回输入框",
+  "chat.addition.waitModel": "等模型写完当前输出",
+  "chat.addition.waitTool": "等当前工具运行结束",
+  "chat.addition.waitStep": "等当前步骤结束",
+  "chat.addition.waited": "已等 {seconds} 秒",
+  "chat.addition.waitedMinutes": "已等 {minutes} 分钟",
+  "chat.addition.waitingFor": "{state}（{reason}，{waited}）",
+  "chat.addition.waitingOnly": "{state}（{waited}）",
+  "chat.additionState.received": "已送入，尚未确认处理完成",
+  "chat.additionState.processed": "已处理补充消息",
+  "chat.additionState.interrupted": "未确认处理完成，请核对结果后重新发送",
+  "chat.appendUnavailable": "当前会话已结束、正在准备或等待审批。草稿已保留，请核对后重试。",
+  "chat.appendFull": "本轮补充消息已达上限，请等待任务结束。草稿已保留。",
+  "chat.appendDuplicate":
+    "相同文字的补充仍在等待送入，不会重复提交。请等待或修改文字；草稿和附件已保留。",
+  "chat.appendConfirm": "核对追加结果",
+  "chat.appendUncertain": "追加是否已接受尚未确认。核对结果前暂停再次发送，草稿已保留。",
+  "chat.groupAdditionUnsupported": "群聊发送沿原有多 Bot 队列，本轮不支持立即补充或跟进当前会话。",
+  "chat.compacting": "正在整理上下文…",
+  "chat.compactNow": "立即整理",
+  "chat.compactMenu": "整理上下文",
+  "chat.compactNewTopic": "带摘要开新话题",
+  "chat.compactCancel": "停止整理",
+  "chat.compactDone": "上下文已整理。",
+  "chat.compactMechanical": "模型摘要不可用，已保留机械检查点；省略的细节需要重新核实。",
+  "chat.compactFailed": "整理未完成，请稍后重试。",
+  "chat.contextHint": "新模型的上下文更小，建议先整理一次。",
+  "chat.contextHintDismiss": "不用",
+  "chat.compactNothing": "这个话题还没有可整理的上下文。",
+  "chat.reconnecting":
+    "连接或模型服务暂时不可用，正在自动重试（{attempt}/{maxAttempts}），可随时停止…",
+  "errors.compaction_failed": "自动整理上下文失败，摘要未保存。请重试，或切换模型后继续此话题。",
+  "errors.compaction_timeout": "整理上下文超时，原有消息和摘要已保留。请稍后重试。",
+  "errors.context_overflow":
+    "当前上下文无法在此模型中安全整理。可切换到窗口更大的模型，或新建话题继续。",
+  "errors.session_event_handler_failed": "处理模型回复时出现内部错误。请导出日志联系开发者。",
+  "errors.session_unavailable":
+    "这个对话之前的模型会话文件不在当前数据目录里（数据目录可能被移动或恢复过），没法接着用。聊天记录还在，请新建话题继续。",
+  "errors.context_too_large":
+    "上下文不够：这一轮要带给模型的群资料或会话太大，超出了当前模型的上下文窗口，请求没有发出。可以换一个上下文更大的模型、新建话题，或稍后重试。",
+  "errors.context_unavailable":
+    "这一轮的参考资料没能准备好（群成员、任务或设置刚刚有变化），请求没有发出。请重试。",
+  "errors.tool_catalog_changed":
+    "工具定义或可用范围已变化，本次运行已停止。请重试以获取最新工具；已有成果会保留。",
+  "errors.workplace_unavailable": "这个文件夹不存在或无法访问，请重新关联。",
+  "errors.topic_busy":
+    "群里还有进行中的任务、后台命令或待处理的确认，暂时不能新开话题。先在原话题里处理或停止它们，再发送。",
+  "errors.runner_offline":
+    "这个工作文件夹在执行端，而执行端现在离线；等它重新连接后重试，或把文件夹改到本机。",
+  "errors.runner_update_required":
+    "这个执行端版本太旧，不支持群并行任务的独立工作区。请更新执行端后重试；没有在共享目录里执行。",
+  "errors.runner_revoked":
+    "这个执行端的配对已被撤销，不能再访问它的文件或运行命令；请在「连接」里重新配对。",
+  "errors.runner_disconnected":
+    "执行端连接在执行过程中断开，这次操作的结果未知；请先确认执行端在线并检查文件当前状态，再决定是否重试。",
+  "errors.workplace_mixed_locations":
+    "一个工作区的主文件夹和只读参考必须在同一台设备上；请把这些文件夹改到同一台设备。",
+  "errors.group_workspace_unavailable":
+    "并行任务工作区暂不可用。请核查群目录、权限和任务工作区状态；已有成果会保留。",
+  "errors.group_workspace_unsupported": "当前平台暂不支持群并行任务独立工作区，未在共享目录执行。",
+  "chat.openWorkplace": "打开工作位置",
+  "attachments.add": "添加附件",
+  "attachments.menu": "添加",
+  "attachments.drop": "松开即可添加附件",
+  "attachments.pending": "待发送的附件",
+  "attachments.remove": "移除 {name}",
+  "externalImage.title": "外部图片",
+  "externalImage.from": "来自 {domain}",
+  "externalImage.load": "点击加载",
+  "externalImage.denied": "访问网站已关闭",
+  "externalImage.network": "加载失败（网络不通）",
+  "externalImage.not_image": "不是图片",
+  "externalImage.too_large": "图片太大",
+  "externalImage.unsupported": "此主机暂不支持图片加载",
+  "externalImage.cancelled": "加载已取消",
+  "externalImage.audit": "加载了外部图片 · {domain}",
+  "attachments.view": "放大查看 {name}",
+  "attachments.open": "打开 {name}",
+  "attachments.close": "关闭",
+  "attachments.tooMany": "一条消息最多添加 5 个附件（图片和文件合计）。",
+  "attachments.unsupported": "暂不支持这种文件。支持文本、代码、PDF 和 Word（.docx）。",
+  "attachments.imageUnsupported": "当前模型不支持这项图片能力，请选择支持当前模式的模型。",
+  "attachments.imageTooLarge": "单张图片不能超过 10 MB。",
+  "attachments.fileTooLarge": "单个文件不能超过 20 MB。",
+  "attachments.invalid": "附件无效，请检查文件名、类型和内容。文本文件须为 UTF-8。",
+  "attachments.readFailed": "无法读取这个附件，请重新选择。",
+  "attachments.reading": "正在读取附件…",
+  "attachments.imageFailed": "图片加载失败",
+  "attachments.previewReleased": "预览已释放，请重试",
+  "attachments.openFailed": "无法打开这个文件，请检查本地副本和默认程序。",
+  "attachments.truncated": "文件太长，只发送了前 {percent}%。",
+  "errors.image_unsupported": "当前模型不支持这项图片能力，请选择支持当前模式的模型。",
+  "errors.attachment_invalid": "附件无效：请检查文件类型、文件头和 UTF-8 编码。",
+  "errors.scanned_pdf_unsupported": "这个 PDF 是扫描件，当前模型无法读取。请换成支持图片的模型。",
+  "errors.attachment_conversion": "附件转换失败或超时。请检查文件是否损坏、加密或过于复杂。",
+  "errors.mention_unresolved":
+    "这个 @ 对应不上群里唯一的一个 Bot。请从 @ 列表里选出要找的 Bot 再发送。",
+  "chat.metadataError": "无法加载 Bot 和模型信息，请重试。",
+  "chat.stopError": "停止请求失败，请再点一次停止。",
+  "chat.sendUncertain": "未能确认消息是否发送成功。请查看聊天记录后再重试。",
+  "chat.retryNeedsHistory": "加载更早的消息后可以重试。",
+  "chat.focus.missing": "找不到那条消息，可能已删除",
+  "chat.focus.failed": "暂时无法定位那条消息，请稍后重试。",
+  "chat.focus.stepMissing": "找不到那一步，已定位到消息。",
+  "chat.jumpLatest": "回到最新（{shortcut}）",
+  "chat.newMessages": "{count} 条新消息",
+  "chat.footnotes": "脚注",
+  "chat.openTopicReference": "打开这个聊天话题",
+  "chat.topicUnavailable": "无法打开这个聊天话题，它可能已被删除。",
+  "chat.footnoteBack": "返回正文引用 {reference}",
+} as const;
+
+export const chatEn: { [K in keyof typeof chatZh]: string } = {
+  "chat.citationsUnread":
+    "Citation note: {count} links were not successfully read in this run. Verify them before use.",
+  "chat.citationsIncomplete":
+    "Citation note: source records or reply exceeded the check limit; verification is incomplete.",
+  "chat.citationsScope":
+    "This checks whether links were read; it does not verify cited numbers or conclusions.",
+  "recovery.title": "Review recovery state",
+  "recovery.help":
+    "Review existing outcomes before continuing unfinished work. Continuation checks the current model, permissions, working directory, and budget. It does not replay the original request or automatically restore files. A missing tool result does not prove an operation was not executed; verify its effects first.",
+  "recovery.readFailed": "Recovery state is unavailable. Refresh to check again.",
+  "recovery.run": "Original run",
+  "recovery.task": "Group subtask",
+  "recovery.session": "Session record",
+  "recovery.entries":
+    "The current session branch has {count} history entries, including compacted history.",
+  "recovery.checkpoint":
+    "Latest context checkpoint: {time} (about {tokens} tokens before compaction)",
+  "recovery.noCheckpoint":
+    "No context checkpoint yet; continuation uses the existing session record.",
+  "recovery.filesRetained":
+    "A file checkpoint was retained. Review its current availability in Changes. Continuing does not automatically restore files.",
+  "recovery.filesUnavailable":
+    "No file checkpoint receipt is available for this run. Context checkpoints cannot restore files.",
+  "recovery.openFiles": "Review turn files and restore history",
+  "recovery.refresh": "Refresh state",
+  "recovery.run.queued": "Queued",
+  "recovery.run.running": "Running",
+  "recovery.run.waiting": "Waiting for approval",
+  "recovery.run.done": "Finished",
+  "recovery.run.error": "Failed",
+  "recovery.run.aborted": "Interrupted",
+  "recovery.session.available": "Readable",
+  "recovery.session.missing": "No session record",
+  "recovery.session.unavailable": "Cannot read safely; state unknown",
+  "recovery.session.busy": "In use; inspection deferred",
+  "recovery.continuation.ready": "Continue with the current model or select another model.",
+  "recovery.continuation.busy":
+    "This conversation is still running or draining. Refresh after it finishes.",
+  "recovery.continuation.newer_run":
+    "A later run exists. Review the latest failed or interrupted run instead.",
+  "recovery.continuation.unavailable":
+    "Continuation is unavailable here. Check the topic, membership, subtasks, and session record.",
+  "recovery.continuation.already_requested":
+    "Continuation was already requested. Confirming again checks the original request without dispatching another run.",
+
+  "chat.groupAdditionTarget":
+    "Several members are working. Mention one member to add to their current task. The original task will not be dispatched again.",
+  "chat.progress.label": "Progress notes",
+  "chat.progress.expand": "Expand progress notes",
+  "chat.progress.collapse": "Collapse progress notes",
+  "errors.quota_exhausted":
+    "The current model service's usage quota is exhausted. Switch to a model or account with available quota, or continue after the quota resets.",
+  "chat.changeModel": "Change model",
+  "chat.adjustModel": "Adjust model or thinking and continue",
+  "errors.output_limit":
+    "The model reached its output limit, including reasoning, even after 2 automatic continuations, so delivery is incomplete. Ask the Bot to work in smaller steps, lower thinking effort, or switch models to continue; existing work is preserved.",
+  "chat.recoverModel": "Change model and continue",
+  "chat.recoverModelHelp":
+    "Continue unfinished work in this conversation or subtask, preserving existing outcomes. The selected model becomes this Bot's model for later messages too; the global default is unchanged.",
+  "chat.retryAfterQuota": "Retry after quota resets",
+  "nextReply.label": "Suggested reply",
+  "nextReply.hint": "Tab to accept, Esc to dismiss. Send manually after accepting.",
+  "nextReply.accept": "Use suggestion as a draft: {text}",
+  "nextReply.investigate":
+    "Analyze this failure and explain the cause and possible next steps before retrying or bypassing restrictions.",
+  "nextReply.clarify":
+    "List the specific information or decisions you need from me and the impact of each option.",
+  "nextReply.review":
+    "Summarize the changes awaiting review, verification results, and open questions. Do not merge yet.",
+  "nextReply.children":
+    "Check the actual subtask status and summarize completed results and remaining work.",
+  "nextReply.stopped":
+    "Check the execution state and completed work after stopping. Explain what needs confirmation before continuing.",
+  "nextReply.nextSteps": "Summarize the current results and explain the possible next steps.",
+  "nextReply.plan":
+    "Check this plan for gaps, risks, and acceptance steps without starting execution.",
+  "nextReply.continue":
+    "Continue the unfinished plan items already authorized. Explain any additional authorization needed first.",
+  "nextReply.image": "Adjust this image as follows:",
+  "chat.quote": "Quote",
+  "chat.revealImage": "Show in folder",
+  "chat.attachmentOverflow": "{count} more files weren’t attached. They’re in {folder}",
+  "chat.copyImage": "Copy image",
+  "chat.copyingImage": "Copying image…",
+  "chat.revealingImage": "Opening…",
+  "chat.revealImageFailed": "Could not locate the image file. Try again.",
+  "chat.quoting": "Replying to a message",
+  "chat.cancelQuote": "Cancel quote",
+  "chat.quoteImage": "Image",
+  "chat.quoteAttachment": "Attachment",
+  "chat.quoteImages": "{count} images",
+  "chat.quoteUnavailable": "The quoted message is unavailable. Cancel the quote and choose again.",
+  "errors.budget_exhausted":
+    "This run reached its execution budget and stopped. Review usage and child tasks before continuing.",
+  "errors.repeated_operation":
+    "The same step was repeated too many times, so this run stopped. Check whether the recent steps are stuck.",
+  "errors.computer_stalled":
+    "Computer operation made no progress and stopped. Check the recent failed step, window and input focus before continuing.",
+  "chat.readingWindow": "Reading window content",
+  "chat.startingAgent": "Starting {name}… ({seconds} s)",
+  "errors.task_unavailable":
+    "The child task or its source conversation changed. Refresh task status before continuing.",
+  "errors.task_workplace_changed":
+    "The child task's working folder is no longer the same folder (moved, replaced, or its identity can't be confirmed), so it didn't run. Check the folder and dispatch again.",
+  "chat.sendOptions": "Send options",
+  "chat.addition.steer": "Add to the current task",
+  "chat.addition.followUp": "Handle after the current task",
+  "chat.additionHint.steer":
+    "Added at a safe boundary after the current step; no instant interruption or separate task.",
+  "chat.additionHint.followUp":
+    "Handled in the same task after the current reply and tool work finish.",
+  "chat.additionWaiting":
+    "Handle the approval first; this message will be sent as a new request after it is resolved.",
+  "chat.additionState.queued": "Waiting to enter the current task",
+  "chat.additionState.queuedFollowUp": "Waiting until the current task ends",
+  "chat.addition.switchToFollowUp": "Handle after the task instead",
+  "chat.addition.switchToSteer": "Add to the task now instead",
+  "chat.addition.switchLate": "Already taken into the task; too late to switch",
+  "chat.additionState.unsent": "The task stopped before this was added",
+  "chat.addition.restore": "Put back in the message box",
+  "chat.addition.restored": "Put back in the message box",
+  "chat.addition.waitModel": "the model is finishing its current output",
+  "chat.addition.waitTool": "the current tool is still running",
+  "chat.addition.waitStep": "the current step is finishing",
+  "chat.addition.waited": "waited {seconds} s",
+  "chat.addition.waitedMinutes": "waited {minutes} min",
+  "chat.addition.waitingFor": "{state} ({reason}, {waited})",
+  "chat.addition.waitingOnly": "{state} ({waited})",
+  "chat.additionState.received": "Delivered; processing is not yet confirmed",
+  "chat.additionState.processed": "Added message processed",
+  "chat.additionState.interrupted":
+    "Processing was not confirmed; review results before sending again",
+  "chat.appendUnavailable":
+    "The session ended, is preparing, or awaits approval. Your draft is kept; review and retry.",
+  "chat.appendFull":
+    "This run has reached its added-message limit. Wait for it to finish; your draft is kept.",
+  "chat.appendDuplicate":
+    "An addition with the same text is still waiting; it was not sent twice. Wait or change the text. Your draft and attachments are kept.",
+  "chat.appendConfirm": "Check added message",
+  "chat.appendUncertain":
+    "Acceptance is unconfirmed. Sending is paused until you check the result; your draft is kept.",
+  "chat.groupAdditionUnsupported":
+    "Group messages use the existing multi-Bot queue. Adding to or following up a live session is not supported here.",
+  "chat.compacting": "Organizing context…",
+  "chat.compactNow": "Organize now",
+  "chat.compactMenu": "Organize context",
+  "chat.compactNewTopic": "New topic with summary",
+  "chat.compactCancel": "Stop organizing",
+  "chat.compactDone": "Context organized.",
+  "chat.compactMechanical":
+    "Model summary unavailable. A mechanical checkpoint was retained; omitted details need verification.",
+  "chat.compactFailed": "Context could not be organized. Try again later.",
+  "chat.contextHint": "The new model has a smaller context. Organize this topic first.",
+  "chat.contextHintDismiss": "Not now",
+  "chat.compactNothing": "This topic has no context to organize yet.",
+  "chat.reconnecting":
+    "Connection or model service temporarily unavailable. Retrying ({attempt}/{maxAttempts}); you can stop at any time…",
+  "errors.compaction_failed":
+    "Automatic context organization failed; no summary was saved. Retry or switch models to continue this topic.",
+  "errors.compaction_timeout":
+    "Context organization timed out. Existing messages and the previous summary are preserved. Try again later.",
+  "errors.context_overflow":
+    "This context can’t be safely organized with the current model. Switch to a model with a larger context window or start a new topic.",
+  "errors.session_event_handler_failed":
+    "An internal error occurred while processing the model reply. Export the logs and contact the developer.",
+  "errors.session_unavailable":
+    "This chat’s earlier model session isn’t in the current data folder (it may have been moved or restored), so it can’t continue. Your messages are kept; start a new topic to continue.",
+  "errors.context_too_large":
+    "Not enough context: the group information or conversation for this turn is larger than this model’s context window, so nothing was sent. Choose a model with a larger window, start a new topic, or retry later.",
+  "errors.context_unavailable":
+    "The reference information for this turn couldn’t be prepared (group members, tasks or settings just changed), so nothing was sent. Please retry.",
+  "errors.group_workspace_unavailable":
+    "The parallel task workspace is unavailable. Check the group folder, permissions and task workspace status. Existing work is retained.",
+  "errors.group_workspace_unsupported":
+    "Parallel task workspaces are not supported on this platform yet. No work ran in the shared folder.",
+  "errors.tool_catalog_changed":
+    "Tool definitions or availability changed; this run stopped. Retry with the current tools. Existing work is preserved.",
+  "errors.workplace_unavailable":
+    "This folder doesn’t exist or can’t be accessed. Please associate it again.",
+  "errors.topic_busy":
+    "The group still has a task, a background command or a pending confirmation running, so a new topic can't start yet. Finish or stop it in the current topic, then send.",
+  "errors.runner_offline":
+    "This working folder is on an execution target that is offline. Wait for it to reconnect, or move the folder to this computer.",
+  "errors.runner_update_required":
+    "This execution target is too old for parallel group tasks in separate workspaces. Update it and try again; nothing ran in the shared folder.",
+  "errors.runner_revoked":
+    "This execution target was revoked, so its files and commands are unavailable. Pair it again in Connections.",
+  "errors.runner_disconnected":
+    "The execution target’s connection dropped mid-operation and the outcome is unknown. Check that it is online and inspect the files before retrying.",
+  "errors.workplace_mixed_locations":
+    "A workspace’s primary and read-only folders must be on the same device. Move them to one device.",
+  "chat.openWorkplace": "Open working folders",
+  "attachments.add": "Add attachment",
+  "attachments.menu": "Add",
+  "attachments.drop": "Drop to add attachments",
+  "attachments.pending": "Pending attachments",
+  "attachments.remove": "Remove {name}",
+  "externalImage.title": "External image",
+  "externalImage.from": "From {domain}",
+  "externalImage.load": "Click to load",
+  "externalImage.denied": "Website access is disabled",
+  "externalImage.network": "Loading failed (network unavailable)",
+  "externalImage.not_image": "Not an image",
+  "externalImage.too_large": "Image too large",
+  "externalImage.unsupported": "Image loading is unsupported on this host",
+  "externalImage.cancelled": "Loading cancelled",
+  "externalImage.audit": "Loaded an external image · {domain}",
+  "attachments.view": "Enlarge {name}",
+  "attachments.open": "Open {name}",
+  "attachments.close": "Close",
+  "attachments.tooMany": "A message can contain at most 5 attachments, including images and files.",
+  "attachments.unsupported":
+    "This file type is not supported yet. Use text, code, PDF, or Word (.docx).",
+  "attachments.imageUnsupported":
+    "The current model doesn’t support images. Choose an image-capable model in Settings.",
+  "attachments.imageTooLarge": "Each image must be 10 MB or smaller.",
+  "attachments.fileTooLarge": "Each file must be 20 MB or smaller.",
+  "attachments.invalid":
+    "Invalid attachment. Check the name, type, and content. Text files must use UTF-8.",
+  "attachments.readFailed": "Couldn’t read this attachment. Select it again.",
+  "attachments.reading": "Reading attachments…",
+  "attachments.imageFailed": "Image failed to load",
+  "attachments.previewReleased": "Preview released; retry to reload",
+  "attachments.openFailed": "Couldn’t open this file. Check the saved copy and default app.",
+  "attachments.truncated": "The file is too long. Only the first {percent}% was sent.",
+  "errors.image_unsupported":
+    "The current model does not support this image capability. Choose a model supporting the current mode.",
+  "errors.attachment_invalid":
+    "Invalid attachment. Check the type, file signature, and UTF-8 encoding.",
+  "errors.scanned_pdf_unsupported":
+    "This PDF is a scan. The current model can’t read it. Choose an image-capable model.",
+  "errors.attachment_conversion":
+    "Attachment conversion failed or timed out. Check for damage, encryption, or excessive complexity.",
+  "errors.mention_unresolved":
+    "This @mention doesn’t match exactly one Bot in the group. Pick the Bot from the @ list, then send again.",
+  "chat.metadataError": "Couldn’t load the Bot and model information. Please try again.",
+  "chat.stopError": "Couldn’t stop the reply. Please press Stop again.",
+  "chat.sendUncertain":
+    "Couldn’t confirm whether the message was sent. Check the chat history before retrying.",
+  "chat.retryNeedsHistory": "Load earlier messages to retry this reply.",
+  "chat.focus.missing": "That message could not be found. It may have been deleted.",
+  "chat.focus.failed": "Couldn’t locate that message right now. Please try again later.",
+  "chat.focus.stepMissing": "That step could not be found. The message is shown instead.",
+  "chat.jumpLatest": "Jump to latest ({shortcut})",
+  "chat.newMessages": "{count} new messages",
+  "chat.footnotes": "Footnotes",
+  "chat.openTopicReference": "Open this chat topic",
+  "chat.topicUnavailable": "Cannot open this chat topic; it may have been deleted.",
+  "chat.footnoteBack": "Back to reference {reference}",
+};

@@ -1,0 +1,26 @@
+{
+  "name": "@pibot/tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L2"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser/index.ts",
+    "./command": "./src/command/command-tools.ts",
+    "./files": "./src/files/file-tools.ts",
+    "./patch": "./src/files/patch.ts",
+    "./reveal": "./src/host/reveal-in-folder.ts",
+    "./runtime": "./src/runtime/tool-runtime.ts",
+    "./web": "./src/web/web-fetch.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/execution": "workspace:0.0.0",
+    "@pibot/protocol-base": "workspace:0.0.0"
+  }
+}

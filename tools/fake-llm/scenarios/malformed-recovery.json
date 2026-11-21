@@ -1,0 +1,6 @@
+{
+  "replies": [
+    { "text": "", "finishReason": "malformed_function_call", "delayMs": 0 },
+    { "text": "已恢复正常调用。", "delayMs": 0 }
+  ]
+}

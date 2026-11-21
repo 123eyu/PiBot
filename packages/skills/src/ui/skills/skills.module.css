@@ -1,0 +1,659 @@
+/* Skills: profile panel section, detail, editor, import dialog, chat proposal card. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.head h2 {
+  flex: 1 0 auto;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+}
+/* The skills sit in one card, a divider between rows. */
+.list {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.mini {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 11px;
+  font-size: 12.5px;
+  gap: 5px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 4px;
+  flex-wrap: wrap;
+}
+.row + .row {
+  border-top: 1px solid var(--b1);
+}
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.main:hover {
+  background: var(--hover);
+}
+.row[data-enabled="false"] .main {
+  opacity: 0.55;
+}
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meta {
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The run dialog still marks a verified workflow. */
+.verifiedBadge {
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--okBg);
+  color: var(--ok);
+}
+.workflowWarnings {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Lines up with the name, past the row's tile (28px + 8px gap). */
+  padding: 0 8px 5px 42px;
+  color: var(--warn);
+  font-size: 11.5px;
+}
+.note {
+  margin: 0;
+  padding: 4px 2px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.error {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--danger);
+}
+.status {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ok);
+}
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.back {
+  align-self: flex-start;
+  margin-left: -8px;
+}
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.titleRow strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.tag {
+  flex: none;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--hover);
+  color: var(--text2);
+  white-space: nowrap;
+}
+.description {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.kv {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  font-size: 13px;
+}
+.kv > span:first-child {
+  flex: 0 0 76px;
+  color: var(--text2);
+}
+.kv > span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.body {
+  margin: 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--tert);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.grow {
+  flex: 1;
+}
+.danger {
+  color: var(--danger);
+}
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--b3);
+  border-radius: 14px;
+  font-size: 13px;
+}
+.confirm p {
+  margin: 0;
+}
+.deleteButton {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--onPrim);
+}
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.field input,
+.field textarea {
+  /* No global border-box reset: without this the padding pushes fields past the card edge. */
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.field textarea {
+  min-height: 160px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 18px;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--b3);
+}
+.field textarea.markdown {
+  /* The whole SKILL.md (front matter and steps) should fit without scrolling for a short skill. */
+  min-height: 320px;
+}
+.issues {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12.5px;
+  color: var(--danger);
+}
+.paramRow {
+  display: grid;
+  /* The remove button keeps its own width; a fixed 30px column let it overlap the inputs. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+.paramRow input {
+  box-sizing: border-box;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.paramRow input:last-of-type {
+  grid-column: 1 / 3;
+}
+.card {
+  align-self: stretch;
+  /* The owners (skill detail and the connections panel) are scrolling flex columns. With
+     `overflow: hidden` this item's automatic minimum height is zero, so the default flex-shrink: 1
+     squeezed it and clipped its own text; keep its height and let the panel scroll instead. */
+  flex: none;
+  max-width: 560px;
+  margin: 8px 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 6px;
+  font-weight: 650;
+}
+.cardHead svg {
+  flex: none;
+}
+.cardSub {
+  margin: 0;
+  padding: 0 16px 10px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px 10px;
+}
+.cardBody summary {
+  font-size: 12.5px;
+  color: var(--accent);
+  cursor: pointer;
+}
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--b1);
+}
+.cardResult {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 14px;
+  font-size: 13px;
+}
+.cardResult[data-accepted="true"] svg {
+  color: var(--ok);
+}
+.overlay {
+  position: fixed;
+  inset: var(--titlebar-height, 0px) 0 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--overlay);
+}
+.dialog {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 40px - var(--titlebar-height, 0px));
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+}
+.dialog h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+.dialog p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text2);
+}
+.dialog .warn {
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--warnBg);
+  color: var(--warn);
+  font-size: 12.5px;
+}
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+/* 「从连接选择」: one ticked row per skill / MCP, in the same card as the skills list. */
+.pickRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+.pickRow + .pickRow {
+  border-top: 1px solid var(--b1);
+}
+.pickRow:hover {
+  background: var(--hover);
+}
+.pickRow input {
+  flex: none;
+  margin: 0;
+  accent-color: var(--prim);
+}
+.dialog p.pickFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+/* Skill packages: import preview and detail file lists. */
+.wideDialog {
+  max-width: 640px;
+}
+/* The dialog scrolls as a whole; without this its flex column squeezes SKILL.md and the lists. */
+.wideDialog > * {
+  flex-shrink: 0;
+}
+.subhead {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--text);
+}
+.files {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  font-size: 12.5px;
+}
+.fileDir,
+.fileItem {
+  padding-inline-start: calc(var(--depth, 0) * 14px);
+  min-width: 0;
+}
+.fileDir,
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  color: var(--text);
+}
+.fileIcon {
+  flex: none;
+  color: var(--text2);
+}
+.fileName {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.fileSize {
+  flex: none;
+  color: var(--text2);
+  font-size: 12px;
+}
+.dialog p.fileNote,
+.fileNote {
+  margin: 0 0 4px 19px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.fileItem > .body {
+  margin: 2px 0 6px;
+  max-height: 260px;
+}
+/* Editor: the file list beside the text, or above it where the panel is narrow. */
+.editorLayout {
+  container-type: inline-size;
+}
+.editorGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+@container (min-width: 560px) {
+  .editorGrid {
+    grid-template-columns: minmax(170px, 220px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+.editorFiles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.editorFiles .files {
+  max-height: 240px;
+}
+.editorPane {
+  min-width: 0;
+}
+.fileActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.filePick {
+  width: 100%;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.filePick:hover {
+  background: var(--hover);
+}
+.filePick[aria-current="true"] {
+  background: var(--tert);
+}
+.paneHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  color: var(--text);
+}
+/* Source/version, runtime and compatibility blocks in a skill's detail. */
+.extraBadge {
+  margin-inline-start: auto;
+  padding: 1px 8px;
+  border: 1px solid var(--b2);
+  border-radius: 999px;
+  background: var(--b1);
+  color: var(--text2);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.extraBadge[data-state="ready"] {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+.extraBadge[data-state="failed"] {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.extraBadge[data-state="preparing"],
+.extraBadge[data-state="needs_prepare"] {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.extraCard {
+  align-self: stretch;
+  /* Same shrinking trap as .card; the summary and the entry lists must stay readable. */
+  flex: none;
+  max-width: 560px;
+  border: 1px solid var(--b3);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  overflow: hidden;
+}
+.extraCard > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.extraGroup {
+  padding: 0 16px;
+}
+.extraGroup h4 {
+  margin: 8px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.extraCard > .note {
+  padding: 0 16px 12px;
+}
+.extraList {
+  margin: 0 0 8px;
+  padding-inline-start: 18px;
+  font-size: 12.5px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+/* The update dialog's SKILL.md comparison: line-level, mono, bounded height. */
+.diff {
+  margin: 0;
+  padding: 8px 10px;
+  max-height: 300px;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.diffRow {
+  color: var(--text2);
+}
+.diffRow[data-kind="add"] {
+  background: var(--tert);
+  color: var(--text);
+}
+.diffMark {
+  display: inline-block;
+  width: 1ch;
+  margin-inline-end: 6px;
+}
+.diffRow[data-kind="add"] .diffMark {
+  color: var(--ok);
+}
+.diffRow[data-kind="del"] .diffMark {
+  color: var(--danger);
+}
+
+/* Confirmations and the detail's extra blocks as soft cards; state badges are
+   filled pills (status colours keep their meaning); parameter fields are tinted. */
+.confirm.confirm {
+  border: 0;
+  background: color-mix(in srgb, var(--avatar-violet) 6%, var(--card));
+  box-shadow: var(--shadow-soft);
+}
+.extraCard.extraCard {
+  border: 0;
+  box-shadow: var(--shadow-soft);
+}
+.extraBadge.extraBadge {
+  border: 0;
+  background: var(--tert);
+}
+.extraBadge.extraBadge[data-state="ready"] {
+  background: var(--okBg);
+}
+.extraBadge.extraBadge[data-state="failed"] {
+  background: var(--dangerBg);
+}
+.extraBadge.extraBadge[data-state="preparing"],
+.extraBadge.extraBadge[data-state="needs_prepare"] {
+  background: var(--warnBg);
+}
+.paramRow.paramRow input {
+  border-color: transparent;
+  border-radius: 10px;
+  background: var(--tert);
+}

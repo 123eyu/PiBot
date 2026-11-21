@@ -1,0 +1,15 @@
+.panel {
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font-size: 13px;
+  flex-shrink: 0;
+  max-height: min(45vh, 420px);
+  overflow: auto;
+}
+.panel > summary {
+  cursor: pointer;
+  padding: 10px 14px;
+}
+.panel > p {
+  padding: 0 14px 10px;
+}

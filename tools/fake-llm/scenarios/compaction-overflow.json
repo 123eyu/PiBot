@@ -1,0 +1,9 @@
+{
+  "replies": [
+    { "text": "第一轮合成历史。", "promptTokens": 7400 },
+    { "text": "第二轮合成历史。", "promptTokens": 52000 },
+    { "text": "合成上下文超限错误", "httpError": "context_length_exceeded" },
+    { "text": "超限后的合成摘要：保留已完成工作和下一步。" },
+    { "text": "overflow 整理后的一次重试成功。" }
+  ]
+}

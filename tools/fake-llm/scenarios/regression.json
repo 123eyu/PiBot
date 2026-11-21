@@ -1,0 +1,55 @@
+{
+  "replies": [
+    {
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": { "command": "curl -sS -o /dev/null https://example.com", "timeoutSec": 30 }
+        }
+      ]
+    },
+    { "text": "回归第 1 项 完成：请核对命令退出码和审计记录。" },
+    {
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": { "command": "echo ok 2>/dev/null", "timeoutSec": 30 }
+        }
+      ]
+    },
+    { "text": "回归第 2 项 完成：请核对 ok 输出和审计记录。" },
+    {
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": {
+            "command": "printf '%s\\n' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'",
+            "timeoutSec": 30
+          }
+        }
+      ]
+    },
+    {
+      "text": "回归第 3 项：ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\n\n| 长列一 | 长列二 |\n| --- | --- |\n| ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 | ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 |\n\n```text\nABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\n```"
+    },
+    {
+      "toolCalls": [
+        { "name": "run_command", "arguments": { "command": "sudo ls", "timeoutSec": 30 } }
+      ]
+    },
+    { "text": "回归第 4 项 完成：sudo 应被拒绝，不能有完整输出入口。" },
+    {
+      "toolCalls": [
+        { "name": "list_dir", "arguments": { "path": ".", "depth": 1 } },
+        { "name": "list_dir", "arguments": { "path": ".", "depth": 1 } }
+      ]
+    },
+    { "text": "回归第 5 项 完成：两次列目录应折叠，展开后可看每一步。" },
+    {
+      "toolCalls": [
+        { "name": "run_command", "arguments": { "command": "false", "timeoutSec": 30 } }
+      ]
+    },
+    { "text": "回归第 6 项 完成：非零退出的失败步骤应保持展开。" }
+  ]
+}

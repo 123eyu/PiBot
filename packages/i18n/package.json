@@ -1,0 +1,29 @@
+{
+  "name": "@pibot/i18n",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/plugins-contract": "workspace:0.0.0",
+    "@pibot/routines-contract": "workspace:0.0.0",
+    "@pibot/models-contract": "workspace:0.0.0",
+    "@pibot/office-contract": "workspace:0.0.0",
+    "@pibot/images-contract": "workspace:0.0.0",
+    "@pibot/credentials-contract": "workspace:0.0.0",
+    "@pibot/skills-contract": "workspace:0.0.0",
+    "@pibot/computer-use-contract": "workspace:0.0.0",
+    "@pibot/browser-contract": "workspace:0.0.0",
+    "@pibot/workspaces-contract": "workspace:0.0.0",
+    "@pibot/teams-contract": "workspace:0.0.0",
+    "@pibot/remote-contract": "workspace:0.0.0",
+    "@pibot/execution": "workspace:0.0.0",
+    "@pibot/external-agents-contract": "workspace:0.0.0"
+  }
+}

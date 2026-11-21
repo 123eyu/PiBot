@@ -1,0 +1,1921 @@
+/* Changes sidebar. Colors come only from @pibot/ui tokens; tints are color-mix of them. */
+.pane {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.grow {
+  flex: 1;
+}
+.plus,
+.minus {
+  font-variant-numeric: tabular-nums;
+}
+.plus {
+  color: var(--ok);
+}
+.minus {
+  color: var(--danger);
+}
+
+/* repository / scope */
+.repo {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 0 14px 10px;
+  color: var(--text2);
+  font-size: 12.5px;
+  min-width: 0;
+}
+.repoSummary {
+  flex: 1 1 180px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.repoContext,
+.repoBranchRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.repoContext {
+  width: 100%;
+}
+.repoFolder {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+.repoFolder > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.repoActions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 8px;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: auto;
+}
+.rootName {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+.rootName > span,
+.branchName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.rootName > svg,
+.branch > svg {
+  flex: none;
+}
+.branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 24px;
+  height: 24px;
+  padding: 2px 4px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text2);
+}
+.branchName {
+  font-family: var(--font-mono);
+}
+.pill,
+.pillAccent {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--tert);
+  color: var(--text2);
+}
+.pillAccent {
+  flex: none;
+  background: var(--accentBg);
+  color: var(--accent);
+}
+.scope {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 0 14px 10px;
+  border-bottom: 1px solid var(--b1);
+}
+/* "N found" + "Review again" need ~190px; in the narrow pane they move under the scopes. */
+.reviewActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.segments span {
+  padding: 4px 11px;
+  font-size: 12.5px;
+}
+
+/* shared small controls */
+.mini,
+.miniAccent,
+.miniGhost,
+.miniGhostAccent {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.miniAccent {
+  color: var(--accent);
+  margin-left: auto;
+}
+.miniGhost,
+.miniGhostAccent {
+  border-color: transparent;
+  background: transparent;
+}
+.miniGhostAccent {
+  color: var(--accent);
+}
+.mini:enabled:hover,
+.miniAccent:hover,
+.miniGhost:hover,
+.miniGhostAccent:enabled:hover {
+  box-shadow: inset 0 0 0 100px var(--hover);
+}
+.mini:disabled,
+.miniGhostAccent:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.iconGhost,
+.iconGhostSmall {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.iconGhostSmall {
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  color: inherit;
+}
+.iconGhost:enabled:hover,
+.iconGhostSmall:hover {
+  background: var(--hover);
+}
+.iconGhost[aria-pressed="true"] {
+  background: var(--tert);
+}
+.iconGhost:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.mini:focus-visible,
+.miniAccent:focus-visible,
+.miniGhost:focus-visible,
+.miniGhostAccent:focus-visible,
+.iconGhost:focus-visible,
+.iconGhostSmall:focus-visible,
+.headerPill:focus-visible,
+.cardOpen:focus-visible,
+.cardFile:focus-visible,
+.dirRow:focus-visible,
+.moreRow:focus-visible,
+.generatedRow:focus-visible,
+.fileName:focus-visible,
+.rowAction:focus-visible,
+.commit:focus-visible,
+.layoutToggle button:focus-visible,
+.addComment:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.smallPrimary {
+  min-height: 32px;
+  padding: 4px 16px;
+  font-size: 13px;
+}
+.dangerButton {
+  background: var(--danger);
+  color: var(--onPrim);
+}
+.spin {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--b3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* notices */
+.notices {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 14px 2px;
+}
+.bannerInfo,
+.bannerWarn,
+.bannerAccent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 18px;
+}
+.bannerInfo {
+  background: var(--tert);
+  color: var(--text2);
+}
+.bannerWarn {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.bannerAccent {
+  background: var(--accentBg);
+  color: var(--accent);
+}
+.bannerInfo > svg,
+.bannerWarn > svg,
+.bannerAccent > svg,
+.commentsBar > svg {
+  flex: none;
+}
+.diffScroll > .bannerInfo,
+.diffScroll > .bannerAccent {
+  margin: 10px 10px 0;
+}
+/* A document's changes grouped by slide, sheet or body region instead of lines. */
+.office {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 14px;
+}
+.officeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.officePage {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.officeItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--tert);
+}
+.officeHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+.officeHead > b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.officeArea {
+  color: var(--text3);
+  font-variant-numeric: tabular-nums;
+}
+.officeHead > .miniAccent {
+  margin-left: auto;
+}
+.officeBefore,
+.officeAfter {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.officeBefore {
+  color: var(--danger);
+}
+.officeNote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text3);
+}
+.link {
+  margin-left: auto;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* body */
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.listColumn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.body[data-wide] .listColumn {
+  flex: 0 0 clamp(220px, 38%, 320px);
+  border-right: 1px solid var(--b1);
+}
+.diffColumn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.summary {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 10px 14px 6px;
+  font-size: 12.5px;
+}
+.summary b {
+  font-weight: 650;
+}
+.dist {
+  color: var(--text2);
+}
+.tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px 8px;
+}
+.search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--b2);
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  outline: none;
+}
+.search input:focus-visible {
+  border-color: var(--text2);
+}
+.search input::placeholder {
+  color: var(--text2);
+}
+.layoutToggle {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 15px;
+  background: var(--hover);
+}
+.layoutToggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 24px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.layoutToggle button[aria-pressed="true"] {
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+/* virtual file list */
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 6px 8px;
+  contain: strict;
+}
+.listInner {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rowSlot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+.listEmpty {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: var(--text2);
+  font-size: 13px;
+}
+.dirRow,
+.moreRow,
+.generatedRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.generatedRow {
+  margin-top: 9px;
+  border-top: 1px dashed var(--b2);
+  border-radius: 0 0 9px 9px;
+}
+.moreRow {
+  padding-left: 34px;
+  color: var(--accent);
+}
+.dirRow:hover,
+.moreRow:hover,
+.generatedRow:hover,
+.fileRow:hover {
+  background: var(--hover);
+}
+.chevron {
+  flex: none;
+}
+.dirName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.generatedRow .dirName {
+  font-family: var(--font-sans);
+}
+.count {
+  color: var(--text2);
+}
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 9px;
+}
+.fileRow[data-nested] {
+  padding-left: 30px;
+}
+.fileRow[data-on] {
+  background: var(--tert);
+}
+.check {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.tag {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 3px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accentBg);
+  color: var(--accent);
+}
+.tag[data-tag="A"] {
+  background: var(--okBg);
+  color: var(--ok);
+}
+.tag[data-tag="U"] {
+  background: transparent;
+  color: var(--ok);
+  box-shadow: inset 0 0 0 1px var(--ok);
+}
+.tag[data-tag="D"],
+.tag[data-tag="C"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.tag[data-tag="T"],
+.tag[data-tag="X"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.fileName {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.fileName > span:first-child {
+  /* Badges never squeeze the name away entirely in the narrow wide-mode list column. */
+  min-width: min(6ch, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fileName [data-deleted] {
+  text-decoration: line-through;
+  color: var(--text2);
+}
+.commentBadge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accentBg);
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+}
+.rowStat {
+  flex: none;
+}
+.rowAction {
+  display: none;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.rowAction:hover {
+  background: var(--hover);
+}
+.fileRow:hover .rowAction,
+.fileRow:focus-within .rowAction {
+  display: inline-flex;
+}
+.fileRow:hover .rowStat:has(+ .rowAction),
+.fileRow:focus-within .rowStat:has(+ .rowAction) {
+  display: none;
+}
+.stat,
+.statMuted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.statMuted {
+  color: var(--text2);
+}
+.bars {
+  display: inline-flex;
+  gap: 1.5px;
+}
+.bars i {
+  width: 6px;
+  height: 6px;
+  border-radius: 1.5px;
+  background: var(--danger);
+}
+.bars i[data-kind="add"] {
+  background: var(--ok);
+}
+
+/* diff */
+.diff {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  container: diff / inline-size;
+}
+/*
+ * One row: the file name gives way (ellipsis) before any button does. Wrapping used to drop the
+ * last "next file" arrow onto its own line whenever the wide layout's diff column was narrow.
+ */
+.diffHead {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px 8px 8px;
+  border-bottom: 1px solid var(--b1);
+}
+.diffPath {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin-left: 4px;
+}
+/* Below ~340px the buttons alone fill the row; the list already shows the file's position. */
+@container diff (max-width: 340px) {
+  .position {
+    display: none;
+  }
+  .diffHead {
+    gap: 0;
+    padding-right: 4px;
+  }
+}
+/* Too narrow even for that (small window in the wide layout): the name takes the first line and
+   the buttons stay together on the second, instead of clipping the last ones. */
+@container diff (max-width: 300px) {
+  .diffHead {
+    flex-wrap: wrap;
+  }
+  .diffPath {
+    flex-basis: calc(100% - 40px);
+  }
+  .diffHead .iconGhost {
+    width: 26px;
+  }
+}
+.diffPath b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+.diffPath > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--text2);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+.position {
+  padding: 0 2px;
+  color: var(--text2);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.diffScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 16px;
+}
+.gap {
+  margin: 10px 10px 0;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12px;
+}
+.hunk {
+  /* Inline comments size to the visible hunk width while the code scrolls sideways. */
+  container-type: inline-size;
+  margin: 10px 10px 0;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  background: var(--card);
+  overflow: hidden;
+  /* Off-screen hunks skip layout and paint; long files stay smooth without a second virtualizer. */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 240px;
+}
+.hunkHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 4px 6px 4px 10px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12px;
+}
+.hunkHead > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.hunkHead .mini {
+  height: 24px;
+  font-size: 12px;
+  padding: 0 8px;
+}
+.code {
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 20px;
+}
+.chunk {
+  /* Paint containment would clip long lines, so each block is as wide as its widest line. */
+  width: max-content;
+  min-width: 100%;
+  content-visibility: auto;
+  /* Rows are 20px unwrapped; wrapped lines are taller, which "auto" corrects once painted. */
+  contain-intrinsic-size: auto calc(var(--rows, 200) * 20px);
+}
+.diffScroll[data-wrap] .chunk {
+  width: auto;
+}
+.sentinel {
+  height: 1px;
+}
+.line {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 40px 16px minmax(0, 1fr);
+  min-width: max-content;
+}
+.diffScroll[data-wrap] .line {
+  min-width: 0;
+}
+.num {
+  padding-right: 6px;
+  color: var(--text2);
+  opacity: 0.7;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+.num[title] {
+  cursor: pointer;
+}
+.line:hover .num[title] {
+  color: var(--accent);
+  opacity: 1;
+}
+.sign {
+  color: var(--text2);
+  text-align: center;
+  user-select: none;
+}
+.text {
+  padding-right: 12px;
+  white-space: pre;
+}
+.diffScroll[data-wrap] .text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.text mark {
+  border-radius: 3px;
+  color: inherit;
+}
+.line[data-kind="add"] {
+  background: var(--okBg);
+}
+.line[data-kind="add"] .num {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+}
+.line[data-kind="add"] .sign {
+  color: var(--ok);
+}
+.line[data-kind="add"] mark {
+  background: color-mix(in srgb, var(--ok) 28%, transparent);
+}
+.line[data-kind="del"] {
+  background: var(--dangerBg);
+}
+.line[data-kind="del"] .num {
+  background: color-mix(in srgb, var(--danger) 13%, transparent);
+}
+.line[data-kind="del"] .sign {
+  color: var(--danger);
+}
+.line[data-kind="del"] mark {
+  background: color-mix(in srgb, var(--danger) 24%, transparent);
+}
+.line[data-kind="meta"] {
+  color: var(--text2);
+  font-style: italic;
+}
+.line[data-selected] {
+  background: var(--accentBg);
+}
+.line[data-selected] .num {
+  background: var(--accentBg);
+  color: var(--accent);
+  opacity: 1;
+}
+.line[data-selected]::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent);
+}
+.addComment {
+  position: absolute;
+  top: 1px;
+  left: 62px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--onPrim);
+  cursor: pointer;
+}
+.line:hover .addComment,
+.addComment:focus-visible {
+  display: inline-flex;
+}
+.imageCompare {
+  margin: 12px 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.imageBox {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  background: repeating-conic-gradient(var(--tert) 0% 25%, var(--card) 0% 50%) 50% / 16px 16px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.imageBox[data-empty] {
+  background: var(--tert);
+  color: var(--text2);
+  font-family: var(--font-sans);
+}
+.imageBox small {
+  color: var(--text2);
+  font-family: var(--font-sans);
+}
+.imageBox .miniAccent {
+  margin-left: 0;
+}
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+.skeleton i {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--tert);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* comments */
+.comment {
+  margin: 10px 10px 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--b3);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  font-family: var(--font-sans);
+  white-space: normal;
+}
+.comment[data-inline] {
+  position: sticky;
+  left: 0;
+  box-sizing: border-box;
+  width: calc(100cqw - 20px);
+  max-width: 560px;
+  margin: 6px 10px 8px;
+}
+.commentHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.commentHead b {
+  color: var(--text);
+  font-weight: 600;
+}
+.commentRef {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+.commentState {
+  margin-left: auto;
+}
+.commentText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 19px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.commentActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  max-height: 140px;
+  padding: 9px 12px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 19px;
+  resize: vertical;
+  outline: none;
+}
+.textarea:focus-visible {
+  border-color: var(--text2);
+}
+.textarea::placeholder {
+  color: var(--text2);
+}
+
+/* footer */
+.footer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--b1);
+  background: var(--bg);
+}
+.commentsBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 12px;
+  background: var(--accentBg);
+  color: var(--accent);
+  font-size: 12.5px;
+}
+.commentsBar > span {
+  flex: 1;
+}
+.commitBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.commitRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.selection {
+  flex: 1;
+  color: var(--text2);
+  font-size: 12px;
+  text-align: right;
+}
+.authorRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.authorRow > span {
+  flex-basis: 100%;
+}
+.input {
+  flex: 1 1 140px;
+  min-width: 0;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--b2);
+  border-radius: 15px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.footNote {
+  margin: 0;
+  color: var(--text2);
+  font-size: 11.5px;
+  line-height: 16px;
+}
+.errorText,
+.okText {
+  margin: 0;
+  font-size: 12.5px;
+}
+.errorText {
+  color: var(--danger);
+}
+.okText {
+  color: var(--ok);
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 12px;
+  background: var(--okBg);
+  color: var(--ok);
+  font-size: 12.5px;
+}
+.toast > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toast .miniGhost {
+  color: var(--ok);
+}
+.readonlyFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text2);
+  font-size: 12.5px;
+}
+.readonlyFoot > span {
+  flex: 1;
+}
+
+/* empty / history / dialog */
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 32px;
+  color: var(--text2);
+  font-size: 13px;
+  text-align: center;
+}
+.empty b {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+.history {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 6px 10px;
+}
+.history > .footNote {
+  padding: 10px;
+  text-align: center;
+}
+.commit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.commit:hover {
+  background: var(--hover);
+}
+.commitMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.commitSubject {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+}
+.commitMeta {
+  color: var(--text2);
+  font-size: 12px;
+}
+.commitHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px 0 6px;
+}
+.commitHeader > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.commitHeader b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.commitHeader span {
+  color: var(--text2);
+  font-size: 12px;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--overlay);
+}
+.dialog {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.dialog b {
+  font-size: 15px;
+  font-weight: 650;
+}
+.dialog p {
+  margin: 0;
+  color: var(--text2);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+.dialogActions > button {
+  min-height: 34px;
+  padding: 4px 16px;
+  font-size: 13px;
+}
+
+/* chat header pill and reply card */
+.headerPill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  margin-left: auto;
+  padding: 0 14px 0 11px;
+  border: 1px solid var(--b2);
+  border-radius: 17px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.headerPill:hover {
+  box-shadow: inset 0 0 0 100px var(--hover);
+}
+.headerPill[aria-pressed="true"] {
+  border-color: var(--b3);
+  background: var(--tert);
+}
+.card {
+  align-self: stretch;
+  max-width: 520px;
+  overflow: hidden;
+  border: 1px solid var(--b3);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+}
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 10px 6px 14px;
+}
+.cardTop b {
+  font-weight: 650;
+}
+.cardOpen {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  margin-left: auto;
+  padding: 0 6px 0 10px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.cardOpen:hover {
+  background: var(--accentBg);
+}
+.cardFile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* The menu must fit inside 100%, including the row's horizontal padding. */
+  box-sizing: border-box;
+  width: 100%;
+  padding: 5px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.cardFile:hover {
+  background: var(--hover);
+}
+.cardFile:last-child {
+  padding-bottom: 10px;
+}
+.cardPath {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.cardMore {
+  margin: 0;
+  padding: 4px 14px 11px;
+  color: var(--text2);
+  font-size: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin,
+  .skeleton i {
+    animation: none;
+  }
+}
+
+/* Expandable unchanged lines, image thumbnails, review findings, upstream counts. */
+.gapRow {
+  margin: 10px 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: var(--accentBg);
+  font-size: 12px;
+}
+.gapButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+span.gapButton {
+  cursor: default;
+}
+button.gapButton:hover {
+  background: var(--hover);
+}
+button.gapButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.gapRest {
+  margin-left: auto;
+  color: var(--text2);
+}
+.expanded {
+  container-type: inline-size;
+  margin: 10px 10px 0;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--card);
+}
+.findingsTop {
+  display: flex;
+  flex-direction: column;
+}
+.findingsTop > .footNote {
+  margin: 10px 12px 0;
+}
+.comment[data-finding="security"] {
+  border-color: var(--danger);
+}
+.comment[data-finding="bug"] {
+  border-color: var(--warn);
+}
+.comment[data-finding="suggestion"] {
+  border-color: var(--accent);
+}
+.comment[data-finding] > .commentHead > svg {
+  flex: none;
+  color: var(--text2);
+}
+.severity {
+  margin-left: auto;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.severity[data-severity="security"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.severity[data-severity="bug"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.severity[data-severity="suggestion"] {
+  background: var(--accentBg);
+  color: var(--accent);
+}
+.findingBadge {
+  flex: none;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warnBg);
+  color: var(--warn);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+}
+.reviewing {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  color: var(--text2);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.miniWarn {
+  color: var(--warn);
+}
+.reviewClean {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 6px 0 10px;
+  color: var(--ok);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.upstream {
+  color: var(--text2);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.commitInitial {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 600;
+}
+figure.imageBox {
+  margin: 0;
+  aspect-ratio: auto;
+  min-height: 140px;
+}
+.imageBox figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.imageBox figcaption span {
+  color: var(--text2);
+  font-family: var(--font-sans);
+}
+.imageThumb {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.reviewHistory {
+  flex: none;
+  max-height: 220px;
+  overflow: auto;
+  border-bottom: 1px solid var(--b1);
+  padding: 10px 14px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.reviewHistory p {
+  margin: 6px 0;
+}
+.reviewHistory > p {
+  color: var(--text2);
+}
+
+/* Lively changes pane: solid colour tags, a summary card in green, a frosted commit bar. */
+.tag {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  color: var(--on-tone);
+  background: var(--avatar-blue);
+}
+.tag[data-tag="A"] {
+  color: var(--on-tone);
+  background: var(--avatar-green);
+}
+.tag[data-tag="U"] {
+  color: var(--on-tone);
+  background: var(--avatar-teal);
+  box-shadow: none;
+}
+.tag[data-tag="D"] {
+  color: var(--on-tone);
+  background: var(--danger);
+}
+.tag[data-tag="C"] {
+  color: var(--on-tone);
+  background: var(--avatar-orange);
+}
+.tag[data-tag="T"] {
+  color: var(--on-tone);
+  background: var(--avatar-violet);
+}
+.tag[data-tag="X"] {
+  color: var(--on-tone);
+  background: var(--text2);
+}
+.summary {
+  margin: 10px 12px 4px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--avatar-green) 14%, var(--card)),
+    var(--card)
+  );
+  box-shadow: var(--shadow-soft);
+}
+.footer {
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+/* Lively changes pane, continued. The pane's colour is green: sliding segments and switches
+   inside take it, the file list and hunks become soft cards, comments and findings carry a
+   coloured edge, history rows get green initials. Row heights stay as the virtualizer expects. */
+.pane {
+  --accent-fill: var(--avatar-green);
+  --accent-knob: var(--on-tone);
+  --accent-ink: var(--ink-green);
+}
+.scope {
+  padding-top: 2px;
+  border-bottom: 0;
+}
+.scope > .segments {
+  flex: 1 1 260px;
+}
+.repo .pill,
+.pillAccent {
+  height: 24px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+}
+.pillAccent {
+  color: var(--ink-green);
+  background: color-mix(in srgb, var(--avatar-green) 13%, transparent);
+}
+.search input {
+  border-color: transparent;
+  background: var(--tert);
+}
+.search input:focus-visible {
+  border-color: color-mix(in srgb, var(--avatar-green) 55%, transparent);
+}
+.layoutToggle button[aria-pressed="true"] {
+  color: var(--ink-green);
+}
+.list {
+  margin: 0 12px 8px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.dirRow {
+  font-weight: 600;
+}
+.fileRow {
+  transition: background-color 150ms ease;
+}
+.fileRow[data-on] {
+  background: color-mix(in srgb, var(--avatar-green) 11%, transparent);
+}
+.commentBadge {
+  color: var(--ink-violet);
+}
+.hunk {
+  border-color: var(--b1);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+.hunkHead {
+  background: color-mix(in srgb, var(--avatar-green) 7%, var(--tert));
+}
+.line[data-selected],
+.line[data-selected] .num {
+  background: color-mix(in srgb, var(--avatar-violet) 12%, transparent);
+}
+.line[data-selected] .num {
+  color: var(--ink-violet);
+}
+.comment {
+  border: 1px solid color-mix(in srgb, var(--avatar-violet) 28%, transparent);
+  border-left: 3px solid var(--avatar-violet);
+  background: color-mix(in srgb, var(--avatar-violet) 6%, var(--card));
+  box-shadow: var(--shadow-soft);
+}
+.comment[data-finding] {
+  border-color: var(--b1);
+  background: var(--card);
+}
+.comment[data-finding="security"] {
+  border-left: 3px solid var(--danger);
+}
+.comment[data-finding="bug"] {
+  border-left: 3px solid var(--avatar-amber);
+}
+.comment[data-finding="suggestion"] {
+  border-left: 3px solid var(--avatar-blue);
+}
+.commentsBar {
+  color: var(--ink-violet);
+  background: color-mix(in srgb, var(--avatar-violet) 11%, transparent);
+}
+.commitRow .smallPrimary:enabled {
+  color: var(--on-tone);
+  background: var(--avatar-green);
+}
+.history {
+  padding: 4px 12px 10px;
+}
+.commit {
+  transition:
+    background-color 150ms ease,
+    transform 180ms var(--ease-out);
+}
+.commit:hover {
+  transform: translateX(2px);
+}
+.commitInitial {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: var(--on-tone);
+  background: var(--avatar-green);
+}
+/* The changed-files card is a soft card led by a green tile, no hairline. */
+.card {
+  border: 0;
+  box-shadow: var(--shadow-soft);
+}
+.cardBare {
+  max-width: none;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+.empty b {
+  color: var(--text);
+  font-size: 14.5px;
+}
+.emptyTile.emptyTile {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  margin-bottom: 6px;
+}
+.dialog {
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
+  animation: dialogIn 260ms var(--ease-out);
+}
+@keyframes dialogIn {
+  from {
+    transform: translateY(6px) scale(0.98);
+    opacity: 0;
+  }
+}
+.officeItem {
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.imageBox {
+  border-color: var(--b1);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog {
+    animation: none;
+  }
+  .commit:hover {
+    transform: none;
+  }
+}
+
+/* Menus: 在访达中显示 (a shared renderer-kit button) leads with an amber folder tile like
+   every other menu item; its own folder glyph is drawn as the tile. */
+.revealItem > svg:first-child {
+  box-sizing: content-box;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  padding: 3px;
+  border-radius: 6px;
+  color: var(--on-tone);
+  background: var(--avatar-amber);
+}
+
+/* "ask X to review" + ⌄ reviewer menu read as one pill; the menu rows show avatar, name,
+   model · role and the recommendation. */
+.reviewSplit {
+  display: inline-flex;
+  align-items: center;
+}
+.reviewSplit > .mini {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.reviewSplit > :last-child > button,
+.reviewActions > :last-child > button[aria-haspopup] {
+  width: 26px;
+  height: 28px;
+  border: 1px solid var(--b2);
+  border-radius: 0 14px 14px 0;
+  background: var(--card);
+}
+.reviewSplit > :last-child > button {
+  border-left: 0;
+}
+.reviewActions > :last-child > button[aria-haspopup] {
+  border-radius: 14px;
+}
+.reviewerRow {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.reviewerRow:hover,
+.reviewerRow[aria-current] {
+  background: var(--hover);
+}
+.reviewerText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.reviewerName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.reviewerText small {
+  color: var(--text2);
+  font-size: 11.5px;
+}
+.reviewerText small.reviewerWarn {
+  color: var(--warn);
+}
+.reviewerRemember {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 8px 10px 2px;
+  border-top: 1px solid var(--b1);
+  font-size: 12px;
+  cursor: pointer;
+}
+.reviewerNote {
+  padding: 2px 10px 6px;
+  color: var(--text2);
+  font-size: 11.5px;
+}

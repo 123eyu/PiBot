@@ -1,0 +1,34 @@
+{
+  "name": "@pibot/runner-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "bin": {
+    "pibot": "./bin/pibot.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/multicast-dns": "7.2.4",
+    "@types/ws": "8.18.2",
+    "app-builder-lib": "26.15.3",
+    "resedit": "1.7.2"
+  },
+  "dependencies": {
+    "@pibot/execution": "workspace:*",
+    "@pibot/link": "workspace:*",
+    "@pibot/policy": "workspace:*",
+    "@pibot/protocol-base": "workspace:*",
+    "@pibot/runner": "workspace:*",
+    "@pibot/secrets": "workspace:*",
+    "multicast-dns": "7.2.5",
+    "node-datachannel": "0.33.6",
+    "ws": "8.22.0",
+    "@napi-rs/image": "1.16.0",
+    "@pibot/computer": "workspace:*"
+  }
+}

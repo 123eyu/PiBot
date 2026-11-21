@@ -1,0 +1,353 @@
+.root {
+  height: calc(100vh - var(--titlebar-height, 0px));
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  /* A soft violet wash, the brand's colour, behind every step. */
+  background-image: radial-gradient(
+    120% 60% at 50% 0%,
+    color-mix(in srgb, var(--brand) 12%, transparent),
+    transparent 70%
+  );
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  /* Every step's main action and every pick ring is the brand violet. */
+  --button-fill: var(--brand);
+  --button-on: var(--on-tone);
+  --accent-fill: var(--brand);
+  --accent-knob: var(--on-tone);
+  --accent-ink: var(--ink-violet);
+  --page-c: var(--brand);
+  /* A page without any declared region can inherit the starting placeholder's drag region on
+     macOS after navigation, which swallows every click; declaring one forces a fresh region map. */
+  -webkit-app-region: no-drag;
+}
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Steps fit a laptop window (about 700 px tall after the menu bar and Dock) without scrolling;
+     the gaps and the logo shrink with the window height, and scrolling is left for smaller ones. */
+  padding: clamp(16px, 8vh, 64px) 24px clamp(8px, 3vh, 24px);
+}
+.content {
+  width: 100%;
+  max-width: 640px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 3vh, 24px);
+}
+.logo {
+  width: clamp(56px, 13vh, 104px);
+  height: clamp(56px, 13vh, 104px);
+}
+.center {
+  text-align: center;
+  align-items: center;
+}
+.content h1 {
+  font-size: 32px;
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+.content h2 {
+  margin: 0;
+}
+.content p {
+  margin: 0;
+}
+.values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  text-align: left;
+  width: 100%;
+}
+.value {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  transition: transform 160ms var(--ease-out);
+}
+.value:hover {
+  transform: translateY(-2px);
+}
+.value > span {
+  margin-bottom: 4px;
+}
+.textButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* An inline action that reads like the step's other links. */
+.textButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.textButton:disabled {
+  color: var(--text2);
+  cursor: default;
+}
+/* Model step: four compact pick cards in a 2×2 radio grid, so the chosen route's form starts
+   higher on a laptop screen; the chosen card gets Pi's violet border, wash and ring. */
+.routes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.route {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.route:hover:not([data-disabled]) {
+  transform: translateY(-1px);
+}
+.route:has(:focus-visible) {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.route[data-disabled] {
+  cursor: default;
+  opacity: 0.6;
+}
+.route[data-checked] {
+  border-color: color-mix(in srgb, var(--brand) 60%, transparent);
+  background: color-mix(in srgb, var(--brand) 6%, var(--card));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent),
+    var(--shadow-soft);
+}
+/* Tinted tile with an ink glyph, quieter than IconTile's solid fill next to four cards of text. */
+.route .routeTile {
+  background: color-mix(in srgb, var(--tile) 16%, transparent);
+  color: var(--tint);
+}
+.routeText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.routeText strong {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  font-size: 14.5px;
+  font-weight: 650;
+}
+.routeText > span {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text2);
+}
+/* The native radio drawn as a ring; it keeps the arrow-key behaviour. */
+.radio {
+  appearance: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border-radius: 50%;
+  border: 2px solid var(--b3);
+  cursor: inherit;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.radio:checked {
+  border-color: var(--brand);
+  background: var(--brand);
+  box-shadow: inset 0 0 0 3px var(--card);
+}
+.radio:focus-visible {
+  outline: none;
+}
+/* The radio sits on the title line, top right, as in the compact cards. */
+.route > .radio {
+  margin-top: 2px;
+}
+/* ChatGPT plan route: the supported plans as a row of small chips. */
+.plans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* The chosen route's form sits below the cards in one soft card. */
+.routeBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+/* Permissions step: the restart hint is a quiet band under the rows. */
+.band {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--brand) 9%, transparent);
+  font-size: 13px;
+  color: var(--text);
+}
+.band > span {
+  flex: 1;
+  min-width: 0;
+}
+.band[data-tone="danger"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.permissions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px 24px;
+}
+.progress {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  display: flex;
+  gap: 6px;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--b3);
+  transition:
+    width 280ms var(--ease-out),
+    background 280ms var(--ease-out);
+}
+.dot[aria-current] {
+  width: 22px;
+  background: var(--brand);
+}
+.glow {
+  display: inline-flex;
+  /* A drop shadow follows the blob's own outline. */
+  filter: drop-shadow(0 18px 24px color-mix(in srgb, var(--brand) 42%, transparent));
+}
+.helloRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  max-width: 520px;
+  text-align: left;
+}
+.helloAvatar {
+  flex: none;
+  display: inline-flex;
+}
+.hello {
+  flex: 1;
+  min-width: 0;
+  box-shadow: var(--shadow-soft);
+  background: var(--card);
+  border-radius: 4px 18px 18px 18px;
+  padding: 12px 16px;
+  text-align: left;
+}
+/* The main action carries a soft violet glow, like the approved welcome. */
+.footer > :last-child:enabled {
+  box-shadow: 0 10px 24px -12px var(--brand);
+}
+.link {
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 760px) {
+  .values,
+  .routes {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .value,
+  .dot,
+  .route,
+  .radio {
+    transition: none;
+  }
+  .value:hover,
+  .route:hover:not([data-disabled]) {
+    transform: none;
+  }
+}
+
+/* Welcome model step: the network proxy, folded under a link (shown at once after a network failure). */
+.proxy {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  min-width: 0;
+}
+.proxy > :last-child {
+  justify-self: stretch;
+}
+.proxyToggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.proxyToggle:hover {
+  color: var(--text);
+}
+.proxyToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

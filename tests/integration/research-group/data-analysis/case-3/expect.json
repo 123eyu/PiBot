@@ -1,0 +1,65 @@
+{
+  "scenario": 4,
+  "method": "analysis-report",
+  "behaviour": "confirmation",
+  "requiredStrings": [
+    "合成数字图书馆"
+  ],
+  "deliverables": [
+    {
+      "id": "report",
+      "path": "报告.md",
+      "kind": "md",
+      "sections": [
+        "关键发现",
+        "数据与方法"
+      ]
+    },
+    {
+      "id": "document",
+      "path": "报告.docx",
+      "kind": "docx",
+      "sections": [
+        "关键发现",
+        "数据与方法"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "exists",
+      "check": "exists",
+      "deliverable": "report"
+    },
+    {
+      "id": "sections",
+      "check": "sections",
+      "deliverable": "report"
+    },
+    {
+      "id": "chart",
+      "check": "hasChart",
+      "deliverable": "report"
+    },
+    {
+      "id": "docx-exists",
+      "check": "exists",
+      "deliverable": "document"
+    },
+    {
+      "id": "docx-sections",
+      "check": "sections",
+      "deliverable": "document"
+    },
+    {
+      "id": "docx-chart",
+      "check": "hasChart",
+      "deliverable": "document"
+    }
+  ],
+  "budget": {
+    "modelRequests": 100,
+    "costUsd": 1,
+    "activeSeconds": 300
+  }
+}

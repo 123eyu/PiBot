@@ -1,0 +1,20 @@
+{
+  "replies": [
+    { "toolCalls": [{ "name": "list_dir", "arguments": { "path": ".", "depth": 1 } }] },
+    {
+      "toolCalls": [
+        { "name": "run_command", "arguments": { "command": "ls -la", "timeoutSec": 30 } }
+      ]
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "write_file",
+          "arguments": { "path": "acceptance.txt", "content": "Pi Bot acceptance\n" }
+        }
+      ]
+    },
+    { "toolCalls": [{ "name": "read_file", "arguments": { "path": "acceptance.txt" } }] },
+    { "text": "已完成目录、命令、写文件和读文件场景。" }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@pibot/computer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L1"
+  },
+  "exports": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "@trycua/cua-driver": "0.38.0",
+    "zod": "4.6.5"
+  }
+}

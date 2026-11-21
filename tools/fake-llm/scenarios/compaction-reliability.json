@@ -1,0 +1,81 @@
+{
+  "replies": [
+    {
+      "text": "fixture summary"
+    }
+  ],
+  "routes": {
+    "slow": [
+      {
+        "text": "slow flowing checkpoint",
+        "delayMs": 12
+      }
+    ],
+    "idle": [
+      {
+        "text": "should not finish",
+        "pauseMs": 200
+      }
+    ],
+    "hang": [
+      {
+        "text": "",
+        "hang": true
+      }
+    ],
+    "retry": [
+      {
+        "text": "",
+        "httpError": "rate_limited"
+      },
+      {
+        "text": "recovered checkpoint"
+      }
+    ],
+    "length": [
+      {
+        "text": "truncated",
+        "finishReason": "length"
+      },
+      {
+        "text": "short checkpoint"
+      }
+    ],
+    "toolUse": [
+      {
+        "text": "usable checkpoint",
+        "toolCalls": [
+          {
+            "name": "unprovided_tool",
+            "arguments": {}
+          }
+        ]
+      }
+    ],
+    "missing": [
+      {
+        "text": "checkpoint with unknown tool outcome"
+      }
+    ],
+    "large": [
+      {
+        "text": "bounded incremental checkpoint"
+      }
+    ],
+    "unattended": [
+      {
+        "text": "",
+        "httpError": "provider_error"
+      }
+    ],
+    "partial": [
+      {
+        "text": "first completed chunk"
+      },
+      {
+        "text": "",
+        "httpError": "provider_error"
+      }
+    ]
+  }
+}

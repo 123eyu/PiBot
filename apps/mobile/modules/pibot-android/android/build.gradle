@@ -1,0 +1,22 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'space.pibot'
+version = '0.0.1'
+
+android {
+  namespace "space.pibot.android"
+  defaultConfig {
+    versionCode 1
+    versionName '0.0.1'
+  }
+}
+
+dependencies {
+  // SMS User Consent API (one message, after the user allows it; no SMS
+  // permission). Exact versions; update deliberately with the Expo SDK.
+  implementation "com.google.android.gms:play-services-auth-api-phone:18.3.1"
+  implementation "androidx.core:core-ktx:1.17.0"
+}

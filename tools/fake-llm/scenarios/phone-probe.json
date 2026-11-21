@@ -1,0 +1,14 @@
+{
+  "replies": [
+    {
+      "text": "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen",
+      "delayMs": 25
+    },
+    { "toolCalls": [{ "name": "phone_echo", "arguments": { "text": "ping-from-phone" } }] },
+    { "text": "phone_echo returned phone_echo:ping-from-phone.", "delayMs": 10 },
+    {
+      "text": "one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen",
+      "delayMs": 40
+    }
+  ]
+}

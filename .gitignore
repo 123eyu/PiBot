@@ -1,0 +1,65 @@
+node_modules/
+.pnpm-store/
+.cache/
+out/
+dist/
+.env*
+*.log
+coverage/
+.DS_Store
+*.tsbuildinfo
+.codex/
+.refs/
+.grok-*
+.*-current.png
+.models-current.png
+.composer-current.png
+.claude/worktrees/
+.vscode/
+.pibot/
+.playwright-mcp/
+
+# Firebase / push credentials live outside the repo (~/.pibot); never commit them.
+google-services.json
+GoogleService-Info.plist
+*firebase-adminsdk*.json
+.pibot-dev/
+
+# Wrangler / Miniflare local state (wrangler dev); never committed
+.wrangler/
+
+# Private repo (internal docs, Codex tooling, probes, evals); never part of the public repo
+internal/
+
+# ── Private development repository ─────────────────────────────────────────────
+# These paths are tracked by a separate private repository that shares this working tree
+# (internal docs and rules, Codex tooling, probes, real-model evals). The public repository
+# never contains them; public code must not depend on them.
+/.git-internal/
+/AGENTS.internal.md
+/CLAUDE.internal.md
+/docs/*
+!/docs/guide/
+!/docs/privacy/
+!/docs/assets/
+/design/*
+!/design/canvas/
+/design/canvas/*
+!/design/canvas/Logo.dc.html
+/tools/codex/
+/tools/probes/
+/tools/spikes/
+/tools/ui/
+/tools/ui-driver/
+/tools/eval/
+/tests/eval/
+/tests/e2e/workflow-cost/
+/apps/mobile/src/dev/a53-probe/
+/apps/mobile/scripts/direct-rebind-probe.mjs
+/apps/mobile/scripts/offline-probe.mjs
+/apps/mobile/scripts/real-link-probe.mjs
+/apps/mobile/scripts/upgrade-link-probe.mjs
+/tools/dev/a51-mask-probe.ts
+
+# Private release tooling (tracked in the private repository)
+tools/release/role-catalog-site/

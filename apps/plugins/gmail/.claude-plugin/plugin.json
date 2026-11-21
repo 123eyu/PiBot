@@ -1,0 +1,5 @@
+{
+  "name": "gmail",
+  "version": "1.0.0",
+  "description": "Built-in Gmail access through Pi Bot's Google OAuth flow"
+}

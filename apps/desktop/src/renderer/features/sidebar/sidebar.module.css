@@ -1,0 +1,769 @@
+.sidebar {
+  width: 300px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--side);
+  border-right: 1px solid var(--b1);
+}
+.titlebar {
+  height: 64px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px;
+  -webkit-app-region: drag;
+}
+.bot {
+  width: calc(100% - 16px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 8px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.bot:hover {
+  background: var(--b2);
+}
+.bot.archive {
+  gap: 10px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  color: var(--text2);
+  font-size: 13px;
+}
+.bot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.avatar {
+  position: relative;
+  flex: none;
+}
+.mainBadge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--side);
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--avatar-eye);
+  font-size: 10px;
+}
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.summary strong {
+  color: var(--text);
+  font-size: 15px;
+}
+.summary > span {
+  min-height: 1.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text2);
+}
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding: 16px 14px;
+}
+.settings {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+}
+.menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: 250px;
+  padding: 6px;
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+.menu button {
+  width: 100%;
+  justify-content: flex-start;
+  white-space: normal;
+}
+@media (max-width: 1050px) {
+  .sidebar {
+    width: 250px;
+  }
+}
+
+.waitingTitle {
+  padding: 8px 18px;
+  color: var(--warn);
+  font-size: 12px;
+}
+.summary > .waiting {
+  color: var(--warn);
+}
+.summary > .failed {
+  color: var(--danger);
+}
+
+.topActions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  -webkit-app-region: no-drag;
+}
+/* A soft search field with its icon inside; no edge until focused. */
+.search {
+  position: relative;
+  padding: 0 14px 12px;
+}
+.searchIcon {
+  position: absolute;
+  left: 26px;
+  top: 10px;
+  color: var(--text2);
+  pointer-events: none;
+}
+.search input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 8px 12px 8px 34px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font: inherit;
+}
+/* Search results: 对话 · n / 消息 · n heads. */
+.searchHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 10px 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.searchHead::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--avatar-blue);
+}
+.searchEmpty {
+  margin: 8px 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12.5px;
+}
+.scroll {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  padding: 4px 8px;
+}
+.empty {
+  margin: 0;
+  padding: 10px 12px;
+  color: var(--text2);
+  font-size: 13px;
+}
+.bot[aria-current="page"] {
+  position: relative;
+  background: color-mix(in srgb, var(--row-c, var(--text2)) 13%, transparent);
+}
+/* A short bar in the Bot's colour marks the open chat. */
+.bot[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--row-c, var(--text2));
+}
+.nameLine strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.unread {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+/* A 分组 is a collapsible run of rows under a small heading with its ⋯ menu. */
+.section {
+  margin-top: 6px;
+}
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 8px 0 10px;
+}
+.sectionHeading button {
+  min-width: 0;
+  min-height: 28px;
+  padding: 2px 6px;
+  gap: 6px;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+}
+.sectionHeading button:hover {
+  color: var(--text);
+}
+.sectionChevron {
+  transition: transform 200ms var(--ease-out);
+}
+.sectionName {
+  min-width: 0;
+  text-align: start;
+}
+.note {
+  color: var(--text2);
+  font-size: 12px;
+}
+.danger {
+  color: var(--danger);
+}
+.health {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--dangerBg);
+  color: var(--danger);
+  font-size: 12px;
+}
+.health button {
+  min-height: 28px;
+  padding: 3px 12px;
+  font-size: 12px;
+  color: var(--on-tone);
+  background: var(--danger);
+  border-color: transparent;
+}
+.health > span {
+  flex: 1 1 160px;
+}
+.menu > span {
+  display: block;
+}
+.separated {
+  border-top: 1px solid var(--b1);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+.rename {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px;
+}
+.rename input {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 6px 8px;
+  box-shadow: 0 0 0 2px var(--row-c, var(--accent));
+  color: var(--text);
+  background: var(--card);
+  font: inherit;
+}
+.rename input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.renameError {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.rename button {
+  color: var(--text);
+  background: var(--tert);
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-pill);
+  padding: 6px;
+  font: inherit;
+}
+.searchRow {
+  width: 100%;
+  margin: 0;
+  align-items: flex-start;
+}
+.searchRow:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.searchRow .nameLine strong {
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.topicTitle {
+  color: var(--text2);
+  font-weight: normal;
+}
+.summary > .snippet {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.match {
+  border-radius: 4px;
+  padding: 0 1px;
+  background: color-mix(in srgb, var(--avatar-amber) 28%, transparent);
+  color: var(--text);
+}
+
+.row {
+  position: relative;
+}
+/* WeChat-style pinning: a pinned chat stays an ordinary row, at the top, on a slightly darker
+   ground; hover and the open chat keep their usual colours. */
+/* Pinned chats sit together at the top in one soft block; each row behaves as usual. */
+.pinnedBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 8px 6px;
+  padding: 4px 0;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--tert) 70%, transparent);
+}
+.pinnedBlock .bot {
+  width: calc(100% - 8px);
+  margin: 0 4px;
+}
+.pinnedRow .bot:hover {
+  background: var(--b2);
+}
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+.pinMark {
+  display: inline-flex;
+  color: var(--text2);
+}
+.nameLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nameLine time {
+  flex: none;
+  font-size: 11px;
+  color: var(--text2);
+}
+.summary {
+  flex: 1;
+}
+.acpStatus,
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.shortcuts {
+  /* Three coloured pills. Equal thirds cut the English "Routines" (with its icon) to
+     "Routin…" while "Log" had room to spare, so each pill starts from its own label width and
+     shares what is left; an ellipsis remains only for a very narrow sidebar. */
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 10px;
+}
+.shortcuts .shortcut {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 8px;
+  border-radius: 10px;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  justify-content: center;
+  color: var(--tone-ink);
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  transition:
+    transform 150ms ease,
+    background-color 200ms ease;
+}
+.shortcuts .shortcut:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--tone) 20%, transparent);
+}
+.shortcut[data-tone="amber"] {
+  --tone: var(--avatar-amber);
+  --tone-ink: var(--ink-amber);
+}
+.shortcut[data-tone="orange"] {
+  --tone: var(--avatar-orange);
+  --tone-ink: var(--ink-orange);
+}
+.shortcut[data-tone="teal"] {
+  --tone: var(--avatar-teal);
+  --tone-ink: var(--ink-teal);
+}
+.shortcut > svg {
+  flex: none;
+}
+.shortcuts .shortcut[aria-current="page"] {
+  background: color-mix(in srgb, var(--tone) 26%, transparent);
+}
+.shortcutLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sectionSettings {
+  background: var(--tert);
+  border: 1px solid var(--b2);
+}
+.pendingDot {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--tone);
+}
+.count {
+  flex: none;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  font-size: 10.5px;
+  color: var(--on-tone);
+  background: var(--tone);
+}
+.shortcut[data-empty] .count,
+.shortcut[data-empty] .pendingDot {
+  display: none;
+}
+.acpConnection {
+  min-width: 0;
+}
+.acpStatus {
+  min-width: 0;
+  padding: 4px 8px 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  color: var(--ok);
+  background: var(--okBg);
+}
+.acpDisconnect {
+  flex: none;
+  min-height: 26px;
+  padding: 0 5px;
+  font-size: 11px;
+  -webkit-app-region: no-drag;
+}
+.acpError {
+  margin: 4px 0 0;
+  color: var(--danger);
+  font-size: 11px;
+}
+/* One line only; the full sentence is in the title tooltip. */
+.statusText {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.statusDot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ok);
+}
+/* 连接 reads as a labelled destination: blue tile, name, what lives there. */
+.connect {
+  flex: 1;
+  justify-content: flex-start;
+  border-radius: 13px;
+  height: 46px;
+  min-width: 0;
+  gap: 10px;
+  padding: 0 10px 0 8px;
+  border: 0;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  transition: transform 150ms ease;
+}
+.connect:hover {
+  transform: translateY(-1px);
+}
+.connect[aria-current="page"] {
+  background: color-mix(in srgb, var(--avatar-blue) 14%, var(--card));
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--avatar-blue) 55%, transparent);
+}
+.connectText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+.connectTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+.connectHint {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text2);
+}
+.connectChevron {
+  flex: none;
+  color: var(--text2);
+}
+.rename button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.rename input:focus-visible {
+  outline: none;
+  border-color: var(--text2);
+}
+.search input:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--avatar-blue) 50%, transparent);
+}
+
+/* Search: the note reads as a small caption, results keep the row rhythm. */
+.scroll > .note:first-child {
+  margin: 0 18px 6px;
+}
+.menu button {
+  gap: 10px;
+  min-height: 34px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.moveList button {
+  justify-content: flex-start;
+  gap: 10px;
+}
+.moveList button[data-current] {
+  border-color: var(--avatar-teal);
+  box-shadow: inset 0 0 0 1px var(--avatar-teal);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sectionChevron {
+    transition: none;
+  }
+}
+
+/* Archive: an entry at the list's end, and a dialog of two card sections. */
+.archiveLabel {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+}
+.archiveSection {
+  --mark: var(--avatar-violet);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.archiveSection[data-tone="teal"] {
+  --mark: var(--avatar-teal);
+}
+.archiveSection > h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.archiveSection > h2::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mark);
+}
+.archiveSection > p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.archiveList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: none;
+}
+.archiveRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.archiveRow button {
+  min-height: 30px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+}
+.archiveName {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.archiveName small {
+  font-weight: 400;
+}
+.archiveGroup {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--on-tone);
+  background: var(--avatar-teal);
+}
+.archiveDelete {
+  color: var(--danger);
+}
+.archiveEmpty {
+  margin: 0;
+  padding: 18px 12px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text2);
+  background: var(--tert);
+}
+.archiveError {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  color: var(--danger);
+  background: var(--dangerBg);
+}
+.archiveNotice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  color: var(--warn);
+  background: var(--warnBg);
+}
+/* Maintainers 2026-11-13: the ＋ menu (batch1 `plus`). It may overlap the draggable title bar. */
+.newMenu {
+  width: 264px;
+  -webkit-app-region: no-drag;
+  animation: newMenuIn 180ms var(--ease-out);
+}
+.newMenu button {
+  min-height: 52px;
+  padding: 8px 10px;
+  gap: 12px;
+  text-align: left;
+}
+.newMenuText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.newMenuTitle {
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.newMenuNote {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--text2);
+}
+@keyframes newMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .newMenu {
+    animation: none;
+  }
+}
+.topActions button[aria-expanded="true"] {
+  background: var(--hover);
+}
+
+/* ⌘1–4 next to each ＋ menu row (they replace the old new-chat page's quick picks). */
+.newMenuKey {
+  flex: none;
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--tert);
+  color: var(--text2);
+  font: 11.5px var(--font-mono, ui-monospace, monospace);
+}

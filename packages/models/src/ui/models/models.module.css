@@ -1,0 +1,254 @@
+.modelsPage,
+.modelsList {
+  min-width: 0;
+}
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+  color: var(--danger);
+  background: var(--card);
+  overflow-wrap: anywhere;
+}
+.modelsList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.modelsPage p {
+  margin: 0;
+}
+.subtitle {
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 21px;
+}
+.providerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.providerSection:nth-of-type(2) {
+  gap: 12px;
+}
+.providerSection h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 21px;
+}
+/* The same coloured section mark as the settings sections. */
+.providerSection h2::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--page-c, var(--text2));
+}
+.sectionHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.sectionHeading h2 {
+  flex: 1;
+}
+.sectionHeading > span {
+  font-size: 12px;
+}
+.providerSearch {
+  width: 200px;
+  max-width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+.providerSearch::placeholder {
+  color: var(--text2);
+}
+.groups {
+  min-width: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  margin: -3px;
+}
+.groups button {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 30px;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--hover);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.groups button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--page-c, var(--text)) 16%, transparent);
+  color: var(--accent-ink, var(--text));
+  font-weight: 600;
+}
+.groups button:hover {
+  box-shadow: inset 0 0 0 100px var(--hover);
+}
+.providers,
+.configuredProviders {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr));
+  gap: 8px;
+}
+.configuredProviders {
+  grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+}
+.tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    border-color 160ms ease;
+}
+.tile:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--page-c, var(--text)) 35%, transparent);
+  transform: translateY(-2px);
+}
+.tile[aria-pressed="true"] {
+  border-color: var(--page-c, var(--text));
+}
+/* 「＋ 自定义厂商」 reads as an add tile. */
+.tile[data-add] {
+  border: 1.5px dashed var(--b2);
+  background: transparent;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    transition: none;
+  }
+  .tile:hover:not(:disabled) {
+    transform: none;
+  }
+}
+.tile:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.tileText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.tileText strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.tileText strong,
+.tileNote {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tileNote {
+  font-size: 11.5px;
+  color: var(--text2);
+}
+.configuredTile .tileNote {
+  font-size: 12px;
+}
+.monogram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--text2);
+  color: var(--on-tone);
+  font-size: 11px;
+  font-weight: 700;
+}
+/* A coloured letter tile per provider family (settings-gaps.html#g-models). */
+.monogram[data-group="common"] {
+  background: var(--avatar-blue);
+}
+.monogram[data-group="cn"] {
+  background: var(--avatar-teal);
+}
+.monogram[data-group="gateway"] {
+  background: var(--avatar-violet);
+}
+.monogram[data-group="cloud"] {
+  background: var(--avatar-orange);
+}
+.monogram[data-group="subscription"] {
+  background: var(--avatar-amber);
+}
+.monogram[data-group="fast"] {
+  background: var(--avatar-pink);
+}
+.monogram[data-group="local"] {
+  background: var(--avatar-green);
+}
+.configuredTile .monogram {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  font-size: 11.5px;
+}
+.configuredDot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.providerSearch:focus-visible,
+.tile:focus-visible,
+.groups button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .providerSearch {
+    width: 160px;
+  }
+}

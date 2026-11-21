@@ -1,0 +1,127 @@
+.view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 10px;
+  border-bottom: 1px solid var(--b1);
+  flex: none;
+}
+.header strong {
+  font-size: 13px;
+}
+.back {
+  padding: 4px 6px;
+  min-height: 30px;
+  font-size: 12.5px;
+}
+.scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  flex: none;
+  min-width: 0;
+  border-bottom: 1px solid var(--b1);
+}
+.scope > * {
+  max-width: 100%;
+}
+.path {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 180px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.path svg {
+  flex: none;
+}
+.path span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+}
+.scroll {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  padding: 4px 14px 16px;
+  overscroll-behavior: contain;
+}
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: none;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 0;
+  border-top: 1px solid var(--b1);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.entry > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.entry:hover {
+  background: var(--hover);
+}
+.entry:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+
+/*
+ * Lively layer: the header is one quiet row, the folder is
+ * a pill, the 审查记录 entry at the foot of the changes pane leads with a violet tile (reviews and
+ * comments are violet in the changes pane).
+ */
+.header.header {
+  border-bottom: 0;
+}
+.back.back {
+  border-radius: var(--radius-pill);
+}
+.scope.scope {
+  padding-top: 0;
+  border-bottom: 0;
+}
+.path.path {
+  flex: 0 1 auto;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+}
+.entry.entry {
+  border-top-color: var(--b1);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  transition: background-color 150ms ease;
+}
+.entry.entry:hover {
+  background: color-mix(in srgb, var(--avatar-violet) 8%, var(--bg));
+}
+@media (prefers-reduced-motion: reduce) {
+  .entry.entry {
+    transition: none;
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../agent"
+    },
+    {
+      "path": "../brain"
+    },
+    {
+      "path": "../observability"
+    },
+    {
+      "path": "../protocol-base"
+    },
+    {
+      "path": "../storage"
+    },
+    {
+      "path": "../teams-contract"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

@@ -1,0 +1,38 @@
+{
+  "replies": [{ "text": "未匹配到演练身份。" }],
+  "routes": {
+    "researcher": [
+      {
+        "toolCalls": [
+          {
+            "name": "write_file",
+            "arguments": {
+              "path": "receipt-probe.md",
+              "content": "RECEIPT-PROBE-CONTENT line 1\nline 2\n"
+            }
+          }
+        ]
+      },
+      {
+        "toolCalls": [{ "name": "read_file", "arguments": { "path": "receipt-probe.md" } }]
+      },
+      {
+        "toolCalls": [
+          {
+            "name": "run_command",
+            "arguments": { "command": "true receipt-probe", "timeoutSec": 5 }
+          }
+        ]
+      },
+      {
+        "toolCalls": [
+          {
+            "name": "delivery_evidence",
+            "arguments": { "unverified": ["Totals not checked against the source sheet"] }
+          }
+        ]
+      },
+      { "text": "RECEIPT-PROBE-REPLY 已写好文件并运行了命令。" }
+    ]
+  }
+}

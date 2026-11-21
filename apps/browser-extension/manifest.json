@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Pi Bot Browser",
+  "version": "0.0.3.4",
+  "description": "Pi Bot's controlled browser window",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn4euOGmyS+iA/H54+dEZxqGNb5Qm3Rpz9IEa4icatmPNmJG9IKRnePDtHIY7gvBSgTy6nXugolRT0xg4klkS8JahW06o9BLdsfeQlOkFFfKlRppIDbkKyixYYLEYor4WdR1+YifmgkZIZ6x8SFYbEa3xR5/+OXwBPv0RyNQDvKqnQj/dTXSED4kFEop69IJQVgJqqoRRPc7H28XpJ0E0dEjEzbedCXqHRVj6AKASidXZ4uHvKtCnwcYyRKCg50TtP9idvA1y1B6TWuCK8gX5pmY0rAypXv9BrvDKwGZJXQSclx+XNzWi6/628+n3eJxRZ4n+62DfWa2XkxpcSDucjQIDAQAB",
+  "permissions": ["tabs", "tabGroups", "nativeMessaging", "scripting", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "extension@pibot.space",
+      "strict_min_version": "140.0"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

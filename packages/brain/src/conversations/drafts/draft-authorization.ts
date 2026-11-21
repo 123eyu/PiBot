@@ -1,0 +1,142 @@
+import {
+  connectionConfirmation,
+  effectiveConfirmationMode,
+  effectiveLevel,
+  matchesGrant,
+  matchesRoutinePreauth,
+  type PolicyResult,
+  recordPolicyStep,
+} from "@pibot/policy";
+import type { DraftMetadata } from "@pibot/protocol-base";
+import type { DraftPayload } from "@pibot/storage";
+import type { ToolRunContext } from "../../core/local-types.ts";
+import { runPermissionSources, runPermissions } from "../../core/run-permissions.ts";
+import { runYolo } from "../../core/yolo.ts";
+import type { LocalService } from "../../local-service.ts";
+import { connectorPreauthIssue } from "../../runtime/unattended/connector-preauth.ts";
+import { fail } from "./draft-content.ts";
+import { hasRememberedConnectionTool } from "./draft-tool-grants.ts";
+
+function routineGrant(
+  local: LocalService,
+  context: ToolRunContext,
+  category: "send_out",
+  scope: import("@pibot/protocol-base").GrantScope,
+) {
+  const owner = local.unattended;
+  if (!context.routineRunId || !owner) return false;
+  const run = owner.run(context.routineRunId);
+  const routine = run.routineId ? owner.definition(run.routineId) : undefined;
+  if (
+    !routine ||
+    routine.deletedAt ||
+    !routine.enabled ||
+    run.reason === "trial" ||
+    routine.botId !== context.botId
+  )
+    return false;
+  const wanted = { category, scope };
+  return routine.preauth.some(
+    (record) =>
+      !record.revokedAt &&
+      !connectorPreauthIssue(local, context.botId, record.operation) &&
+      matchesRoutinePreauth(record.operation, wanted, local.deps.platform),
+  );
+}
+export function automaticDraftAllowed(
+  local: LocalService,
+  context: ToolRunContext,
+  draft: DraftMetadata,
+  result: PolicyResult,
+  /** The person just answered this same call's "ask every time" card (`PreparedTool.confirmedNow`). */
+  confirmedNow = false,
+) {
+  const scope = result.grantScope;
+  // Without the connectors capability there is nothing to send through.
+  if (!local.connectors) return false;
+  const connector = local.connectors.get(draft.connectorId);
+  if (!connector) return false;
+  const confirmation = connectionConfirmation(
+    effectiveConfirmationMode({ connector, access: local.connectors.access(draft.connectorId) }),
+    true,
+  );
+  if (confirmation === "blocked") return false;
+  // Nothing remembered, no YOLO and no pre-authorization stands in for "ask every time"; only
+  // the person's answer to this very call does.
+  if (confirmation === "ask_now") return confirmedNow;
+  // Acting as the user requires a fresh human decision even with remembered tool consent.
+  if (draft.identity === "user") return confirmedNow;
+  const tool = local.connectors.tool(draft.connectorId, connector.catalogVersion, draft.tool);
+  if (
+    tool?.enabled &&
+    hasRememberedConnectionTool(local, context.botId, draft.connectorId, tool, context)
+  )
+    return true;
+  // Only Bot-identity operations reach reusable target consent and unattended permissions.
+  if (context.routineRunId) return !!scope && routineGrant(local, context, "send_out", scope);
+  if (runYolo(local, context)) return true;
+  return (
+    !!scope &&
+    local
+      .grants(context.botId, context)
+      .some(
+        (grant) =>
+          !grant.revokedAt &&
+          matchesGrant(
+            grant,
+            { botId: context.botId, category: "send_out", scope },
+            local.deps.platform,
+          ),
+      )
+  );
+}
+export async function evaluateDraft(
+  local: LocalService,
+  context: ToolRunContext,
+  draft: DraftMetadata,
+  payload: DraftPayload,
+  signal: AbortSignal,
+  confirmedNow = false,
+): Promise<PolicyResult> {
+  const permissions = local.tasks.settings(context, runPermissions(local, context));
+  if (effectiveLevel(permissions.levels.connector, undefined) === "never")
+    return fail("draftDenied", "connector_permission_denied");
+  const policy = await local.getPolicy(signal);
+  const result = await policy.evaluate({
+    botId: context.botId,
+    request: {
+      category: "send_out",
+      identity: draft.identity,
+      connectorId: draft.connectorId,
+      tool: draft.tool,
+      target: draft.target,
+      definitionDigest: payload.definitionDigest,
+      targetDigest: payload.targetDigest,
+      rememberable: draft.canRememberTarget,
+    },
+    settings: permissions,
+    permissionSources: runPermissionSources(local, context),
+    grants: local.grants(context.botId, context),
+    workplace: { home: local.deps.dataDir, folders: [], currentId: "home" },
+    yolo: runYolo(local, context),
+    signal,
+  });
+  if (!local.connectors?.get(draft.connectorId)?.enabled)
+    return fail("draftChanged", "draft_connector_changed");
+  if (
+    result.decision !== "deny" &&
+    automaticDraftAllowed(local, context, draft, result, confirmedNow)
+  )
+    result.decision = "allow";
+  else if (result.decision !== "deny") result.decision = "ask";
+  recordPolicyStep(
+    result,
+    "connector",
+    result.decision === "deny"
+      ? result.reason
+      : result.decision === "allow"
+        ? "draft_automatic_authorized"
+        : "draft_confirmation_required",
+  );
+  return result;
+}

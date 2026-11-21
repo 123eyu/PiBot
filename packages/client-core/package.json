@@ -1,0 +1,19 @@
+{
+  "name": "@pibot/client-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/protocol": "workspace:0.0.0",
+    "@pibot/i18n": "workspace:0.0.0"
+  }
+}

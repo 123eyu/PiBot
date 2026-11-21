@@ -1,0 +1,25 @@
+{
+  "name": "@pibot/images",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L2"
+  },
+  "exports": {
+    "./brain": "./src/brain/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/agent": "workspace:0.0.0",
+    "@pibot/brain": "workspace:0.0.0",
+    "@pibot/execution": "workspace:0.0.0",
+    "@pibot/policy": "workspace:0.0.0",
+    "@pibot/storage": "workspace:0.0.0",
+    "zod": "4.6.5",
+    "@pibot/images-contract": "workspace:0.0.0",
+    "@pibot/observability": "workspace:0.0.0"
+  }
+}

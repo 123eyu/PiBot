@@ -1,0 +1,80 @@
+.panel {
+  margin: 8px 0;
+  font-size: 12px;
+  min-width: 0;
+}
+.panel summary {
+  cursor: pointer;
+  color: var(--text);
+}
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  /* Findings and evidence rows are soft cards. */
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
+}
+.hint {
+  color: var(--text2);
+}
+.error {
+  color: var(--danger);
+}
+.image {
+  position: relative;
+  padding: 8px;
+  border: 1px solid var(--b1);
+  border-radius: 12px;
+}
+.image img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.body p {
+  margin: 6px 0;
+}
+.recordSummary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+.time {
+  margin-left: auto;
+  color: var(--text2);
+  font-size: 11px;
+}
+.recordDetails {
+  width: 100%;
+  min-width: 0;
+  padding: 0 6px;
+}
+.history {
+  padding-top: 8px;
+  border-top: 1px solid var(--b1);
+}
+.historyBody {
+  margin-top: 8px;
+}

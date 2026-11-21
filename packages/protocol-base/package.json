@@ -1,0 +1,26 @@
+{
+  "name": "@pibot/protocol-base",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "cross"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./office-content": "./src/office/content.ts",
+    "./office-ooxml": "./src/office/ooxml.ts",
+    "./background": "./src/subpaths/background.ts",
+    "./provider-catalog": "./src/providers/catalog-options.ts",
+    "./values": "./src/core/values.ts",
+    "./peer": "./src/core/peer.ts",
+    "./desktop-state": "./src/app/desktop-state.ts",
+    "./desktop-bridge": "./src/subpaths/desktop-bridge.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  }
+}

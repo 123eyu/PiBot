@@ -1,0 +1,198 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["vitest.config.ts", "vitest.workspace.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc/root",
+    "tsBuildInfoFile": ".cache/tsc/root.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "references": [
+    {
+      "path": "./packages/acp"
+    },
+    {
+      "path": "./packages/acp-schemas"
+    },
+    {
+      "path": "./packages/agent"
+    },
+    {
+      "path": "./packages/brain"
+    },
+    {
+      "path": "./packages/brain-app"
+    },
+    {
+      "path": "./packages/browser"
+    },
+    {
+      "path": "./packages/browser-contract"
+    },
+    {
+      "path": "./apps/browser-extension"
+    },
+    {
+      "path": "./apps/cli"
+    },
+    {
+      "path": "./packages/client-core"
+    },
+    {
+      "path": "./packages/computer"
+    },
+    {
+      "path": "./packages/computer-use"
+    },
+    {
+      "path": "./packages/computer-use-contract"
+    },
+    {
+      "path": "./packages/credentials"
+    },
+    {
+      "path": "./packages/credentials-contract"
+    },
+    {
+      "path": "./apps/desktop"
+    },
+    {
+      "path": "./packages/execution"
+    },
+    {
+      "path": "./packages/external-agents"
+    },
+    {
+      "path": "./packages/external-agents-contract"
+    },
+    {
+      "path": "./packages/i18n"
+    },
+    {
+      "path": "./packages/images"
+    },
+    {
+      "path": "./packages/images-contract"
+    },
+    {
+      "path": "./packages/link"
+    },
+    {
+      "path": "./packages/memory"
+    },
+    {
+      "path": "./apps/mobile"
+    },
+    {
+      "path": "./packages/models"
+    },
+    {
+      "path": "./packages/models-contract"
+    },
+    {
+      "path": "./packages/observability"
+    },
+    {
+      "path": "./packages/office"
+    },
+    {
+      "path": "./packages/office-contract"
+    },
+    {
+      "path": "./packages/orchestration"
+    },
+    {
+      "path": "./apps/plugins/calendar"
+    },
+    {
+      "path": "./apps/plugins/contacts"
+    },
+    {
+      "path": "./apps/plugins/gmail"
+    },
+    {
+      "path": "./sdk/plugin-sdk"
+    },
+    {
+      "path": "./packages/plugins"
+    },
+    {
+      "path": "./packages/plugins-contract"
+    },
+    {
+      "path": "./packages/policy"
+    },
+    {
+      "path": "./packages/protocol"
+    },
+    {
+      "path": "./packages/protocol-base"
+    },
+    {
+      "path": "./apps/relay"
+    },
+    {
+      "path": "./packages/remote"
+    },
+    {
+      "path": "./packages/remote-contract"
+    },
+    {
+      "path": "./packages/renderer-kit"
+    },
+    {
+      "path": "./packages/routines"
+    },
+    {
+      "path": "./packages/routines-contract"
+    },
+    {
+      "path": "./packages/runner"
+    },
+    {
+      "path": "./apps/runner"
+    },
+    {
+      "path": "./packages/scheduler"
+    },
+    {
+      "path": "./packages/sdk"
+    },
+    {
+      "path": "./packages/secrets"
+    },
+    {
+      "path": "./packages/skills"
+    },
+    {
+      "path": "./packages/skills-contract"
+    },
+    {
+      "path": "./packages/storage"
+    },
+    {
+      "path": "./packages/teams"
+    },
+    {
+      "path": "./packages/teams-contract"
+    },
+    {
+      "path": "./packages/tools"
+    },
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./packages/workspaces"
+    },
+    {
+      "path": "./packages/workspaces-contract"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

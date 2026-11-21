@@ -1,0 +1,61 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  padding: 1px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+.trigger:hover,
+.trigger[aria-expanded="true"] {
+  background: var(--hover);
+  color: var(--text);
+}
+.trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.trigger svg {
+  flex: none;
+}
+.panel {
+  position: fixed;
+  z-index: 120;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 12px;
+  /* A floating card like the other menus. */
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  font: 13px / 1.5 var(--font-sans);
+  -webkit-app-region: no-drag;
+  animation: panelIn 180ms var(--ease-out);
+}
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}
+
+.trigger > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

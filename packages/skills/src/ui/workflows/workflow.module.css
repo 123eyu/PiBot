@@ -1,0 +1,367 @@
+.overlay {
+  position: fixed;
+  inset: var(--titlebar-height, 0px) 0 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--overlay);
+}
+.dialog {
+  box-sizing: border-box;
+  width: min(620px, 100%);
+  max-height: calc(100dvh - 40px - var(--titlebar-height, 0px));
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  -webkit-app-region: no-drag;
+}
+.dialog h2,
+.group h3 {
+  margin: 0;
+}
+.dialog h2 {
+  font-size: 16px;
+}
+.fields,
+.group,
+.binding,
+.fileField {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.group {
+  padding-top: 4px;
+}
+.group h3 {
+  font-size: 13px;
+  color: var(--text2);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  font-size: 13px;
+}
+.field > span,
+.field > label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+.verifiedBadge {
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--okBg);
+  color: var(--ok);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.field em {
+  color: var(--warn);
+  font-size: 11.5px;
+  font-style: normal;
+  font-weight: 500;
+}
+.field small,
+.note {
+  color: var(--text2);
+  font-size: 12px;
+}
+.field input,
+.field select,
+.field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  /* Tinted fields; the edge only shows on focus or when invalid. */
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+}
+.field textarea {
+  resize: vertical;
+}
+.pathRow,
+.switchRow,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pathRow input {
+  flex: 1;
+}
+.pathRow button {
+  flex: none;
+}
+.switchRow {
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+}
+.previous {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--tert);
+  font-size: 12.5px;
+}
+.previous span {
+  color: var(--text2);
+}
+.field small.warn {
+  color: var(--warn);
+}
+.error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12.5px;
+}
+.blocked {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--dangerBg);
+  color: var(--danger);
+  font-size: 12.5px;
+}
+.blocked ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+.actions {
+  justify-content: flex-end;
+}
+.binding {
+  padding: 12px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+}
+.binding p {
+  margin: 0;
+}
+.editorDialog {
+  width: min(760px, 100%);
+}
+.editorFields {
+  display: contents;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.loadFailure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.editorSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--b1);
+}
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sectionTitle button {
+  min-height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+.editorRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+}
+.editorRow > input,
+.editorRow > select,
+.editorSection select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.editorRow > button {
+  width: 30px;
+  min-width: 30px;
+  padding: 0;
+}
+.editorRow .rowWide {
+  grid-column: 1 / -2;
+}
+.threeColumns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.stepCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--tert);
+}
+.stepGraph {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 9px;
+  border-radius: 10px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12px;
+}
+.stepGraph span {
+  padding: 3px 7px;
+  border: 1px solid var(--b1);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+}
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible,
+.editorRow > input:focus-visible,
+.editorRow > select:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--avatar-violet) 55%, transparent);
+}
+.field[data-invalid="true"] input,
+.field[data-invalid="true"] select,
+.field[data-invalid="true"] textarea,
+.editorRow [aria-invalid="true"] {
+  border-color: var(--danger);
+}
+@media (max-width: 620px) {
+  .editorRow,
+  .threeColumns {
+    grid-template-columns: 1fr;
+  }
+  .editorRow .rowWide {
+    grid-column: auto;
+  }
+}
+
+/*
+ * Lively layer. Workflows are skills, so violet: the
+ * dialog title leads with a violet tile, sections carry a violet dot and sit on soft cards, fields
+ * are tinted, step cards have a violet edge, the dependency graph is violet pills; the estimate is
+ * a grey band, the precheck a red band.
+ */
+.dialog.dialog {
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+  animation: rise 260ms var(--ease-out);
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.editorSection.editorSection {
+  padding: 12px;
+  border-top: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.sectionTitle h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.sectionTitle h3::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--avatar-violet);
+}
+.stepCard.stepCard {
+  border: 0;
+  border-left: 3px solid var(--avatar-violet);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.stepGraph.stepGraph {
+  padding: 0;
+  background: transparent;
+}
+.stepGraph.stepGraph span {
+  padding: 3px 10px;
+  border: 0;
+  color: var(--ink-violet);
+  background: color-mix(in srgb, var(--avatar-violet) 11%, transparent);
+}
+.binding.binding {
+  border: 0;
+  border-radius: 14px;
+  background: var(--tert);
+}
+.estimate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.blocked.blocked {
+  border-radius: 12px;
+}
+.error.error {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--dangerBg);
+}
+.run:enabled {
+  color: var(--on-tone);
+  background: var(--avatar-violet);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog.dialog {
+    animation: none;
+  }
+}

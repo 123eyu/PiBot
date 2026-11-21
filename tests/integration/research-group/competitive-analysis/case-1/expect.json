@@ -1,0 +1,66 @@
+{
+  "scenario": 3,
+  "method": "competitive-analysis",
+  "behaviour": "retry",
+  "requiredStrings": [
+    "合成公共交通"
+  ],
+  "deliverables": [
+    {
+      "id": "report",
+      "path": "报告.md",
+      "kind": "md",
+      "sections": [
+        "对比表",
+        "来源"
+      ]
+    },
+    {
+      "id": "dimensions",
+      "path": "维度表.xlsx",
+      "kind": "xlsx"
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "exists",
+      "check": "exists",
+      "deliverable": "report"
+    },
+    {
+      "id": "sections",
+      "check": "sections",
+      "deliverable": "report"
+    },
+    {
+      "id": "columns",
+      "check": "tableColumns",
+      "columns": [
+        "维度",
+        "竞品 A",
+        "竞品 B"
+      ],
+      "deliverable": "report"
+    },
+    {
+      "id": "xlsx-exists",
+      "check": "exists",
+      "deliverable": "dimensions"
+    },
+    {
+      "id": "xlsx-columns",
+      "check": "tableColumns",
+      "columns": [
+        "维度",
+        "竞品 A",
+        "竞品 B"
+      ],
+      "deliverable": "dimensions"
+    }
+  ],
+  "budget": {
+    "modelRequests": 100,
+    "costUsd": 1,
+    "activeSeconds": 300
+  }
+}

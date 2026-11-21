@@ -1,0 +1,32 @@
+.row {
+  flex-wrap: wrap;
+}
+
+.open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+}
+
+/* A small quiet action on the row's right, like 移除 in the group panel's folder card. */
+.forget.forget {
+  flex: none;
+  min-height: 28px;
+  padding: 3px 11px;
+  border-radius: var(--radius-pill);
+  color: var(--text2);
+  font-size: 12.5px;
+}
+.forget:enabled:hover {
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}

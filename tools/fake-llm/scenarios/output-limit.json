@@ -1,0 +1,13 @@
+{
+  "replies": [
+    {
+      "text": "第一段：已经写入一半的内容。",
+      "finishReason": "length",
+      "delayMs": 10
+    },
+    {
+      "text": "续写：剩下的内容也写完了。",
+      "delayMs": 10
+    }
+  ]
+}

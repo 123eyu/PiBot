@@ -1,0 +1,78 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "references": [
+    {
+      "path": "../brain"
+    },
+    {
+      "path": "../browser"
+    },
+    {
+      "path": "../computer-use"
+    },
+    {
+      "path": "../credentials"
+    },
+    {
+      "path": "../external-agents"
+    },
+    {
+      "path": "../images"
+    },
+    {
+      "path": "../memory"
+    },
+    {
+      "path": "../models"
+    },
+    {
+      "path": "../office"
+    },
+    {
+      "path": "../orchestration"
+    },
+    {
+      "path": "../../sdk/plugin-sdk"
+    },
+    {
+      "path": "../plugins"
+    },
+    {
+      "path": "../protocol"
+    },
+    {
+      "path": "../protocol-base"
+    },
+    {
+      "path": "../remote"
+    },
+    {
+      "path": "../routines"
+    },
+    {
+      "path": "../skills"
+    },
+    {
+      "path": "../storage"
+    },
+    {
+      "path": "../teams"
+    },
+    {
+      "path": "../workspaces"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

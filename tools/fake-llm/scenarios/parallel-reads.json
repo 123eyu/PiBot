@@ -1,0 +1,42 @@
+{
+  "replies": [
+    {
+      "text": "未匹配合成身份"
+    }
+  ],
+  "routes": {
+    "researcher": [
+      {
+        "toolCalls": [
+          {
+            "name": "read_file",
+            "arguments": {
+              "path": "parallel-0.txt"
+            }
+          },
+          {
+            "name": "read_file",
+            "arguments": {
+              "path": "parallel-1.txt"
+            }
+          },
+          {
+            "name": "read_file",
+            "arguments": {
+              "path": "parallel-2.txt"
+            }
+          },
+          {
+            "name": "read_file",
+            "arguments": {
+              "path": "parallel-3.txt"
+            }
+          }
+        ]
+      },
+      {
+        "text": "合成读取已完成。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "replies": [{ "text": "未匹配到演练身份，请按说明配置模型 ID。" }],
+  "routes": {
+    "coordinator": [
+      {
+        "toolCalls": [
+          {
+            "name": "assign_task",
+            "arguments": {
+              "bot": "研究员",
+              "title": "研究",
+              "instructions": "给出合成研究结论并完成任务。"
+            }
+          },
+          {
+            "name": "assign_task",
+            "arguments": {
+              "bot": "写手",
+              "title": "写作",
+              "instructions": "先向研究员提问，再完成合成写作。"
+            }
+          }
+        ]
+      },
+      { "text": "两项任务已分派，等待真实任务完成通知。" },
+      { "text": "收到第一份任务完成通知。" },
+      { "text": "合成协作汇总：研究与写作均完成。" }
+    ],
+    "researcher": [
+      {
+        "toolCalls": [
+          { "name": "finish_task", "arguments": { "summary": "合成研究结论：先写结论。" } }
+        ]
+      },
+      { "text": "研究线程完成。" },
+      { "text": "给写手的合成答复：结论优先。" }
+    ],
+    "writer": [
+      {
+        "toolCalls": [
+          { "name": "ask_bot", "arguments": { "bot": "研究员", "question": "合成报告如何开头？" } }
+        ]
+      },
+      { "text": "已排队提问，等待研究员。" },
+      {
+        "toolCalls": [
+          { "name": "finish_task", "arguments": { "summary": "合成写作完成：结论在前。" } }
+        ]
+      },
+      { "text": "写作线程完成。" }
+    ]
+  }
+}

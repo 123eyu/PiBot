@@ -1,0 +1,18 @@
+{
+  "replies": [
+    {
+      "text": "recorded user answer"
+    },
+    {
+      "text": "manual checkpoint",
+      "delayMs": 15
+    },
+    {
+      "text": "new recorded outcome"
+    },
+    {
+      "text": "checkpoint that should be cancelled",
+      "delayMs": 1000
+    }
+  ]
+}

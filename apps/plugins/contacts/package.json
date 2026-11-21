@@ -1,0 +1,15 @@
+{
+  "name": "@pibot/plugin-contacts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L2"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/plugin-sdk": "workspace:0.0.0"
+  }
+}

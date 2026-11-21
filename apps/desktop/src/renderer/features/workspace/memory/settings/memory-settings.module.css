@@ -1,0 +1,461 @@
+/* Memory management (关于你, a Bot's or group's memory tab, project memory). Category headings
+   lead with a dot in the host's colour, entries sit in soft cards, menus lead with colour tiles.
+   The colour follows the host: the dialog's mark (关于你 pink, project memory amber) or the
+   panel's Bot / group colour. */
+.list,
+.card,
+.edit {
+  --mem-c: var(--dialog-c, var(--panel-c, var(--avatar-violet)));
+  --mem-ink: color-mix(in srgb, var(--mem-c) 60%, var(--text));
+}
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+/* A suggested change is ringed in the host colour (bp-memory 建议记住). */
+.proposal {
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--mem-c) 60%, transparent),
+    var(--shadow-soft);
+}
+.proposal > strong:first-child {
+  align-self: flex-start;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--mem-c) 14%, transparent);
+  color: var(--mem-ink);
+  font-size: 12px;
+}
+.proposal p {
+  margin: 0;
+}
+.confirm {
+  margin: 0;
+  background: var(--dangerBg);
+  box-shadow: none;
+  color: var(--danger);
+}
+.confirm p {
+  margin: 0;
+}
+.confirm .toolbar {
+  justify-content: flex-end;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.meta {
+  margin: 0;
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.error {
+  color: var(--danger);
+}
+.danger {
+  color: var(--danger);
+}
+/* Doubled to win over the shared Button padding regardless of stylesheet order. */
+.small.small {
+  min-height: 30px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+}
+/* The main action of a memory screen takes the host colour. */
+.toneFill:enabled {
+  background: var(--mem-c);
+  color: var(--on-tone);
+}
+.dangerFill:enabled {
+  background: var(--danger);
+  color: var(--on-tone);
+}
+.save.save {
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lead > button {
+  /* Stays on the right even when the scope has no lead sentence (project memory). */
+  margin-inline-start: auto;
+  min-height: 30px;
+  padding: 3px 14px;
+  font-size: 12.5px;
+}
+.lead p {
+  flex: 1;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.group {
+  display: flex;
+  flex-direction: column;
+}
+.group h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 2px 7px;
+  color: var(--text2);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.group h2::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mem-c);
+}
+.groupCard {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.entry {
+  min-width: 0;
+}
+.entry + .entry {
+  border-top: 1px solid var(--b1);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 10px 12px;
+  border-radius: 14px;
+  transition: background-color 150ms ease;
+}
+.row:hover,
+.row:focus-within {
+  background: var(--hover);
+}
+.entryText {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: start;
+  font: inherit;
+  cursor: text;
+}
+.entryText small {
+  display: block;
+  margin-top: 1px;
+  font-size: 11.5px;
+}
+.rowText {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 600;
+}
+.rowMenu {
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.row:hover .rowMenu,
+.row:focus-within .rowMenu,
+.rowMenu:has(details[open]) {
+  opacity: 1;
+}
+.entryText:focus-visible,
+.menu summary:focus-visible {
+  outline: 2px solid var(--mem-c);
+  outline-offset: 2px;
+}
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--mem-c) 45%, transparent),
+    var(--shadow-soft);
+}
+/* Editing in place inside a card of entries: no second card around the editor. */
+.groupCard .edit {
+  margin: 6px;
+}
+.editor {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+}
+.edit .editor {
+  min-height: 54px;
+}
+.editor:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--mem-c) 60%, transparent);
+  outline-offset: 0;
+}
+.editorActions {
+  display: flex;
+  /* The select carries its own label above it; align the buttons with the control, not the label. */
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* 来源与修改记录: a grey inset under the entry; the history reads as a timeline. */
+.details {
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.detailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 2px 0 0 4px;
+  padding: 0;
+  list-style: none;
+  border-inline-start: 2px solid var(--b2);
+}
+.history li {
+  position: relative;
+  padding-inline-start: 12px;
+  font-size: 12.5px;
+}
+.history li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -5px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mem-c);
+}
+.history li + li::before {
+  background: var(--b3);
+}
+.menu {
+  position: relative;
+}
+.menu summary {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  box-sizing: border-box;
+  padding: 4px 10px;
+  border-radius: 9px;
+  color: var(--text2);
+  font-size: 12.5px;
+  white-space: nowrap;
+  list-style: none;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.rowMenu .menu summary {
+  padding: 0;
+}
+.menu summary::-webkit-details-marker {
+  display: none;
+}
+.menu summary:hover,
+.menu[open] summary {
+  background: color-mix(in srgb, var(--mem-c) 14%, transparent);
+  color: var(--mem-ink);
+}
+.menuItems {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  top: calc(100% + 4px);
+  width: min(240px, 65vw);
+  margin: 0;
+  padding: 6px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  animation: pop 180ms var(--ease-out);
+}
+.menuItems > button {
+  min-height: 34px;
+  padding: 6px 10px;
+  gap: 10px;
+  border-radius: 10px;
+  justify-content: flex-start;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: start;
+  white-space: normal;
+}
+.menuItems > .meta {
+  padding: 4px 10px;
+}
+.menu[data-above] .menuItems {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+.transfer {
+  margin-inline-start: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 100%;
+}
+.transfer > [role="status"],
+.transfer > [role="alert"] {
+  margin: 0;
+  font-size: 12.5px;
+}
+.review {
+  align-self: stretch;
+  text-align: start;
+}
+.reviewHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reviewHead > strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+.undoRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.undoRow + .undoRow {
+  border-top: 1px solid var(--b1);
+}
+.undoText {
+  flex: 1;
+  min-width: 0;
+}
+.undoText .text {
+  font-size: 13px;
+  font-weight: 600;
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 10px;
+  text-align: center;
+}
+.empty p {
+  max-width: 34ch;
+  margin: 0;
+  font-size: 13px;
+  color: var(--text2);
+}
+.empty .emptyMark.emptyMark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--mem-c);
+}
+.toast {
+  position: sticky;
+  bottom: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px 6px 16px;
+  border-radius: 999px;
+  background: var(--prim);
+  color: var(--onPrim);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  z-index: 6;
+  animation: pop 220ms var(--ease-spring);
+}
+.toast button {
+  color: inherit;
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+@media (hover: none) {
+  .rowMenu {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menuItems,
+  .toast {
+    animation: none;
+  }
+  .row,
+  .rowMenu,
+  .menu summary {
+    transition: none;
+  }
+}

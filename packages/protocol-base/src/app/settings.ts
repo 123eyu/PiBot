@@ -1,0 +1,148 @@
+import { z } from "zod";
+import { AvatarImageSchema } from "../bots/app-profile.ts";
+import { IdSchema } from "../core/ids.ts";
+import {
+  OutsideCommandPatternSchema,
+  OutsideCommandPatternsSchema,
+} from "../execution/sandbox-block.ts";
+import { DefaultModelSchema } from "../providers/providers.ts";
+
+export { DesktopStateSchema } from "./desktop-state.ts";
+
+const name = z.string().min(1);
+export const SettingsSchema = z.strictObject({
+  personalTodoView: z.enum(["list", "calendar"]).optional(),
+  /** Open / Completed filter shared by the list and the calendar; at least one stays on. */
+  personalTodoStatuses: z
+    .array(z.enum(["open", "done"]))
+    .min(1)
+    .max(2)
+    .optional(),
+  userAvatar: AvatarImageSchema.nullable().optional(),
+  defaultModel: DefaultModelSchema.nullable().optional(),
+  auxiliaryModel: DefaultModelSchema.pick({ provider: true, id: true }).nullable().optional(),
+  /** Bot selected for a new ACP session; stale/archived ids fall back to the main Bot. */
+  acpDefaultBotId: IdSchema.nullable().optional(),
+  commandLogRetention: z
+    .record(
+      IdSchema,
+      z.strictObject({
+        days: z.number().int().min(1).max(3650),
+        megabytes: z.number().int().min(1).max(10000),
+      }),
+    )
+    .optional(),
+  backgroundCommandLimitMinutes: z.number().int().min(30).max(1440).optional(),
+  /** Hard daily budget for background memory extraction across all Bots. */
+  memoryExtractionDailyCostUsd: z.number().min(0).max(100).optional(),
+  /**
+   * The fallback budget for models without a catalog price (custom providers, local
+   * models). Without it a priced cap would never apply to them; default is 2,000,000 tokens.
+   */
+  memoryExtractionDailyTokens: z.number().int().min(0).max(100_000_000).optional(),
+  language: z.enum(["system", "zh", "en"]),
+  theme: z.enum(["system", "light", "dark"]),
+  onboardingCompleted: z.boolean(),
+  openAtLogin: z.boolean(),
+  showTrayIcon: z.boolean(),
+  closeToTrayHintShown: z.boolean(),
+  /** Prefer the user's connected browser over the isolated Bot browser. */
+  browserExtensionPreference: z.enum(["user", "bot"]).optional(),
+  /**
+   * Windows only: commands there have no sandbox, so YOLO auto-approves them
+   * only after the user explicitly turns this on. Ignored on other platforms, which never run
+   * commands unisolated.
+   */
+  yoloUnisolatedCommands: z.boolean().optional(),
+  /**
+   * When on, a command the sandbox blocked is never offered a run outside it; the
+   * user only sees why it was blocked. macOS / Linux only.
+   */
+  strictSandbox: z.boolean().optional(),
+  /** Commands the user runs outside the sandbox, still confirmed every time. */
+  sandboxOutsideCommands: OutsideCommandPatternsSchema.optional(),
+  sandboxAutoOutsideCommands: z
+    .array(
+      z.strictObject({
+        pattern: OutsideCommandPatternSchema,
+        folder: z.string().min(1).max(4096),
+        source: z.literal("auto"),
+        createdAt: z.number().int().nonnegative(),
+      }),
+    )
+    .max(256)
+    .optional(),
+  sandboxAutoWritePaths: z
+    .array(
+      z.strictObject({
+        folder: z.string().min(1).max(4096),
+        program: z.string().min(1).max(256),
+        path: z.string().min(1).max(4096),
+        createdAt: z.number().int().nonnegative(),
+      }),
+    )
+    .max(256)
+    .optional(),
+  sandboxAutoSystemServices: z
+    .array(
+      z.strictObject({
+        folder: z.string().min(1).max(4096),
+        program: z.string().min(1).max(256),
+        service: z.string().regex(/^[A-Za-z0-9._-]{1,128}$/),
+        createdAt: z.number().int().nonnegative(),
+      }),
+    )
+    .max(256)
+    .optional(),
+  sandboxAutoLocalServices: z
+    .array(
+      z.strictObject({
+        folder: z.string().min(1).max(4096),
+        program: z.string().min(1).max(256),
+        target: z.union([
+          z
+            .string()
+            .regex(/^(?:127\.0\.0\.1|localhost|::1):[1-9]\d{0,4}$/)
+            .refine((value) => Number(value.slice(value.lastIndexOf(":") + 1)) <= 65535),
+          z
+            .string()
+            .refine(
+              (value) =>
+                value.startsWith("/") &&
+                [...value].every((char) => char.charCodeAt(0) > 31 && char.charCodeAt(0) !== 127),
+            ),
+        ]),
+        createdAt: z.number().int().nonnegative(),
+      }),
+    )
+    .max(256)
+    .optional(),
+});
+export const BrainBootstrapSchema = z.strictObject({
+  dataDir: name,
+  resourcesDir: name,
+  version: name,
+  platform: z.enum(["darwin", "win32", "linux"]),
+  dev: z.boolean(),
+  independent: z.boolean().optional(),
+  /** Sanitized login-shell PATH, injected by the desktop host. */
+  terminalPath: z.array(z.string().min(1).max(4096)).max(256).optional(),
+});
+export const BrainTerminalPathSchema = z.strictObject({
+  type: z.literal("terminal_path"),
+  path: z.array(z.string().min(1).max(4096)).max(256),
+});
+/**
+ * Brain → owner liveness while the child is still starting. The desktop watchdog used
+ * to see only host RPC traffic, so a slow startup phase that calls no host method looked dead.
+ * Only the phase identifier crosses the port; no paths, counts or user data.
+ */
+export const BrainStartupProgressSchema = z.strictObject({
+  type: z.literal("startup-progress"),
+  phase: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[a-z][a-z0-9_.-]*$/),
+});
+export type Settings = z.infer<typeof SettingsSchema>;

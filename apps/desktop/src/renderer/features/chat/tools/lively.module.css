@@ -1,0 +1,164 @@
+/*
+ * Lively layer for the in-chat tool steps, approval and draft cards. The base look stays in
+ * @pibot/renderer-kit's approval styles (shared with the inbox); these classes sit beside them in
+ * the chat only. Doubled selectors win over the base without depending on stylesheet order.
+ */
+
+/* Tool fold: one soft row that summarises the finished steps. */
+.fold.fold {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: var(--tert);
+  color: var(--text2);
+  font-size: 12.5px;
+  transition: background-color 180ms ease;
+}
+.fold.fold:hover {
+  background: color-mix(in srgb, var(--chat-c, var(--text2)) 10%, var(--tert));
+}
+.fold.fold[aria-expanded="true"] {
+  color: var(--text);
+}
+/* Maintainers 2026-11-13 (layout A): a direct chat's steps fold to a slim, quiet line — no bar. */
+.fold.fold.slim {
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px 2px 2px;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 11.5px;
+}
+.fold.fold.slim:hover {
+  background: transparent;
+  color: var(--chat-ink, var(--text));
+}
+.foldBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--chat-c, var(--b2)) 30%, transparent);
+  animation: unfold 260ms var(--ease-out);
+}
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* One step: a quiet tile row; the running one is washed blue with a breathing edge. */
+.step.step {
+  padding: 2px 0;
+}
+.step.step > button,
+.step.step > div:first-child {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--tert);
+  font-size: 12.5px;
+}
+.step.step > button:hover {
+  background: var(--hover);
+}
+.step.step[aria-current="step"] {
+  border-left: 0;
+  padding-left: 0;
+}
+.step.step[aria-current="step"] > button,
+.step.step[aria-current="step"] > div:first-child {
+  background: color-mix(in srgb, var(--avatar-blue) 11%, transparent);
+  box-shadow: inset 3px 0 0 var(--avatar-blue);
+}
+.step.step[aria-current="step"] > button > svg:first-child,
+.step.step[aria-current="step"] > div:first-child > svg:first-child {
+  color: var(--ink-blue);
+}
+
+/* Approval and draft cards: a soft card led by a coloured edge and a washed header. */
+/* Maintainers 2026-11-13: cards in a chat take the chat's Bot colour (--chat-c); only danger stays red. */
+.card.card {
+  --tone: var(--chat-c, var(--avatar-amber));
+  --tone-ink: var(--chat-ink, var(--ink-amber));
+  --button-fill: var(--userBubble);
+  --button-on: var(--onUser);
+  border: 0;
+  border-left: 4px solid var(--tone);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+  animation: rise 350ms var(--ease-out) both;
+}
+.card.card[data-tone="red"] {
+  --tone: var(--danger);
+  --tone-ink: var(--danger);
+  --button-fill: var(--danger);
+  --button-on: var(--card);
+}
+.card.card > header {
+  padding: 10px 14px;
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  color: var(--text);
+  font-weight: 600;
+}
+.card.card > header > span,
+.card.card > header > svg {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--tone);
+  color: var(--on-tone);
+  font-family: inherit;
+}
+.card.card > header > span > svg {
+  width: 14px;
+  height: 14px;
+}
+.card.card > footer {
+  border-top-color: var(--b1);
+}
+.status {
+  margin-left: auto;
+  font-weight: 400;
+}
+.extensionInstall.extensionInstall {
+  margin: 6px 0;
+}
+.extensionBody {
+  padding: 12px 14px 4px;
+  color: var(--text2);
+}
+.extensionBody p {
+  margin: 0 0 8px;
+}
+.extensionBody ol {
+  margin: 0;
+  padding-left: 20px;
+}
+.extensionBody li + li {
+  margin-top: 3px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .foldBody,
+  .card.card {
+    animation: none;
+  }
+  .fold.fold {
+    transition: none;
+  }
+}

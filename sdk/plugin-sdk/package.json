@@ -1,0 +1,42 @@
+{
+  "name": "@pibot/plugin-sdk",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "pibot": {
+    "layer": "L2"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "pack": "pnpm build && pnpm pack --out dist/pibot-plugin-sdk-0.0.0.tgz"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.3.1",
+    "zod": "4.6.5"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/index.js",
+    "dist/index.d.ts",
+    "README.md"
+  ],
+  "devDependencies": {
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "rollup": "4.68.3",
+    "rollup-plugin-dts": "6.5.1",
+    "@typescript/typescript6": "6.0.2"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "replies": [
+    {
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": {
+            "command": "true E2E-command",
+            "timeoutSec": 5
+          }
+        }
+      ]
+    },
+    {
+      "text": "E2E allowed"
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": {
+            "command": "true E2E-command",
+            "timeoutSec": 5
+          }
+        }
+      ]
+    },
+    {
+      "text": "E2E denied"
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "run_command",
+          "arguments": {
+            "command": "true E2E-command",
+            "timeoutSec": 5
+          }
+        }
+      ]
+    },
+    {
+      "text": "E2E yolo"
+    }
+  ]
+}

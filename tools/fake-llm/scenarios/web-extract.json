@@ -1,0 +1,58 @@
+{
+  "replies": [{ "text": "未匹配到演练身份。" }],
+  "routes": {
+    "researcher": [
+      {
+        "toolCalls": [
+          {
+            "name": "web_fetch",
+            "arguments": {
+              "url": "https://big.example/report-a",
+              "question": "WEB-EXTRACT-QUESTION 第三季度营收是多少？"
+            }
+          },
+          {
+            "name": "web_fetch",
+            "arguments": {
+              "url": "https://big.example/report-b",
+              "question": "WEB-EXTRACT-QUESTION 第三季度营收是多少？"
+            }
+          }
+        ]
+      },
+      { "text": "WEB-EXTRACT-REPLY 两个网页都读完了。" },
+      {
+        "toolCalls": [
+          {
+            "name": "web_fetch",
+            "arguments": {
+              "url": "https://big.example/report-a",
+              "question": "WEB-EXTRACT-QUESTION 原文怎么写的？",
+              "full": true,
+              "maxChars": 8000
+            }
+          }
+        ]
+      },
+      { "text": "WEB-EXTRACT-REPLY 原文读完了。" },
+      {
+        "toolCalls": [
+          {
+            "name": "web_fetch",
+            "arguments": {
+              "url": "https://big.example/report-a",
+              "question": "WEB-EXTRACT-QUESTION 第四季度呢？",
+              "maxChars": 8000
+            }
+          }
+        ]
+      },
+      { "text": "WEB-EXTRACT-REPLY 辅助模型失败后读了原文。" }
+    ],
+    "writer": [
+      { "text": "WEB-EXTRACT-ANSWER 第三季度营收 42 亿元（页面第 3 段）。" },
+      { "text": "WEB-EXTRACT-ANSWER 第三季度营收 42 亿元（页面第 3 段）。" },
+      { "text": "unused", "httpError": "provider_error" }
+    ]
+  }
+}

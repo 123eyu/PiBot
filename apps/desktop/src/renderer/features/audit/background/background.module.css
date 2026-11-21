@@ -1,0 +1,165 @@
+/* Records · Background services; same rhythm as the audit rows (audit.module.css). */
+.note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+.count {
+  margin-left: 6px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card {
+  padding: 2px 14px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--b1);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.row > :first-child {
+  flex: none;
+  margin-top: 2px;
+}
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.bot {
+  flex: none;
+  max-width: 140px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.command {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--code);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.meta[data-tone="warn"] {
+  color: var(--warn);
+}
+.port {
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--avatar-teal) 14%, transparent);
+  color: var(--ink-teal);
+  font-variant-numeric: tabular-nums;
+}
+.place {
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-blue);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.place:hover {
+  text-decoration: underline;
+}
+.place:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.button {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12.5px;
+}
+.error {
+  margin: 4px 0;
+  font-size: 12.5px;
+  color: var(--danger);
+}
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 13px;
+  color: var(--text2);
+}
+.views {
+  margin: 12px 0;
+}
+.chipDot {
+  margin-right: 5px;
+  vertical-align: 1px;
+}
+.more {
+  display: block;
+  margin: 12px auto 0;
+}
+@media (max-width: 760px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  .actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

@@ -1,0 +1,41 @@
+.group {
+  display: inline-block;
+  position: relative;
+  flex: none;
+  vertical-align: middle;
+}
+.member {
+  position: absolute;
+  top: 0;
+  left: 0;
+  line-height: 0;
+}
+.member:nth-child(2) {
+  left: auto;
+  right: 0;
+}
+.member:nth-child(n + 3),
+.group[data-count="2"] .member:nth-child(2) {
+  top: auto;
+  bottom: 0;
+}
+.group[data-count="3"] .member:nth-child(3) {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.member:nth-child(4) {
+  left: auto;
+  right: 0;
+}
+.more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--b2);
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: var(--tert);
+  color: var(--text2);
+  font-weight: 600;
+  line-height: 1;
+}

@@ -1,0 +1,194 @@
+/* Layout comes from the live sidebar / chat CSS modules; only the cover itself lives here. */
+.cached {
+  position: fixed;
+  inset: var(--titlebar-height, 0px) 0 0;
+  z-index: 1000;
+  background: var(--bg);
+  color: var(--text);
+}
+.shell {
+  /* Inert controls still show hover cursors from the live styles. */
+  cursor: default;
+}
+.shell * {
+  cursor: inherit;
+}
+/* Floats over the chat column instead of pushing the layout down, so the live screen that
+   replaces this cover starts at the same positions. Offsets follow the sidebar width. */
+.banner {
+  position: absolute;
+  top: 76px;
+  left: calc(300px + (100% - 300px) / 2);
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(560px, calc(100% - 340px));
+  /* A lively status pill: a breathing dot, the step text and the step progress. */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px 7px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  font: 12.5px / 1.5 var(--font-sans);
+  text-align: left;
+  animation: bannerIn 350ms var(--ease-out);
+}
+@keyframes bannerIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+  }
+}
+.bannerText {
+  min-width: 0;
+  font-weight: 600;
+}
+.bannerText small {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 400;
+}
+.pulse {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--avatar-blue);
+  animation: breath 1.6s ease-in-out infinite;
+}
+.banner[data-connected] .pulse {
+  background: var(--ok);
+}
+@keyframes breath {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--avatar-blue) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--avatar-blue) 0%, transparent);
+  }
+}
+.steps {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+}
+.steps i {
+  width: 16px;
+  height: 5px;
+  border-radius: 5px;
+  background: var(--b2);
+  transition:
+    background-color 300ms ease,
+    width 300ms var(--ease-out);
+}
+.steps i[data-state="done"] {
+  background: var(--avatar-blue);
+}
+.steps i[data-state="current"] {
+  width: 24px;
+  background: color-mix(in srgb, var(--avatar-blue) 55%, var(--b2));
+}
+@media (max-width: 1050px) {
+  .banner {
+    left: calc(250px + (100% - 250px) / 2);
+    max-width: calc(100% - 290px);
+  }
+}
+.avatarImage {
+  display: inline-block;
+  flex: none;
+  border-radius: 50%;
+  background: var(--tert);
+}
+/* Mirrors the renderer-kit PopupMenu trigger inside the composer's send options. */
+.menuTrigger {
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text2);
+}
+.menuTrigger:disabled {
+  opacity: 0.5;
+}
+
+.starting {
+  height: calc(100vh - var(--titlebar-height, 0px));
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(
+      900px 420px at 50% -10%,
+      color-mix(in srgb, var(--avatar-violet) 18%, transparent),
+      transparent
+    ),
+    var(--bg);
+  color: var(--text2);
+  font: 13px var(--font-sans);
+}
+/* A centred mark, the status line and the step dots. CSS only: this paints before anything
+   else has loaded. */
+.startingCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: rise 450ms var(--ease-out);
+}
+.startingCard p {
+  margin: 0;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.mark {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--avatar-violet);
+  box-shadow: 0 18px 40px -16px var(--avatar-violet);
+  animation: bob 1.6s ease-in-out infinite;
+}
+.mark::before,
+.mark::after {
+  content: "";
+  position: absolute;
+  top: 20px;
+  width: 5px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--on-tone);
+}
+.mark::before {
+  left: 20px;
+  transform: rotate(-12deg);
+}
+.mark::after {
+  right: 20px;
+  transform: rotate(12deg);
+}
+@keyframes bob {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .banner,
+  .pulse,
+  .startingCard,
+  .mark {
+    animation: none;
+  }
+  .steps i {
+    transition: none;
+  }
+}

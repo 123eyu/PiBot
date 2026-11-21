@@ -1,0 +1,774 @@
+.main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.header {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px 12px 24px;
+}
+.title {
+  flex: 1 1 320px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+.note,
+.source {
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.note {
+  padding-left: 42px;
+}
+
+/* Equal-width segmented strip with a sliding block; the tab semantics stay native buttons. */
+.segments {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(max-content, 1fr);
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--hover);
+}
+.segments::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px - (var(--seg-count) - 1) * 3px) / var(--seg-count));
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  transform: translateX(calc(var(--seg-index) * (100% + 3px)));
+  transition: transform 280ms var(--ease-out);
+}
+.segment {
+  min-height: 30px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: 13px;
+  color: var(--text2);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.segment[aria-selected="true"] {
+  color: var(--accent-ink, var(--text));
+  font-weight: 600;
+}
+.segment:focus-visible,
+.chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.filters {
+  flex: none;
+  padding: 2px 24px 10px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip {
+  min-height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition:
+    background 160ms var(--ease-out),
+    color 160ms var(--ease-out);
+}
+.chip:hover {
+  background: var(--hover);
+}
+.chip[aria-selected="true"] {
+  color: var(--accent-ink);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--page-c) 16%, var(--card));
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.cards {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 10px 28px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* One card per item: the kind's colour runs down the left edge and fills its tile. */
+.card {
+  --kind: var(--b3);
+  border-radius: 16px;
+  border-left: 4px solid var(--kind);
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
+  transition: transform 160ms var(--ease-out);
+}
+.card:hover {
+  transform: translateY(-1px);
+}
+.cardBody {
+  display: flex;
+  align-items: flex-start;
+}
+.kindMark {
+  margin: 16px 0 0 14px;
+}
+.cardContent {
+  flex: 1;
+  min-width: 0;
+}
+/* The common origin card owns the outer surface; kind-specific cards keep only their content. */
+.cardContent > article,
+.cardContent > section {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  transform: none;
+}
+.cardContent > section {
+  margin: 0;
+}
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 8px 12px;
+}
+.heading {
+  flex: 1;
+  min-width: 0;
+}
+.heading strong,
+.cardHeader > strong {
+  font-weight: 650;
+  font-size: 14px;
+}
+.doneTitle {
+  text-decoration: line-through;
+  color: var(--text2);
+}
+.badge {
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  color: var(--text2);
+  background: var(--tert);
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+.memoryBody {
+  padding: 4px 16px 0 12px;
+}
+/* Plain explanatory text under a card header, aligned with the header's content. */
+.cardText {
+  margin: 0;
+  padding: 2px 16px 0 12px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.memoryBody button {
+  min-height: 32px;
+  border-radius: var(--radius-pill);
+  padding: 5px 14px;
+}
+.approvalBody > div,
+.result {
+  padding: 8px 16px 12px 12px;
+  font-size: 13px;
+}
+.result {
+  color: var(--ok);
+  margin: 0;
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 16px 14px 12px;
+}
+.links button {
+  min-height: 32px;
+  padding: 5px 14px;
+  font-size: 13px;
+}
+.providerFacts {
+  margin: 0;
+  padding: 2px 16px 0 12px;
+  font-size: 12.5px;
+}
+.providerFacts > div {
+  display: flex;
+  gap: 18px;
+}
+.providerFacts dt {
+  color: var(--text2);
+}
+.providerFacts dd {
+  margin: 0;
+}
+
+/* Source and 打开对话 sit at the bottom so the request itself reads first. */
+.origin {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 14px;
+  padding: 9px 0 10px;
+  border-top: 1px solid var(--b1);
+  font-size: 12px;
+  color: var(--text2);
+}
+.originText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+}
+.originText > * + *::before {
+  content: "·";
+  margin-right: 6px;
+}
+.originText strong {
+  font-weight: 600;
+  color: var(--text);
+}
+.openChat {
+  flex: none;
+  min-height: 26px;
+  padding: 2px 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-blue);
+}
+.openChat::after {
+  content: "›";
+  margin-left: 2px;
+}
+
+.empty {
+  padding: 72px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--text2);
+}
+.empty strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+.emptyNote {
+  max-width: 46ch;
+  font-size: 13px;
+}
+.emptyMark {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+}
+.status {
+  margin: 0;
+  color: var(--text2);
+  font-size: 13px;
+}
+.banner {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: var(--danger);
+  background: var(--dangerBg);
+  font-size: 13px;
+}
+.error {
+  margin: 0;
+  padding: 0 16px 12px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* Personal to-dos: the open / done pair slides like a segmented control. */
+.todoBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.todoStatus {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--hover);
+}
+.todoStatus::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 9px) / 2);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  transition: transform 280ms var(--ease-out);
+}
+.todoStatus[data-done]::before {
+  transform: translateX(calc(100% + 3px));
+}
+.todoStatus button {
+  min-height: 28px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+}
+.todoStatus button[aria-pressed="true"] {
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.toneButton {
+  min-height: 34px;
+  padding: 6px 16px;
+  color: var(--on-tone);
+  background: var(--page-c);
+}
+.confirm {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--dangerBg);
+}
+.confirm p {
+  flex: 1 1 200px;
+  margin: 0;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.editor,
+.editor label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.editor {
+  gap: 16px;
+}
+.editor label {
+  font-size: 13px;
+  color: var(--text2);
+}
+.editor input {
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--tert);
+  font: inherit;
+}
+.editor input:focus-visible {
+  outline: 2px solid var(--page-c, var(--accent));
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segments::before,
+  .todoStatus::before,
+  .card,
+  .chip {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+}
+
+.todoChoices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.todoChoices [aria-pressed="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.todoSwatch {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--b3);
+  border-radius: 50%;
+  background: var(--todo-color);
+  cursor: pointer;
+}
+.todoDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--todo-color);
+  border: 1px solid var(--b3);
+}
+[data-todo-color="coral"] {
+  --todo-color: var(--todo-coral);
+}
+[data-todo-color="apricot"] {
+  --todo-color: var(--todo-apricot);
+}
+[data-todo-color="lemon"] {
+  --todo-color: var(--todo-lemon);
+}
+[data-todo-color="mint"] {
+  --todo-color: var(--todo-mint);
+}
+[data-todo-color="sky"] {
+  --todo-color: var(--todo-sky);
+}
+[data-todo-color="lavender"] {
+  --todo-color: var(--todo-lavender);
+}
+[data-todo-color="blossom"] {
+  --todo-color: var(--todo-blossom);
+}
+[data-todo-color="stone"] {
+  --todo-color: var(--todo-stone);
+}
+.cards[data-personal-todo]:has(.todoCalendar) {
+  max-width: 1200px;
+}
+.todoCalendar {
+  display: grid;
+  grid-template-columns: minmax(350px, 2fr) minmax(250px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 1040px) {
+  .todoCalendar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.todoMonth,
+.todoDayPanel {
+  padding: 12px;
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  background: var(--card);
+  min-width: 0;
+}
+.todoMonthHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.todoMonthHead h2,
+.todoDayPanel h3 {
+  margin: 0;
+}
+.todoDayPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.todoGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.todoDay,
+.todoWeekday {
+  color: var(--text);
+}
+.todoGrid [data-weekday="0"] {
+  color: var(--danger);
+}
+.todoGrid [data-weekday="6"] {
+  color: var(--accent);
+}
+.todoWeekday {
+  text-align: center;
+  padding-block: 6px;
+  font-size: 12px;
+}
+.todoDay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 90px;
+  min-width: 0;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--b1);
+  background: transparent;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.todoDay[aria-pressed="true"] {
+  background: var(--accentBg);
+}
+.todoDay[data-out] {
+  background: var(--tert);
+}
+.todoDayNumber {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  font-size: 12px;
+}
+.todoDay[data-out] .todoDayNumber {
+  opacity: 0.55;
+}
+.todoDayNumber[data-today] {
+  border-radius: 50%;
+  color: var(--onPrim);
+  background: var(--prim);
+}
+.todoDaySticker {
+  position: absolute;
+  inset-inline-end: 2px;
+  top: 4px;
+}
+.todoLane,
+.todoLabel {
+  min-height: 19px;
+  box-sizing: border-box;
+}
+.todoLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: var(--todo-color);
+  color: var(--text);
+  font-size: 11px;
+  line-height: 15px;
+}
+.todoLabel[data-left] {
+  margin-inline-start: -4px;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+.todoLabel[data-right] {
+  margin-inline-end: -4px;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+.todoLabel[data-late]:not([data-left]) {
+  border-inline-start: 3px solid var(--danger);
+}
+.todoLabel[data-done] {
+  opacity: 0.65;
+  text-decoration: line-through;
+}
+.todoMore,
+.todoUpcoming {
+  color: var(--text2);
+  font-size: 12px;
+}
+.cardContent > article[data-calendar-note] {
+  background: var(--todo-color);
+}
+
+.todoNote {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--todo-color);
+  color: var(--text);
+}
+.todoNoteHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+.todoNoteHead input {
+  flex: none;
+  margin: 4px 0 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--prim);
+}
+.todoNoteHead strong {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.todoNoteSticker {
+  flex: none;
+  font-size: 20px;
+}
+.todoNoteMeta {
+  margin-inline-start: 26px;
+  color: var(--text2);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.todoNoteOpen {
+  margin-inline-start: 20px;
+  font-size: 11px;
+  padding: 2px 6px;
+}
+.todoDayAdd {
+  width: 100%;
+  border: 1px dashed var(--b3);
+  border-radius: 12px;
+  padding: 9px;
+  color: var(--text2);
+  white-space: normal;
+}
+.todoUpcomingTitle {
+  margin: 8px 0 0;
+  border-top: 1px solid var(--b2);
+  padding-top: 12px;
+  color: var(--text2);
+  font-size: 13px;
+}
+.todoUpcoming {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.todoUpcoming time,
+.todoUpcoming .todoDot {
+  flex: none;
+}
+.todoUpcomingText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+/* Color and sticker rows read like the editor's other labelled fields, not a bordered group box. */
+.todoFieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.todoFieldset legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--text2);
+}
+
+/* Open / Completed are filters that can both be on. */
+.todoFilter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.todoFilterLabel {
+  color: var(--text2);
+  font-size: 13px;
+}
+.todoFilter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--b2);
+  background: var(--card);
+  color: var(--text2);
+}
+.todoFilter button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--page-c) 40%, var(--b2));
+  background: color-mix(in srgb, var(--page-c) 10%, var(--card));
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.todoFilterCheck {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid currentColor;
+  border-radius: 4px;
+}
+.todoFilter button[aria-pressed="true"] .todoFilterCheck {
+  border-color: var(--page-c);
+  background: var(--page-c);
+  color: var(--on-tone);
+}
+.todoFilterCount {
+  padding: 0 7px;
+  border-radius: var(--radius-pill);
+  background: var(--hover);
+  font-size: 12px;
+  font-weight: 500;
+}
+.todoSection {
+  margin: 8px 2px 0;
+  color: var(--text2);
+  font-size: 12px;
+}

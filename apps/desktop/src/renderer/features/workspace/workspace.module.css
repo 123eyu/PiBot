@@ -1,0 +1,265 @@
+/*
+ * Shared bits of the workspace dialogs and panels (forms, memory notices, model fields). The
+ * dialog frame itself is renderer-kit's Overlay. Tinted fields, soft cards, rounded notes.
+ */
+.form,
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.form label,
+.section label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form input,
+.form textarea,
+.form select,
+.section input,
+.section textarea,
+.section select {
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: var(--text);
+  background: var(--tert);
+  font: inherit;
+  min-width: 0;
+}
+.form input:focus-visible,
+.form textarea:focus-visible,
+.form select:focus-visible,
+.section input:focus-visible,
+.section textarea:focus-visible,
+.section select:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--page-c, var(--text2)) 60%, transparent);
+}
+.form textarea,
+.section textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+/* Confirmations sit bottom-right, matching the other dialogs (feedback, new token);
+   only used by DeleteConversationDialog so shared .actions stays left-aligned. */
+.actionsEnd {
+  justify-content: flex-end;
+}
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+.row > :last-child {
+  min-width: 0;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.item {
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
+}
+.item p {
+  white-space: pre-wrap;
+}
+.note {
+  color: var(--text2);
+  font-size: 13px;
+  margin: 0;
+}
+.error,
+.danger {
+  color: var(--danger);
+}
+.success {
+  color: var(--ok);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.section {
+  border-top: 1px solid var(--b1);
+  padding-top: 20px;
+}
+.section h2 {
+  margin: 0;
+  font-size: 15px;
+}
+.confirm {
+  padding: 12px 14px;
+  background: var(--dangerBg);
+  border-radius: 12px;
+}
+.placeholder {
+  flex: 1;
+  padding: 48px;
+  color: var(--text2);
+}
+
+fieldset.form {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* The memory notices a reply produced sit right under it, on the
+   reply's left edge, as compact cards edged in the conversation's colour (--chat-c from
+   messages/user-bubble.ts): tile, title and scope on one line, then the content with its actions on
+   the right. Pending suggestions are ringed in the same colour. */
+.memoryNotices {
+  --note-c: var(--chat-c, var(--avatar-violet));
+  --note-ink: var(--chat-ink, var(--ink-violet));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  /* The 28px avatar column plus the 10px gap of `.assistant` in chat/chat.module.css. */
+  margin: 2px 0 6px 38px;
+  max-width: min(460px, calc(100% - 38px));
+}
+.memoryNotices .item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 9px 12px;
+  border: 0;
+  border-left: 4px solid var(--note-c);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 12.5px;
+  animation: noticeIn 260ms var(--ease-out) both;
+}
+.memoryNotices .item > * {
+  flex-basis: 100%;
+  margin: 0;
+}
+.memoryProposal {
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--note-c) 45%, transparent),
+    var(--shadow-soft);
+}
+.noticeHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.noticeHead > strong {
+  flex: 1;
+  min-width: 0;
+  color: var(--note-ink, var(--text));
+  font-size: 12.5px;
+}
+.noticeHead > p {
+  flex: none;
+  margin: 0;
+  color: var(--text2);
+  font-size: 11.5px;
+}
+.noticeMark.noticeMark {
+  background: var(--note-c, var(--tile));
+}
+.noticeBody {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.noticeBody > p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.memoryNotices .item button:not(.memoryLink) {
+  min-height: 28px;
+  padding: 2px 11px;
+  font-size: 12.5px;
+}
+.noticeLink.noticeLink {
+  color: var(--note-ink);
+}
+.memoryProposal .actions {
+  justify-content: flex-end;
+}
+.memoryProposal .actions > button:first-child:enabled {
+  background: var(--note-c);
+  color: var(--on-tone);
+}
+.noticeFeedback {
+  margin: 0;
+  padding-left: 4px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.autoNotice {
+  transition: opacity 180ms ease-out;
+}
+.autoNotice[data-fading] {
+  opacity: 0;
+}
+@keyframes noticeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.memoryLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--chat-ink, var(--accent));
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .autoNotice,
+  .memoryNotices .item {
+    transition: none;
+    animation: none;
+  }
+}
+
+.deleteButton.deleteButton {
+  background: var(--danger);
+  /* --card, not --on-tone: the dark theme's danger is light, so its text must be dark. */
+  color: var(--card);
+  border-color: var(--danger);
+}
+.deleteButton:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 100px var(--hover);
+}
+.modelNote {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  color: var(--text2);
+  font-size: 12px;
+}

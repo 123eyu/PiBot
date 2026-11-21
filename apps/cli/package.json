@@ -1,0 +1,28 @@
+{
+  "name": "@pibot/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "bin": {
+    "pibot": "./bin/pibot.mjs"
+  },
+  "exports": {
+    "./headless": "./src/headless.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/acp": "workspace:*",
+    "@pibot/brain-app": "workspace:*",
+    "@pibot/execution": "workspace:*",
+    "@pibot/plugin-sdk": "workspace:0.0.0",
+    "@pibot/protocol": "workspace:*",
+    "@pibot/sdk": "workspace:0.0.0",
+    "@pibot/storage": "workspace:*",
+    "zod": "4.6.5"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@pibot/sdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/protocol": "workspace:0.0.0",
+    "zod": "4.6.5"
+  }
+}

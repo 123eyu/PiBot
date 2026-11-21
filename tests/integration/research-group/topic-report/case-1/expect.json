@@ -1,0 +1,48 @@
+{
+  "scenario": 1,
+  "method": "research-report",
+  "behaviour": "retry",
+  "requiredStrings": [
+    "合成公共交通"
+  ],
+  "deliverables": [
+    {
+      "id": "report",
+      "path": "报告.md",
+      "kind": "md",
+      "sections": [
+        "结论摘要",
+        "子问题",
+        "来源"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "exists",
+      "check": "exists",
+      "deliverable": "report"
+    },
+    {
+      "id": "sections",
+      "check": "sections",
+      "deliverable": "report"
+    },
+    {
+      "id": "source-count",
+      "check": "minCitations",
+      "min": 3,
+      "deliverable": "report"
+    },
+    {
+      "id": "sourced",
+      "check": "sectionsSourced",
+      "deliverable": "report"
+    }
+  ],
+  "budget": {
+    "modelRequests": 100,
+    "costUsd": 1,
+    "activeSeconds": 300
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "comment": "Code map languages (maintainers 2026-11-04: 11 languages; Swift/Kotlin deferred, no compatible prebuilt wasm). Read by packaging (apps/desktop/scripts/package/prepare-resources.mjs) and at run time; packaged apps load <id>.wasm and <id>.tags.scm from Resources/wasm/codemap/. tags lists package-relative query files; optional localTags lists codemap-relative supplements appended in order in source and packaged resources.",
+  "languages": [
+    {
+      "id": "typescript",
+      "package": "tree-sitter-typescript",
+      "wasm": "tree-sitter-typescript.wasm",
+      "tags": [
+        "tree-sitter-javascript/queries/tags.scm",
+        "tree-sitter-typescript/queries/tags.scm"
+      ],
+      "extensions": [".ts", ".mts", ".cts"],
+      "localTags": ["queries/javascript.scm"]
+    },
+    {
+      "id": "tsx",
+      "package": "tree-sitter-typescript",
+      "wasm": "tree-sitter-tsx.wasm",
+      "tags": [
+        "tree-sitter-javascript/queries/tags.scm",
+        "tree-sitter-typescript/queries/tags.scm"
+      ],
+      "extensions": [".tsx"],
+      "localTags": ["queries/javascript.scm"]
+    },
+    {
+      "id": "javascript",
+      "package": "tree-sitter-javascript",
+      "wasm": "tree-sitter-javascript.wasm",
+      "tags": ["tree-sitter-javascript/queries/tags.scm"],
+      "extensions": [".js", ".mjs", ".cjs", ".jsx"],
+      "localTags": ["queries/javascript.scm"]
+    },
+    {
+      "id": "python",
+      "package": "tree-sitter-python",
+      "wasm": "tree-sitter-python.wasm",
+      "tags": ["tree-sitter-python/queries/tags.scm"],
+      "extensions": [".py", ".pyi"]
+    },
+    {
+      "id": "go",
+      "package": "tree-sitter-go",
+      "wasm": "tree-sitter-go.wasm",
+      "tags": ["tree-sitter-go/queries/tags.scm"],
+      "extensions": [".go"]
+    },
+    {
+      "id": "rust",
+      "package": "tree-sitter-rust",
+      "wasm": "tree-sitter-rust.wasm",
+      "tags": ["tree-sitter-rust/queries/tags.scm"],
+      "extensions": [".rs"],
+      "localTags": ["queries/rust.scm"]
+    },
+    {
+      "id": "java",
+      "package": "tree-sitter-java",
+      "wasm": "tree-sitter-java.wasm",
+      "tags": ["tree-sitter-java/queries/tags.scm"],
+      "extensions": [".java"],
+      "localTags": ["queries/java.scm"]
+    },
+    {
+      "id": "c",
+      "package": "tree-sitter-c",
+      "wasm": "tree-sitter-c.wasm",
+      "tags": ["tree-sitter-c/queries/tags.scm"],
+      "extensions": [".c", ".h"],
+      "localTags": ["queries/c.scm"]
+    },
+    {
+      "id": "cpp",
+      "package": "tree-sitter-cpp",
+      "wasm": "tree-sitter-cpp.wasm",
+      "tags": ["tree-sitter-cpp/queries/tags.scm"],
+      "extensions": [".cc", ".cpp", ".cxx", ".hpp", ".hh", ".hxx"],
+      "localTags": ["queries/cpp.scm"]
+    },
+    {
+      "id": "c_sharp",
+      "package": "tree-sitter-c-sharp",
+      "wasm": "tree-sitter-c_sharp.wasm",
+      "tags": ["tree-sitter-c-sharp/queries/tags.scm"],
+      "extensions": [".cs"],
+      "localTags": ["queries/c_sharp.scm"]
+    },
+    {
+      "id": "ruby",
+      "package": "tree-sitter-ruby",
+      "wasm": "tree-sitter-ruby.wasm",
+      "tags": ["tree-sitter-ruby/queries/tags.scm"],
+      "extensions": [".rb"]
+    },
+    {
+      "id": "php",
+      "package": "tree-sitter-php",
+      "wasm": "tree-sitter-php.wasm",
+      "tags": ["tree-sitter-php/queries/tags.scm"],
+      "extensions": [".php"]
+    }
+  ]
+}

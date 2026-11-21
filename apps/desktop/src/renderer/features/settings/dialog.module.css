@@ -1,0 +1,114 @@
+.dialog {
+  width: min(960px, calc(100vw - 48px), calc((100dvh - 48px) * 24 / 17));
+  height: min(680px, calc(100dvh - 48px), calc((100vw - 48px) * 17 / 24));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--b2);
+  border-radius: 18px;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  animation: enter 150ms ease-out;
+  -webkit-app-region: no-drag;
+}
+.dialog::backdrop {
+  background: var(--overlay);
+  animation: fade-in 150ms ease-out;
+}
+.dialog[data-closing] {
+  animation: leave 150ms ease-in forwards;
+}
+.dialog[data-closing]::backdrop {
+  animation: fade-out 150ms ease-in forwards;
+}
+.navTitle {
+  padding: 0 12px 18px;
+  font-size: 14px;
+}
+/* The title receives initial focus for context; interactive controls retain their focus rings. */
+.heading:focus {
+  outline: none;
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes leave {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dialog,
+  .dialog::backdrop,
+  .dialog[data-closing],
+  .dialog[data-closing]::backdrop {
+    animation: none;
+  }
+}
+@media (max-width: 640px) {
+  .navTitle {
+    padding-bottom: 0;
+  }
+}
+
+/* Lively settings dialog: coloured marks in the nav, the page colour washes the header. */
+.dialog {
+  box-shadow: 0 30px 80px -20px var(--overlay);
+}
+.navItem.navItem {
+  gap: 10px;
+  min-height: 38px;
+  border-radius: 11px;
+}
+.navItem.navItem[aria-current] {
+  background: color-mix(in srgb, var(--page-c) 14%, transparent);
+  color: var(--accent-ink);
+}
+.lively {
+  background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--page-c) 12%, transparent),
+      transparent 200px
+    )
+    no-repeat;
+}
+.lively > header {
+  border-bottom: 0;
+}
+/* Page lead: one quiet line under the page title. */
+.lead {
+  margin: -6px 0 18px;
+  color: var(--text2);
+  font-size: 13px;
+}

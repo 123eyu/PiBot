@@ -1,0 +1,60 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts"],
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "references": [
+    {
+      "path": "../browser-contract"
+    },
+    {
+      "path": "../computer-use-contract"
+    },
+    {
+      "path": "../credentials-contract"
+    },
+    {
+      "path": "../external-agents-contract"
+    },
+    {
+      "path": "../images-contract"
+    },
+    {
+      "path": "../models-contract"
+    },
+    {
+      "path": "../office-contract"
+    },
+    {
+      "path": "../plugins-contract"
+    },
+    {
+      "path": "../protocol-base"
+    },
+    {
+      "path": "../remote-contract"
+    },
+    {
+      "path": "../routines-contract"
+    },
+    {
+      "path": "../skills-contract"
+    },
+    {
+      "path": "../teams-contract"
+    },
+    {
+      "path": "../workspaces-contract"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

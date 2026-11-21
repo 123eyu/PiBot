@@ -1,0 +1,10 @@
+{
+  "replies": [
+    {
+      "text": "{\"name\": \"E2E taught skill\", \"description\": \"Repeat the synthetic fixture workflow\", \"steps\": [\"Click 第一步\", \"Click 第二步\", \"Fill 备注 with {note}\", \"If sign-in is needed, ask the user to take over\"], \"params\": [{\"name\": \"note\", \"description\": \"Public note\", \"default\": \"e2e-public-note\"}], \"sendTo\": [], \"writePaths\": []}"
+    },
+    {
+      "text": "E2E taught trial completed"
+    }
+  ]
+}

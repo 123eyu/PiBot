@@ -1,0 +1,5 @@
+{
+  "requiredStrings": ["334.131", "337.765", "4.1", "159015", "3.63"],
+  "requiredPatterns": ["与上期相比"],
+  "minSources": 5
+}

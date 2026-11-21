@@ -1,0 +1,144 @@
+/* Lively primitives. Colours come from theme tokens only. */
+.tile {
+  --tile: var(--text2);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  color: var(--on-tone);
+  background: var(--tile);
+}
+.tile[data-size="sm"] {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+}
+.tile[data-size="lg"] {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.tile[data-tone="orange"],
+.chip[data-tone="orange"] {
+  --tile: var(--avatar-orange);
+  --tint: var(--ink-orange);
+}
+.tile[data-tone="amber"],
+.chip[data-tone="amber"] {
+  --tile: var(--avatar-amber);
+  --tint: var(--ink-amber);
+}
+.tile[data-tone="blue"],
+.chip[data-tone="blue"] {
+  --tile: var(--avatar-blue);
+  --tint: var(--ink-blue);
+}
+.tile[data-tone="violet"],
+.chip[data-tone="violet"] {
+  --tile: var(--avatar-violet);
+  --tint: var(--ink-violet);
+}
+.tile[data-tone="pink"],
+.chip[data-tone="pink"] {
+  --tile: var(--avatar-pink);
+  --tint: var(--ink-pink);
+}
+.tile[data-tone="teal"],
+.chip[data-tone="teal"] {
+  --tile: var(--avatar-teal);
+  --tint: var(--ink-teal);
+}
+.tile[data-tone="green"],
+.chip[data-tone="green"] {
+  --tile: var(--avatar-green);
+  --tint: var(--ink-green);
+}
+.tile[data-tone="red"],
+.chip[data-tone="red"] {
+  --tile: var(--danger);
+  --tint: var(--danger);
+}
+.tile[data-tone="neutral"] {
+  --tile: var(--text2);
+}
+
+.dot {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--b3);
+}
+.dot[data-state="running"] {
+  background: var(--avatar-blue);
+  animation: breath 1.6s ease-in-out infinite;
+}
+.dot[data-state="done"] {
+  background: var(--ok);
+}
+.dot[data-state="failed"] {
+  background: var(--danger);
+}
+.dot[data-state="waiting"] {
+  background: var(--avatar-amber);
+}
+.dot[data-state="stopped"] {
+  background: var(--text2);
+}
+.dot[data-state="queued"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--b3);
+}
+@keyframes breath {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--avatar-blue) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--avatar-blue) 0%, transparent);
+  }
+}
+
+.chip {
+  --tint: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--tint);
+  background: color-mix(in srgb, var(--tint) 13%, transparent);
+}
+.chip[data-tone="neutral"] {
+  background: var(--tert);
+}
+.chip[data-tone="ok"] {
+  color: var(--ok);
+  background: var(--okBg);
+}
+.chip[data-tone="warn"] {
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.chip[data-tone="danger"] {
+  color: var(--danger);
+  background: var(--dangerBg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot[data-state="running"] {
+    animation: none;
+  }
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

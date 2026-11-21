@@ -1,0 +1,18 @@
+services:
+  relay:
+    image: pibot-relay:latest
+    restart: unless-stopped
+    environment:
+      TLS_MODE: internal # internal | public | certificate
+      DOMAIN: relay.lan
+      HTTPS_PORT: 8443
+      STUN_PORT: 3478
+      ENABLE_STUN: "1"
+      # EXPO_ACCESS_TOKEN: set only when push notifications are needed
+    ports:
+      - "8443:8443/tcp"
+      - "3478:3478/udp"
+    volumes:
+      - pibot-relay-data:/data
+volumes:
+  pibot-relay-data:

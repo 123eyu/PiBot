@@ -1,0 +1,275 @@
+/* YOLO switch: header badge, "more" menu and confirm dialog. Theme tokens only. */
+.control {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  -webkit-app-region: no-drag;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 4px 0 10px;
+  /* A warm pill that pops in; YOLO stays unmistakable without a hard outline. */
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--avatar-orange) 16%, transparent);
+  color: var(--ink-orange);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--avatar-orange) 45%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: pop 300ms var(--ease-spring);
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+.badgeOff {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.badgeOff:hover {
+  background: var(--hover);
+}
+.badgeOff:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.more {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-color: transparent;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.error {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--danger);
+  font-size: 12px;
+  width: min(360px, calc(100vw - 32px));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  box-shadow: var(--shadow);
+}
+.menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: 260px;
+  padding: 6px;
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+.menu button {
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  white-space: normal;
+  text-align: left;
+}
+.menuText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.menu button > span:first-child {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+.menuText > span {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 400;
+}
+.switchOn,
+.switchOff {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--b3);
+}
+.switchOn {
+  background: var(--avatar-orange);
+}
+.switchOn,
+.switchOff,
+.switchCheck {
+  transition: background-color 250ms ease;
+}
+.switchOn::after,
+.switchOff::after,
+.switchCheck::after {
+  transition: left 250ms var(--ease-spring);
+}
+/* The automatic check is an ordinary on/off, not a warning like YOLO. */
+.switchCheck {
+  position: relative;
+  flex: none;
+  width: 30px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--prim);
+}
+.switchCheck::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  /* Same knob as the ui Switch when on (dark theme: a dark knob on the light track). */
+  background: var(--switch-knob-on);
+  box-shadow: var(--shadow);
+}
+.switchOn::after,
+.switchOff::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--switch-knob);
+  box-shadow: var(--shadow);
+}
+.switchOn::after {
+  left: 14px;
+}
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 520px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.confirm p {
+  margin: 0;
+}
+.confirm h2 {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.scopes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+.scope {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--okBg);
+  font-size: 12.5px;
+}
+.scope[data-tone="danger"] {
+  background: var(--dangerBg);
+}
+.confirm .scope h2 {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ok);
+}
+.confirm .scope[data-tone="danger"] h2 {
+  color: var(--danger);
+}
+.scope p {
+  color: var(--text2);
+}
+.risk {
+  padding: 10px 12px;
+  border: 0;
+  border-left: 4px solid var(--danger);
+  border-radius: 12px;
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.note {
+  color: var(--text2);
+}
+.turnOn {
+  background: var(--avatar-orange);
+  color: var(--on-tone);
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  color: var(--text2);
+  font-size: 12px;
+}
+.stepDanger {
+  color: var(--warn);
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .badge {
+    animation: none;
+  }
+  .switchOn,
+  .switchOff,
+  .switchCheck,
+  .switchOn::after,
+  .switchOff::after,
+  .switchCheck::after {
+    transition: none;
+  }
+}
+
+.badgeCompactIcon {
+  display: none;
+}
+/* Keep the warning colours and the original one-click off action in the narrowest header. */
+@container chat-header (max-width: 680px) {
+  .badge {
+    padding: 0;
+  }
+  .badgeLabel,
+  .badgeClose {
+    display: none;
+  }
+  .badgeOff {
+    width: 26px;
+    height: 26px;
+  }
+  .badgeCompactIcon {
+    display: block;
+  }
+}

@@ -1,0 +1,271 @@
+/* Chat right sidebar shared by changes and the Bot browser. */
+.attentionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--danger);
+  background: var(--dangerBg);
+  padding: 1px 5px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+}
+.pane {
+  position: relative;
+  flex: 0 0 440px;
+  width: 440px;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--b1);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  animation: paneIn 320ms var(--ease-out);
+}
+@keyframes paneIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pane {
+    animation: none;
+  }
+}
+.pane[data-wide] {
+  flex: 1 1 0;
+  width: auto;
+}
+/* Fullscreen Bot browser: the chat column hides and the pane takes the whole area. */
+.pane[data-full] {
+  flex: 1 1 0;
+  width: auto;
+  border-left: 0;
+}
+.fullBody > :first-child {
+  display: none;
+}
+/* Wide layout: the chat column keeps ~400px and the sidebar takes the rest. */
+.wideBody > :first-child {
+  flex: 0 0 400px;
+  max-width: 400px;
+}
+.head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 8px 10px 8px 16px;
+  border-bottom: 1px solid var(--b1);
+}
+.title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+}
+.grow {
+  flex: 1;
+}
+/* Icon-only beside the close button; its name lives in aria-label and the tooltip. */
+.wide {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 15px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.wide:hover {
+  background: var(--hover);
+}
+.wide:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+@media (max-width: 1180px) {
+  .pane:not([data-wide]) {
+    flex-basis: 380px;
+    width: 380px;
+  }
+}
+/* Title-bar pills (changes "+N −M", "browser in use") sit together at the right edge. */
+.pills {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pills.pills > * {
+  margin-left: 0;
+}
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent);
+  animation: live 1.2s ease-in-out infinite;
+}
+@keyframes live {
+  50% {
+    opacity: 0.4;
+  }
+}
+.head > [role="group"] {
+  min-width: 0;
+}
+@media (max-width: 850px) {
+  .pane:not([data-full]) {
+    position: absolute;
+    z-index: 35;
+    inset: 0 0 0 auto;
+    width: min(100%, 420px);
+    max-width: 100%;
+    box-shadow: var(--shadow);
+  }
+  .wideBody > :first-child {
+    flex: 1;
+    max-width: none;
+  }
+}
+
+/* Each side-pane entry is its own pill in its colour (任务 amber, 改动 green, 浏览器 blue,
+   预览 violet); the open one is tinted and ringed. Entries still appear only when relevant. */
+.navigation {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  -webkit-app-region: no-drag;
+}
+.entry.entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px;
+  min-height: 32px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  animation: entryIn 300ms var(--ease-spring);
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.entry[data-tone="amber"] {
+  --tone: var(--avatar-amber);
+  --tone-ink: var(--ink-amber);
+}
+.entry[data-tone="green"] {
+  --tone: var(--avatar-green);
+  --tone-ink: var(--ink-green);
+}
+.entry[data-tone="blue"] {
+  --tone: var(--avatar-blue);
+  --tone-ink: var(--ink-blue);
+}
+.entry[data-tone="violet"] {
+  --tone: var(--avatar-violet);
+  --tone-ink: var(--ink-violet);
+}
+.entry.entry > svg {
+  color: var(--tone-ink);
+}
+.entry.entry:hover {
+  background: color-mix(in srgb, var(--tone) 8%, var(--card));
+}
+.entry.entry[aria-pressed="true"] {
+  color: var(--tone-ink);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--tone) 16%, var(--card));
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--tone) 50%, transparent);
+}
+@keyframes entryIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+.badge {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  font-size: 10.5px;
+  color: var(--tone-ink);
+  background: color-mix(in srgb, var(--tone) 18%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  .entry.entry {
+    animation: none;
+  }
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 64px 24px 24px;
+  color: var(--text2);
+  font-size: 12.5px;
+  text-align: center;
+}
+.empty b {
+  color: var(--text);
+  font-size: 15px;
+}
+.empty p {
+  max-width: 280px;
+  margin: 0;
+}
+.emptyTile.emptyTile {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 8px;
+  border-radius: 16px;
+}
+.emptyTile.emptyTile > svg {
+  width: 24px;
+  height: 24px;
+}
+/* Collapse against the actual header space, rather than the whole window or platform. */
+@container chat-header (max-width: 900px) {
+  .entry.entry {
+    padding: 0 8px;
+  }
+  .entryLabel,
+  .badge {
+    display: none;
+  }
+}

@@ -1,0 +1,1372 @@
+.panel {
+  margin: 4px 0 8px;
+  min-width: 0;
+  font-size: 12px;
+}
+.group {
+  width: min(100% - 40px, 900px);
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text2);
+}
+.hint {
+  margin: 5px 0;
+  color: var(--text2);
+}
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--danger);
+}
+.steps {
+  border: 1px solid var(--b1);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+.steps p {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.done {
+  color: var(--text2);
+  text-decoration: line-through;
+}
+.name {
+  font-weight: 600;
+  color: var(--text);
+}
+.taskPanel {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.output {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  max-height: 240px;
+  overflow: auto;
+}
+.historyMessage {
+  border-top: 1px solid var(--b1);
+  padding: 8px 0;
+}
+.budgetEditor {
+  margin-top: 8px;
+}
+.budgetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 8px 0;
+}
+.budgetGrid label {
+  display: grid;
+  gap: 4px;
+}
+.panel input[type="number"],
+.panel textarea {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  border: 1px solid var(--b2);
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.panel textarea {
+  min-height: 64px;
+  resize: vertical;
+}
+.strips {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+  gap: 6px;
+  padding: 2px 0;
+}
+.strip button {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--hover);
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.planHint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px;
+  background: var(--accentBg);
+  color: var(--accent);
+  border-radius: 12px;
+  font-size: 12.5px;
+}
+.planHint > span {
+  flex: 1;
+}
+.taskPane {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+.topic {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.topic + .topic {
+  margin-top: 20px;
+  border-top: 1px solid var(--b1);
+  padding-top: 12px;
+}
+.topic h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.planCard,
+.inlineCard {
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  background: var(--card);
+  overflow: hidden;
+}
+.planCard {
+  padding: 8px 12px;
+}
+.inlineCard {
+  width: min(100%, 520px);
+  box-sizing: border-box;
+}
+.planCard p {
+  margin: 0 0 6px;
+}
+.step {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  min-height: 30px;
+  padding: 3px 0;
+  line-height: 1.6;
+}
+.step > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.stepMark {
+  text-align: center;
+}
+.step[data-state="done"] > span:last-child,
+.step[data-state="cancelled"] > span:last-child {
+  color: var(--text2);
+  text-decoration: line-through;
+}
+.step[data-state="done"] .stepMark {
+  color: var(--ok);
+}
+.step[data-state="in_progress"] .stepMark {
+  color: var(--accent);
+}
+.stepToggle {
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  font-size: 19px;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 0;
+  flex: none;
+}
+/* Plan-card marks are text glyphs; at the shared 19px the ● dot outweighs the step text. */
+.planStep .stepToggle {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.step[data-state="done"] .stepToggle {
+  color: var(--ok);
+}
+.step[data-state="in_progress"] .stepToggle {
+  color: var(--accent);
+}
+/* Tasks pane rows: the overflow menu trails the step instead of wrapping onto its own row. */
+.planGoal {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.planStep {
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+}
+.stepText {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+button.stepText {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+.stepText[data-expanded] {
+  display: block;
+  -webkit-line-clamp: none;
+  line-clamp: none;
+}
+.planStep[data-state="done"] .stepText,
+.planStep[data-state="cancelled"] .stepText {
+  color: var(--text2);
+}
+.planStep[data-state="cancelled"] .stepText {
+  text-decoration: line-through;
+}
+/* Done reads muted like the plan card; the shared `.step` strike-through stays for cancelled only. */
+.planStep[data-state="done"] > span.stepText {
+  text-decoration: none;
+}
+/* Negative margins keep the 30px trigger from making menu rows taller than plain ones. */
+.stepSkip {
+  margin: -2px 0 -2px auto;
+  padding: 2px 10px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  color: var(--text2);
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: 0;
+}
+.stepSkip:hover:enabled {
+  color: var(--text);
+  border-color: var(--b3);
+}
+/* Opacity, not display: the action stays in the tab order and appears when its row is reached. */
+.planStep:hover .stepSkip,
+.planStep:focus-within .stepSkip {
+  opacity: 1;
+}
+@media (hover: none) {
+  .stepSkip {
+    opacity: 1;
+  }
+}
+.taskList {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.collectionRow {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 4px;
+  border-bottom: 1px solid var(--b1);
+  background: var(--card);
+}
+.collectionRow > button {
+  flex: 1;
+}
+.collectionTitle {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.archiveList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--b1);
+}
+.taskRow,
+.childOpen {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  background: var(--card);
+  color: var(--text);
+  padding: 9px 10px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  min-width: 0;
+  width: 100%;
+}
+.taskRow + .taskRow {
+  border-top: 1px solid var(--b1);
+}
+.taskRow > span:nth-child(2),
+.childOpen > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.taskRow b,
+.childRow b {
+  font-size: 13px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.taskRow small,
+.childRow small {
+  color: var(--text2);
+  font-size: 12px;
+}
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text2);
+  flex: none;
+}
+:where([data-state="running"]) .statusDot {
+  background: var(--accent);
+}
+:where([data-state="done"]) .statusDot {
+  background: var(--ok);
+}
+:where([data-state="interrupted"]) .statusDot {
+  background: var(--warn);
+}
+:where([data-state="error"]) .statusDot {
+  background: var(--danger);
+}
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--b1);
+  font-size: 13px;
+}
+.cardHead > button {
+  margin-left: auto;
+}
+.childRow {
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+}
+.childOpen {
+  flex: 1;
+  width: auto;
+}
+.childAction {
+  flex: none;
+  white-space: nowrap;
+}
+.childOpen > svg,
+.taskRow > svg {
+  flex: none;
+}
+.childRow + .childRow {
+  border-top: 1px solid var(--b1);
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.resultPreview {
+  max-height: 8em;
+  overflow: hidden;
+}
+/* Rendered Markdown keeps its own paragraphs; pre-wrap would double the blank lines. */
+.resultMarkdown {
+  white-space: normal;
+}
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.meter > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.meter progress {
+  width: 100%;
+  height: 5px;
+  accent-color: var(--text2);
+}
+/* Next-run limits as a soft card of even rows; fields save on blur. */
+.budgetHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.budgetHead:hover {
+  background: var(--hover);
+}
+.budgetHead > span {
+  flex: 1;
+}
+.budgetChevron {
+  color: var(--text2);
+  transition: transform 180ms var(--ease-out);
+}
+.budgetHead[aria-expanded="true"] .budgetChevron {
+  transform: rotate(90deg);
+}
+.budgetCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  animation: budgetIn 200ms var(--ease-out);
+}
+.budgetCard > .hint {
+  margin: 0;
+  font-size: 12.5px;
+}
+.budgetRows {
+  display: flex;
+  flex-direction: column;
+}
+.budgetRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(96px, 132px);
+  gap: 4px 12px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--b1);
+}
+.budgetRows > .budgetRow:last-child {
+  border-bottom: 0;
+}
+.budgetRow input {
+  min-width: 0;
+  height: 32px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--tert);
+  color: var(--text);
+  padding: 0 10px;
+  text-align: right;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+}
+.budgetRow input::-webkit-outer-spin-button,
+.budgetRow input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+.budgetRow input:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--avatar-violet) 55%, transparent);
+  background: var(--card);
+}
+.budgetRow input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.budgetRow small {
+  grid-column: 1 / -1;
+  color: var(--danger);
+}
+.budgetFoot {
+  display: flex;
+  justify-content: flex-end;
+}
+.budgetReset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.budgetReset:hover:not(:disabled) {
+  background: var(--hover);
+}
+@keyframes budgetIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .budgetCard,
+  .budgetChevron {
+    animation: none;
+    transition: none;
+  }
+}
+.strips:empty {
+  display: none;
+}
+.taskPane button:focus-visible,
+.strips button:focus-visible,
+.inlineCard button:focus-visible {
+  outline: 1px solid var(--b3);
+  outline-offset: 1px;
+  background: var(--hover);
+}
+.taskPane .steps {
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.historyScroll {
+  max-height: 50vh;
+  overflow: auto;
+  overflow-anchor: none;
+}
+.taskPane textarea {
+  width: 100%;
+  min-height: 64px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  resize: vertical;
+  font: inherit;
+}
+.toolToggle {
+  border: 0;
+  border-radius: 999px;
+  background: var(--hover);
+  color: var(--text2);
+  padding: 4px 10px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.threadScope {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.threadScope > aside {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: 100%;
+  border-left: 0;
+  z-index: 36;
+}
+
+.planProgress {
+  display: block;
+  width: calc(100% - 24px);
+  height: 4px;
+  margin: 8px 12px 0;
+  accent-color: var(--ok);
+}
+.planHeading {
+  justify-content: space-between;
+  align-items: baseline;
+}
+.planArea {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Negative margins keep the reveal highlight from shifting the pane's layout. */
+  margin: -6px;
+  padding: 6px;
+  border-radius: 12px;
+  outline: 1px solid transparent;
+  transition:
+    background-color 600ms ease-out,
+    outline-color 600ms ease-out;
+}
+.planArea.planReveal {
+  background: var(--hover);
+  outline-color: var(--b3);
+}
+.planHeading > b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.inlinePlanGoal {
+  margin: 10px 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.inlinePlanSteps {
+  padding: 8px 12px 12px;
+}
+
+.strip .planSummary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+}
+.planMember {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.planCount {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.planStep {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 36ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+.planSummary > svg {
+  flex: 0 0 auto;
+}
+.childSummary {
+  flex: 0 0 auto;
+}
+.questionCard {
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.questionCard fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.questionLegend {
+  margin-bottom: 10px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.questionOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+.questionOption input {
+  margin-top: 4px;
+}
+.questionText {
+  min-width: 0;
+}
+.questionImpact {
+  display: block;
+  color: var(--text2);
+  font-size: 12px;
+  margin-top: 3px;
+}
+.recommended {
+  margin-left: 8px;
+  color: var(--accent);
+}
+.questionCard textarea {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 8px;
+  font: inherit;
+  resize: vertical;
+}
+
+/* The task pane has no tool-step gutter; only the command text yields to its actions. */
+.commandRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+}
+.commandRow .hint {
+  margin: 0;
+}
+.commandTop,
+.commandActions,
+.commandSummary,
+.backgroundEvent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.commandTop,
+.backgroundEvent {
+  flex-wrap: nowrap;
+}
+.commandSummary {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--text2);
+}
+.commandSummary > span:not(:first-child) {
+  flex: none;
+}
+.commandActions {
+  flex: none;
+  white-space: nowrap;
+}
+.compactAction {
+  min-height: 26px;
+  padding: 2px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.commandText {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+.commandRunning {
+  color: var(--ok);
+}
+.commandWarning {
+  color: var(--warn);
+}
+.statusDot[data-command-state="running"] {
+  background: var(--ok);
+}
+.statusDot[data-command-state="warning"] {
+  background: var(--warn);
+}
+.backgroundEvent {
+  width: 100%;
+  font-size: 12px;
+  color: var(--text2);
+}
+.backgroundEvent > :not(.commandText) {
+  flex: none;
+  white-space: nowrap;
+}
+.backgroundEvent .commandText {
+  flex: 0 1 auto;
+}
+
+.taskList:empty {
+  display: none;
+}
+.taskPane .steps p {
+  margin: 0;
+}
+.taskPane .steps > strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+}
+
+/* Lively tasks pane: soft cards, a timeline for plan steps, breathing running dots.
+   Scoped to the pane so the in-chat plan card keeps its compact look. */
+.taskPane {
+  padding: 14px;
+}
+/* No hairlines in the pane — the plan is a soft card, each task row its own soft card. */
+.taskPane .planCard {
+  border: 0;
+  box-shadow: var(--shadow-soft);
+}
+.taskPane .collectionRow {
+  border-bottom: 0;
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.taskPane .taskRow:hover {
+  background: var(--hover);
+}
+.taskPane h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+}
+.taskPane .planStep {
+  position: relative;
+}
+/* The vertical line runs behind each marker; the first and last steps trim their half. */
+.taskPane .planStep::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--b2);
+}
+.taskPane .planStep:first-of-type::before {
+  top: 14px;
+}
+.taskPane .planStep:last-of-type::before {
+  bottom: calc(100% - 14px);
+}
+.taskPane .planStep .stepToggle {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  margin: 3px 1px 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1;
+  color: transparent;
+  background: var(--card);
+  box-shadow: inset 0 0 0 2px var(--b3);
+  transition: background-color 200ms ease;
+}
+.taskPane .planStep[data-state="done"] .stepToggle {
+  color: var(--on-tone);
+  background: var(--ok);
+  box-shadow: none;
+}
+.taskPane .planStep[data-state="in_progress"] .stepToggle {
+  background: var(--avatar-blue);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--avatar-blue) 22%, transparent);
+  animation: stepBreath 1.6s ease-in-out infinite;
+}
+.taskPane .planStep[data-state="cancelled"] .stepToggle {
+  color: var(--text2);
+}
+.taskPane .planStep[data-state="in_progress"] {
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--avatar-blue) 8%, transparent);
+}
+@keyframes stepBreath {
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--avatar-blue) 0%, transparent);
+  }
+}
+.taskPane :where([data-state="running"]) .statusDot {
+  background: var(--avatar-blue);
+  animation: stepBreath 1.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .taskPane .planStep[data-state="in_progress"] .stepToggle,
+  .taskPane :where([data-state="running"]) .statusDot {
+    animation: none;
+  }
+}
+
+/* Background commands: a dark terminal card in both themes. Surface tokens are redefined
+   inside so the shared buttons read on the dark ground; nothing outside the card changes. */
+.commandRow.commandRow {
+  --text: color-mix(in srgb, var(--on-tone) 92%, transparent);
+  --text2: color-mix(in srgb, var(--on-tone) 58%, transparent);
+  --card: color-mix(in srgb, var(--on-tone) 9%, var(--avatar-ink));
+  --b3: transparent;
+  --hover: color-mix(in srgb, var(--on-tone) 8%, transparent);
+  color-scheme: dark;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--avatar-ink);
+  box-shadow: var(--shadow-soft);
+}
+.commandRow .commandTop {
+  gap: 8px;
+}
+.commandRow .commandText {
+  flex: 1;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--on-tone);
+}
+.commandMeta {
+  flex: none;
+  color: var(--text2);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+.commandRow .commandSummary {
+  flex: none;
+  gap: 4px;
+  font-size: 11.5px;
+}
+.commandRow .commandRunning {
+  color: color-mix(in srgb, var(--avatar-green) 70%, var(--on-tone));
+}
+.commandRow .commandWarning {
+  color: color-mix(in srgb, var(--avatar-amber) 80%, var(--on-tone));
+}
+.commandRow .commandActions {
+  flex-wrap: wrap;
+  gap: 6px;
+  white-space: normal;
+}
+.commandPorts {
+  display: contents;
+}
+.commandSpacer {
+  flex: 1;
+}
+.commandRow .compactAction {
+  min-height: 24px;
+  padding: 2px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+.portPill.portPill {
+  color: color-mix(in srgb, var(--avatar-blue) 35%, var(--on-tone));
+}
+.commandStop.commandStop {
+  color: color-mix(in srgb, var(--danger) 45%, var(--on-tone));
+}
+.commandContinue.commandContinue {
+  color: color-mix(in srgb, var(--avatar-green) 40%, var(--on-tone));
+  background: color-mix(in srgb, var(--avatar-green) 26%, var(--avatar-ink));
+}
+.commandRow .hint {
+  font-size: 11.5px;
+}
+
+/* Section marks: a coloured dot leads each pane section heading (后台命令 teal, 计划 amber,
+   子任务 blue, 用量 green). */
+.taskPane :is(h3, strong)[data-tone]::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sect-c);
+}
+.taskPane [data-tone="teal"] {
+  --sect-c: var(--avatar-teal);
+}
+.taskPane [data-tone="amber"] {
+  --sect-c: var(--avatar-amber);
+}
+.taskPane [data-tone="blue"] {
+  --sect-c: var(--avatar-blue);
+}
+.taskPane [data-tone="green"] {
+  --sect-c: var(--avatar-green);
+}
+.taskPane .topic {
+  gap: 8px;
+}
+.taskPane .topic + .topic {
+  border-top: 0;
+  margin-top: 22px;
+}
+.taskPane .taskList {
+  gap: 6px;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+}
+.taskPane .taskRow {
+  padding: 10px 12px;
+  transition: background-color 150ms ease;
+}
+.taskPane .taskRow > svg {
+  color: var(--text2);
+}
+
+/* 用量: a soft card of stat tiles; each tile keeps its limit and a thin bar. */
+.taskPane .budgetCard {
+  gap: 10px;
+  margin-top: 6px;
+  padding: 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.taskPane .steps > strong[data-tone] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
+}
+.statTile.statTile {
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.statTile > b {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.statTile > span {
+  color: var(--text2);
+  font-size: 11.5px;
+}
+.statTile progress {
+  height: 4px;
+  margin-top: 4px;
+  accent-color: var(--avatar-green);
+}
+
+/* Child task details: a header card, Markdown results in a soft document card, tinted actions. */
+.taskDetail.taskDetail {
+  gap: 10px;
+}
+.detailHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--avatar-amber) 12%, var(--card)),
+    var(--card)
+  );
+  box-shadow: var(--shadow-soft);
+}
+.taskDetail .detailHead > strong {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.taskDetail > h3 {
+  margin-top: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.taskDetail > .output {
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 12.5px;
+}
+.detailActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.detailActions > button,
+.taskDetail > button {
+  min-height: 32px;
+  padding: 4px 14px;
+  font-size: 13px;
+}
+.detailSend.detailSend {
+  color: var(--on-tone);
+  background: var(--avatar-amber);
+}
+.detailStop.detailStop {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.detailWarn.detailWarn {
+  align-items: flex-start;
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.taskDetail .detailWarn > svg {
+  flex: none;
+  margin-top: 2px;
+}
+.detailDisclosure.detailDisclosure {
+  align-self: flex-start;
+  color: var(--text2);
+}
+.taskPane .archiveList {
+  border-top: 0;
+}
+.archiveToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+/* Only the label grows: the leading icon tile is a span too (it was stretched into a bar). */
+.archiveLabel {
+  flex: 1;
+  min-width: 0;
+}
+.archiveToggle.archiveToggle > svg {
+  color: var(--text2);
+  transition: transform 200ms var(--ease-out);
+}
+.archiveToggle:hover {
+  background: color-mix(in srgb, var(--avatar-teal) 8%, var(--card));
+}
+.archiveToggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .archiveToggle,
+  .archiveToggle > svg {
+    transition: none;
+  }
+}
+
+/* Composer strip: the plan summary and child-task pills take the tasks colour (amber). */
+.strip button {
+  color: var(--ink-amber);
+  background: color-mix(in srgb, var(--avatar-amber) 12%, transparent);
+  transition: background-color 150ms ease;
+}
+.strip button:hover {
+  background: color-mix(in srgb, var(--avatar-amber) 20%, transparent);
+}
+.planHint {
+  border-radius: 12px;
+}
+
+/* Menus: destructive items read red next to their red tile. */
+.menuDanger.menuDanger {
+  color: var(--danger);
+}
+/* An execution pause under a reply reads as a toned band, like the chat's status lines. */
+.pauseBand {
+  align-self: flex-start;
+  margin: 6px 0 0;
+  padding: 7px 14px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  background: color-mix(in srgb, var(--avatar-blue) 11%, transparent);
+  color: var(--ink-blue);
+}
+.pauseBand[data-tone="warn"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+/* Empty tasks page: a tile, the bold title and one note, like the other side-pane pages. */
+.paneEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 48px 20px 16px;
+  color: var(--text2);
+  font-size: 12.5px;
+  text-align: center;
+}
+.paneEmpty b {
+  color: var(--text);
+  font-size: 15px;
+}
+.paneEmpty.paneEmpty p {
+  max-width: 280px;
+  margin: 0;
+}
+.paneEmptyTile.paneEmptyTile {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 8px;
+  border-radius: 16px;
+}
+.paneEmptyTile.paneEmptyTile > svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* The group task panel's execution record as a timeline. */
+.timelineItem {
+  display: grid;
+  grid-template-columns: 40px 14px minmax(0, 1fr);
+  gap: 0 8px;
+  font-size: 12.5px;
+}
+.timelineTime {
+  padding-top: 2px;
+  text-align: right;
+  color: var(--text2);
+  font-size: 11px;
+}
+.timelineRail {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.timelineRail::before {
+  content: "";
+  position: absolute;
+  top: 14px;
+  bottom: 0;
+  width: 2px;
+  background: var(--b1);
+}
+.timelineRail::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--avatar-violet);
+}
+.timelineRail[data-tone="user"]::after {
+  background: var(--text2);
+}
+.timelineRail[data-tone="warn"]::after {
+  background: var(--warn);
+}
+.timelineItem:last-child .timelineRail::before {
+  display: none;
+}
+.timelineBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  padding-bottom: 14px;
+}
+.timelineText,
+.timelineTextClamp {
+  margin: 0;
+  color: var(--text2);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.timelineTextClamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.timelineWarn {
+  margin: 0;
+  color: var(--warn);
+}
+.timelineTool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: stretch;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: var(--tert);
+  font-size: 11.5px;
+}
+.timelineTool code {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+.timelineTool em {
+  flex: none;
+  color: var(--text2);
+  font-style: normal;
+  font-size: 11px;
+}
+.timelineLink {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-blue);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}

@@ -1,0 +1,46 @@
+{
+  "replies": [
+    {
+      "toolCalls": [
+        {
+          "name": "connection_needed",
+          "arguments": {
+            "connection": "本机日历"
+          }
+        },
+        {
+          "name": "connection_needed",
+          "arguments": {
+            "connection": "calendar"
+          }
+        }
+      ]
+    },
+    {
+      "text": "请通过程序提供的连接入口管理本机日历。"
+    }
+  ],
+  "routes": {
+    "researcher": [
+      {
+        "toolCalls": [
+          {
+            "name": "connection_needed",
+            "arguments": {
+              "connection": "本机日历"
+            }
+          },
+          {
+            "name": "connection_needed",
+            "arguments": {
+              "connection": "calendar"
+            }
+          }
+        ]
+      },
+      {
+        "text": "请通过程序提供的连接入口管理本机日历。"
+      }
+    ]
+  }
+}

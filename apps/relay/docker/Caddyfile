@@ -1,0 +1,10 @@
+# TLS_MODE=certificate: your own certificate and key (mounted into the container).
+{
+  admin off
+  persist_config off
+  auto_https off
+}
+https://:{$HTTPS_PORT} {
+  tls {$TLS_CERT} {$TLS_KEY}
+  reverse_proxy 127.0.0.1:{$RELAY_PORT}
+}

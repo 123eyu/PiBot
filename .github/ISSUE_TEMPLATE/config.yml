@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: User guide / 使用指南
+    url: https://pibot.space/guides/
+    about: Setup, models, approvals, routines, phone and runners. / 安装、模型、审批、例行任务、手机和执行端。

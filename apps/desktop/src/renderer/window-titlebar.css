@@ -1,0 +1,28 @@
+/* Height of the Windows/Linux title strip; 0 on macOS. Full-height layouts subtract it. */
+:root {
+  --titlebar-height: 0px;
+  --window-controls-inset: 0px;
+}
+:root[data-title-strip] {
+  --titlebar-height: max(32px, env(titlebar-area-height, 0px));
+  /* Same free-area calculation introduced in a58a5174; macOS keeps zero. */
+  --window-controls-inset: max(
+    0px,
+    calc(100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw))
+  );
+}
+:root[data-title-strip] body {
+  padding-top: var(--titlebar-height);
+}
+/*
+ * The OS draws the window controls in the strip and never dims them; a full-window backdrop
+ * left them as a bright patch on a dimmed strip. Modal backdrops start below the strip instead.
+ */
+:root[data-title-strip] ::backdrop {
+  inset: var(--titlebar-height) 0 0 0;
+}
+
+/* Native modal dialogs live in the top layer, outside the body's title-strip padding. */
+:root[data-title-strip] dialog:modal {
+  top: var(--titlebar-height);
+}

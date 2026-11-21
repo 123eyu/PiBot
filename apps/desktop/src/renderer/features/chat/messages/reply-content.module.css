@@ -1,0 +1,83 @@
+.history {
+  min-width: 0;
+  max-width: 100%;
+  margin-bottom: 4px;
+  color: var(--text2);
+}
+/* 过程说明: the same soft fold as the tool steps (tools/lively.module.css). */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  max-width: 100%;
+  padding: 4px 10px 4px 7px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--tert);
+  color: var(--text2);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  text-align: start;
+  transition: background-color 180ms ease;
+}
+.toggle:hover {
+  background: color-mix(in srgb, var(--chat-c, var(--text2)) 10%, var(--tert));
+}
+.toggle[aria-expanded="true"] {
+  color: var(--text);
+}
+.toggle svg {
+  flex: none;
+  transition: transform 200ms var(--ease-out);
+}
+.toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.details {
+  margin-top: 6px;
+  padding: 2px 12px;
+  border-inline-start: 2px solid color-mix(in srgb, var(--chat-c, var(--b2)) 30%, transparent);
+  overflow-wrap: anywhere;
+  animation: unfold 260ms var(--ease-out);
+}
+.details p {
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+}
+.details pre {
+  overflow: auto;
+  white-space: pre-wrap;
+}
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .toggle,
+  .toggle svg {
+    transition: none;
+  }
+  .details {
+    animation: none;
+  }
+}
+/* C-cite: the band holds several lines; the scope note is the quieter last one. */
+div.citations {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin-top: 8px;
+  padding-inline-end: 14px;
+}
+.citations p {
+  margin: 0;
+}
+.citations small {
+  font-size: 11.5px;
+  opacity: 0.8;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@pibot/observability",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "cross"
+  },
+  "exports": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/secrets": "workspace:0.0.0"
+  }
+}

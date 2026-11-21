@@ -1,0 +1,42 @@
+{
+  "scenario": 5,
+  "method": "source-notes",
+  "behaviour": "replan",
+  "requiredStrings": [
+    "合成能源效率"
+  ],
+  "deliverables": [
+    {
+      "id": "report",
+      "path": "报告.md",
+      "kind": "md",
+      "sections": [
+        "综合",
+        "来源"
+      ]
+    }
+  ],
+  "acceptance": [
+    {
+      "id": "exists",
+      "check": "exists",
+      "deliverable": "report"
+    },
+    {
+      "id": "sections",
+      "check": "sections",
+      "deliverable": "report"
+    },
+    {
+      "id": "source-count",
+      "check": "minCitations",
+      "min": 1,
+      "deliverable": "report"
+    }
+  ],
+  "budget": {
+    "modelRequests": 100,
+    "costUsd": 1,
+    "activeSeconds": 300
+  }
+}

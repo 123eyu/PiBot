@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "id": "gmail",
+  "order": 60,
+  "card": {
+    "name": {
+      "zh": "Gmail",
+      "en": "Gmail"
+    },
+    "category": "documents",
+    "platforms": ["darwin", "win32", "linux"],
+    "description": {
+      "zh": "读取、搜索和发送 Gmail 邮件",
+      "en": "Read, search, draft, and send Gmail messages"
+    },
+    "modes": [
+      {
+        "id": "oauth",
+        "auth": "oauth",
+        "capability": {
+          "zh": "Google 授权",
+          "en": "Google authorization"
+        },
+        "help": {
+          "zh": "在系统浏览器登录 Google 并授权。无需填写客户端 ID 或密钥；授权完成后即可使用。",
+          "en": "Sign in to Google and approve access in your system browser. No client ID or secret is needed."
+        },
+        "documentationUrl": "https://support.google.com/accounts/answer/6020956"
+      },
+      {
+        "id": "app-password",
+        "auth": "bearer",
+        "capability": {
+          "zh": "应用专用密码",
+          "en": "App password"
+        },
+        "help": {
+          "zh": "先开启 Google 两步验证，再生成 16 位应用专用密码（不是登录密码）。密码保存在连接 → 访问令牌中，可随时更新。此方式使用 IMAP/SMTP。",
+          "en": "Enable Google 2-Step Verification, then create a 16-character app password (not your sign-in password). It is saved under Connections → Access tokens, where you can update it. This method uses IMAP/SMTP."
+        },
+        "documentationUrl": "https://support.google.com/accounts/answer/185833"
+      }
+    ]
+  },
+  "mcp": {
+    "presets": {
+      "oauth": {
+        "id": "gmail",
+        "transport": "stdio",
+        "fixedService": "gmail",
+        "env": {
+          "GMAIL_LOGIN_MODE": "oauth"
+        },
+        "auth": {
+          "kind": "oauth"
+        },
+        "networkDomains": ["gmail.googleapis.com", "oauth2.googleapis.com", "auth.pibot.space"]
+      },
+      "app-password": {
+        "id": "gmail",
+        "transport": "stdio",
+        "fixedService": "gmail",
+        "env": {
+          "GMAIL_LOGIN_MODE": "app_password"
+        },
+        "auth": {
+          "kind": "bearer",
+          "credential": {
+            "target": "env",
+            "name": "GMAIL_CREDENTIAL"
+          }
+        },
+        "networkDomains": ["imap.gmail.com", "smtp.gmail.com"]
+      }
+    },
+    "readOnlyTools": [
+      "oauth_start",
+      "oauth_status",
+      "list_labels",
+      "search_messages",
+      "read_message",
+      "read_thread"
+    ],
+    "disabledTools": [],
+    "draftBindings": [],
+    "toolDescriptions": {
+      "oauth_start": {
+        "zh": "打开系统浏览器完成 Google 授权",
+        "en": "Open the system browser for Google authorization"
+      },
+      "oauth_status": {
+        "zh": "查看 Gmail OAuth 状态",
+        "en": "Check Gmail OAuth status"
+      },
+      "oauth_revoke": {
+        "zh": "撤销 Gmail 授权并清除本机令牌",
+        "en": "Revoke Gmail authorization and clear the local token"
+      }
+    },
+    "oauthStartTool": "oauth_start",
+    "requiresToken": ["app-password"],
+    "trusted": {
+      "stdio": {}
+    }
+  }
+}

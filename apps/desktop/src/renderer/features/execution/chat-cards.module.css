@@ -1,0 +1,237 @@
+/*
+ * Lively layer for the execution cards that sit inside a chat (plan, children, decision,
+ * the 需要你决定 question, the composer strips). execution.module.css stays shared with the tasks
+ * pane; these classes are added beside it in the chat only. Doubled selectors win over the base.
+ */
+
+/* Inline cards (plan, child tasks, group decisions): soft cards, no border. */
+.card.card {
+  border: 0;
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  animation: rise 350ms var(--ease-out) both;
+}
+.card.card > :first-child {
+  border-bottom-color: var(--b1);
+}
+/* Maintainers 2026-11-13: cards in a chat take the chat's Bot colour (--chat-c). The tasks colour
+   (amber tiles and chips) becomes the Bot colour; status colours (green / red) keep their meaning. */
+.card.card,
+.strip.strip {
+  --button-fill: var(--userBubble);
+  --button-on: var(--onUser);
+}
+.card.card [data-tone="amber"] {
+  --tile: var(--chat-c, var(--avatar-amber));
+  --tint: var(--chat-ink, var(--ink-amber));
+}
+
+/* A group step waiting on the user: an edge in the chat's colour marks it as a decision. */
+.decision.decision {
+  border-left: 4px solid var(--chat-c, var(--avatar-amber));
+}
+.actions.actions {
+  flex-wrap: wrap;
+  border-top: 1px solid var(--b1);
+  border-bottom: 0;
+}
+.actions.actions select {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--tert);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.progress.progress {
+  appearance: none;
+  height: 6px;
+  border: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--tert);
+}
+.progress.progress::-webkit-progress-bar {
+  border-radius: 6px;
+  background: var(--tert);
+}
+.progress.progress::-webkit-progress-value {
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--chat-c, var(--avatar-amber)), var(--avatar-green));
+  transition: width 400ms var(--ease-out);
+}
+
+/* 需要你决定: a washed header with a mark in the conversation's colour, options as soft rows. */
+.question.question {
+  --q: var(--chat-c, var(--avatar-violet));
+  --q-ink: var(--chat-ink, var(--ink-violet));
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 18px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  animation: rise 400ms var(--ease-out) both;
+}
+.questionHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-left: 4px solid var(--q);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--q) 16%, transparent), transparent);
+}
+.questionHead > span:first-child {
+  background: var(--q);
+}
+.questionHead b {
+  display: block;
+  font-size: 14px;
+}
+.questionHead small {
+  display: block;
+  color: var(--text2);
+  font-size: 12.5px;
+}
+.questionBody {
+  display: grid;
+  gap: 8px;
+  padding: 12px 16px 16px;
+}
+.question.question fieldset {
+  gap: 8px;
+}
+/* The legend names the group for assistive tech; its words are in the header. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.option.option {
+  align-items: center;
+  gap: 12px;
+  padding: 10px 13px;
+  border: 1.5px solid transparent;
+  border-radius: 13px;
+  background: var(--tert);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+.option.option:hover {
+  transform: translateX(2px);
+}
+.option.option:has(input:checked) {
+  border-color: var(--q);
+  background: color-mix(in srgb, var(--q) 10%, transparent);
+}
+.option.option input {
+  flex: none;
+  margin: 0;
+  accent-color: var(--q);
+}
+.option.option:has(input:focus-visible) {
+  outline: 2px solid var(--q);
+  outline-offset: 2px;
+}
+.recommended.recommended {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--q) 18%, transparent);
+  color: var(--q-ink);
+  font-size: 11px;
+}
+.question.question textarea {
+  border: 0;
+  border-radius: 11px;
+  background: var(--tert);
+}
+.question.question textarea:focus-visible {
+  outline: 2px solid var(--q);
+}
+.go.go {
+  width: 100%;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--q);
+  color: var(--on-tone);
+  font-weight: 600;
+  box-shadow: 0 8px 20px -10px var(--q);
+}
+.go.go:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--q) 88%, var(--text));
+}
+.go.go:disabled {
+  opacity: 0.45;
+}
+/* Answered: a compact card with an 已回复 chip. */
+.answered.answered {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.answered.answered > strong {
+  flex-basis: 100%;
+  font-size: 13px;
+}
+.answered.answered > p {
+  margin: 0;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--okBg);
+  color: var(--ok);
+  font-size: 12px;
+}
+/* The inbox keeps its layout: the body wrapper adds no box there. */
+.contents {
+  display: contents;
+}
+
+/* Above the composer: plan progress and running children as coloured pills. */
+.strip.strip button {
+  background: color-mix(in srgb, var(--chat-c, var(--avatar-amber)) 14%, transparent);
+  color: var(--chat-ink, var(--ink-amber));
+  font-weight: 600;
+  transition: transform 150ms ease;
+}
+.strip.strip button:hover {
+  transform: translateY(-1px);
+}
+.planHint.planHint {
+  color: var(--ink-blue);
+  background: color-mix(in srgb, var(--avatar-blue) 11%, transparent);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card.card,
+  .question.question {
+    animation: none;
+  }
+  .option.option,
+  .strip.strip button {
+    transition: none;
+  }
+}

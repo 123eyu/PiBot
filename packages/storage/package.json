@@ -1,0 +1,21 @@
+{
+  "name": "@pibot/storage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L1"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./data-dir": "./src/database/data-dir.ts"
+  },
+  "dependencies": {
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "@pibot/secrets": "workspace:0.0.0",
+    "zod": "4.6.5"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
+}

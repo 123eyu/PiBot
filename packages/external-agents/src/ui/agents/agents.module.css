@@ -1,0 +1,490 @@
+/* External agents: logo tiles, agent cards, the create dialog's fact table and bands. */
+.logo {
+  --logo-size: 42px;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  border-radius: calc(var(--logo-size) * 0.3);
+  object-fit: cover;
+  box-shadow: var(--shadow-soft);
+  /* A black logo on a dark card (or a white one on a light card) keeps its edge. */
+  outline: 1px solid var(--b3);
+  outline-offset: -1px;
+}
+.logo[data-custom] {
+  background: var(--tert);
+  color: var(--text2);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+.agents {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 10px;
+}
+@media (max-width: 720px) {
+  .agents {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.agent {
+  box-sizing: border-box;
+  /* Buttons and the missing agents' plain cards share one row height and top edge. */
+  height: 100%;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--b1);
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-out),
+    border-color 120ms ease;
+}
+.agent:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.agent:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.agent:disabled {
+  cursor: default;
+}
+.agentText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.agentText b {
+  overflow-wrap: anywhere;
+}
+.agentText small {
+  font-size: 12px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.agentText .agentPath {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agentState {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ink-blue);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lead span {
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.facts {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 8px 12px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 13px;
+}
+.facts dt {
+  color: var(--text2);
+}
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.band {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-row);
+  font-size: 12.5px;
+}
+.band[data-tone="info"] {
+  background: color-mix(in srgb, var(--avatar-blue) 10%, transparent);
+  color: var(--ink-blue);
+}
+.band[data-tone="warn"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.band svg {
+  flex: none;
+  margin-top: 1px;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.footer > span {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text2);
+}
+/* Same label weight as the TextField labels above it (name, program). */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 10px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+  background: var(--card);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  resize: vertical;
+}
+.field small {
+  color: var(--text2);
+  font-weight: 400;
+}
+.rowLead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.rowLead span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.rowLead small {
+  font-size: 12px;
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.settingsChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  max-width: 280px;
+  padding: 1px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.settingsChip:hover,
+.settingsChip[aria-expanded="true"] {
+  background: var(--hover);
+  color: var(--text);
+}
+.settingsChip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.settingsChip svg {
+  flex: none;
+}
+.settingsChip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: min(420px, 100%);
+}
+/* Label above the control: the Bot panel is narrow and model names are long. */
+.settingRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  font-size: 13px;
+}
+.settingRow label {
+  color: var(--text2);
+}
+.settingRow select {
+  min-width: 0;
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+.settingControl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.settingPicker {
+  width: 260px;
+  max-width: 100%;
+  min-width: 0;
+}
+.settingSearch {
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+.inlineSettings {
+  padding: 14px 16px;
+}
+.customModel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+.commands {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--b1);
+  font-size: 13px;
+}
+.commands ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.commands li {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text2);
+}
+.commands code {
+  flex: none;
+  font-family: var(--font-mono);
+  color: var(--text);
+}
+.commands li span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent[data-missing] {
+  cursor: default;
+}
+.agent[data-missing]:hover {
+  transform: none;
+}
+.replyFacts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+}
+.plan {
+  padding: 10px 12px;
+  border-radius: var(--radius-card);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  font-size: 12.5px;
+}
+.plan small {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text2);
+}
+.plan ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.plan li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  color: var(--text2);
+}
+.plan li i {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--avatar-amber);
+  color: var(--on-tone);
+  font-size: 10px;
+  font-style: normal;
+}
+.plan li[data-status="completed"] i {
+  background: var(--avatar-green);
+}
+.plan li[data-status="in_progress"] i {
+  background: var(--avatar-blue);
+}
+/* A model's variants (Cursor's `[fast=true]`) as switches under the model picker. */
+.variantSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text2);
+}
+/* Windows: the unisolated marker; its hint must stay hoverable inside the header's drag region. */
+.unisolatedBadge {
+  flex: none;
+  align-self: flex-start;
+  white-space: nowrap;
+  -webkit-app-region: no-drag;
+}
+
+.createCard {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  background: var(--card);
+}
+.cardTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+}
+.cardTitle::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-inline-end: 7px;
+  background: var(--form-accent, var(--prim));
+}
+.createFacts {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(0, 2fr);
+  gap: 16px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+.createFacts dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text2);
+}
+.createFacts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.tags,
+.tagEntry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  margin: 2px;
+  padding: 3px 8px;
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  background: var(--tert);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.tagEntry textarea {
+  flex: 1;
+  min-width: 100px;
+  min-height: 34px;
+  resize: none;
+  background: var(--tert);
+}
+@media (max-width: 480px) {
+  .createFacts {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .createFacts dd {
+    margin-bottom: 8px;
+  }
+}

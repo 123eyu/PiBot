@@ -1,0 +1,73 @@
+/* Cloud sign-in fields (tinted fields, the identity confirmation as a band). */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.field select,
+.field textarea,
+.field input[type="file"] {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--tert);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 9px 12px;
+  transition: border-color 150ms ease;
+}
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.field select:focus-visible,
+.field textarea:focus-visible,
+.field input[type="file"]:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--avatar-violet) 55%, transparent);
+}
+.field input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--avatar-violet) 13%, transparent);
+  color: var(--ink-violet);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--b1);
+}
+.confirm {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--warnBg);
+  color: var(--warn);
+  font-size: 12.5px;
+}
+.confirm input {
+  flex: none;
+  margin-top: 2px;
+  accent-color: var(--avatar-violet);
+}
+@media (prefers-reduced-motion: reduce) {
+  .field select,
+  .field textarea,
+  .field input[type="file"] {
+    transition: none;
+  }
+}

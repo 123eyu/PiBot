@@ -1,0 +1,20 @@
+[Unit]
+Description=Pi Bot Runner
+Documentation=https://pibot.space
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# 用户管理器默认的 PATH 不含 /usr/sbin；沙箱探测要用 socat，改 PATH 时别把它丢掉。
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# 没有 Secret Service 的机器需要口令。放在每用户 0600 的文件里，而不是 Environment= 的明文
+# （单元文件谁都能读）；`-` 让文件不存在时也能启动。
+EnvironmentFile=-%h/.config/pibot-runner/env
+ExecStart=/opt/pibot-runner/pibot runner start
+RestartPreventExitStatus=78
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,19 @@
+name: Feature request / 功能建议
+description: Suggest a change or a new capability. / 建议一个改动或新能力。
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do? / 你想做成什么？
+      description: The task or situation, not the solution yet. / 先说任务或场景，不急着说方案。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal / 建议
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do today / 现在怎么解决

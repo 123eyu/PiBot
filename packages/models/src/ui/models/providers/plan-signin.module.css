@@ -1,0 +1,79 @@
+/* Plan sign-in and plan notes on provider details. */
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.head > div {
+  flex: 1;
+  min-width: 0;
+}
+.head strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 650;
+}
+.head p {
+  margin: 2px 0 0;
+}
+.head > span:last-child {
+  flex: none;
+}
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  background: color-mix(in srgb, var(--avatar-blue) 10%, transparent);
+  color: var(--ink-blue);
+}
+.band[data-tone="warn"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.band[data-tone="danger"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+.band strong {
+  font-size: 13px;
+}
+.band p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.wide {
+  flex: 1 1 100%;
+}
+.link {
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.manual summary {
+  font-size: 12.5px;
+  color: var(--text2);
+  cursor: pointer;
+}
+.manual form {
+  margin-top: 8px;
+}

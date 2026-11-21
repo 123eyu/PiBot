@@ -1,0 +1,99 @@
+{
+  "replies": [
+    {
+      "toolCalls": [
+        {
+          "name": "tool_discover",
+          "arguments": {
+            "groups": ["apps"]
+          }
+        }
+      ]
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "connector_discover",
+          "arguments": {}
+        }
+      ]
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "connector_call",
+          "arguments": {
+            "connectorId": "{{CONNECTOR}}",
+            "catalogVersion": 0,
+            "tool": "echo_read",
+            "args": {
+              "target": "E2E recipient",
+              "content": "E2E query"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "E2E read completed"
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "tool_discover",
+          "arguments": {
+            "groups": ["apps"]
+          }
+        }
+      ]
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "connector_call",
+          "arguments": {
+            "connectorId": "{{CONNECTOR}}",
+            "catalogVersion": 0,
+            "tool": "echo_write",
+            "args": {
+              "target": "E2E recipient",
+              "content": "E2E payload"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "E2E send completed"
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "tool_discover",
+          "arguments": {
+            "groups": ["apps"]
+          }
+        }
+      ]
+    },
+    {
+      "toolCalls": [
+        {
+          "name": "connector_call",
+          "arguments": {
+            "connectorId": "{{CONNECTOR}}",
+            "catalogVersion": 0,
+            "tool": "echo_read",
+            "args": {
+              "target": "E2E receipt",
+              "content": "E2E verify"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "E2E receipt verified"
+    }
+  ]
+}

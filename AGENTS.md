@@ -1,0 +1,120 @@
+# AGENTS.md
+
+Guide for anyone changing this repository — human contributors and AI coding agents (Codex,
+Claude Code, Pi Bot's own dev Bot) alike.
+
+> Maintainers also check out a private development repository into this same working tree. When
+> `AGENTS.internal.md` exists at the repository root, read it first: its rules add to and take
+> precedence over this file.
+
+## The project
+
+Pi Bot is a desktop app in which a team of named Bots works on the user's own computer: direct
+chats, group chats, routines, operating the computer, connected apps. The agent kernel is
+[pi](https://github.com/earendil-works/pi), and the "brain" runs on the user's machine as well.
+An optional Android app, a relay and a headless runner extend it to other devices.
+
+User documentation lives in `docs/guide/`; the privacy notes in `docs/privacy/`.
+
+## Commands
+
+Use the Node version from `.nvmrc` (`nvm use`) and pnpm 12.
+
+| Command | Purpose |
+|---|---|
+| `pnpm install` | Install workspace dependencies |
+| `pnpm typecheck` | Typecheck every workspace package |
+| `pnpm lint` | Biome lint/format check plus the repository's structural checks |
+| `pnpm format` | Format with Biome |
+| `pnpm test` | Run the Vitest suites |
+| `pnpm dev` | Start the desktop app in development (set `PIBOT_DATA_DIR` for a separate data folder) |
+| `pnpm build` | electron-vite build (no installer) |
+| `pnpm check` | Frozen install, typecheck, lint, policy matrix and tests |
+| `pnpm check:changed [base]` | The same checks limited to what changed, for quick iteration |
+| `pnpm verify` | Required before merging: `check`, build, renderer smoke test and the end-to-end acceptance suites |
+| `pnpm sync:agents` | Regenerate `CLAUDE.md` after editing this file (`pnpm lint` checks they match) |
+
+## Hard constraints
+
+These do not bend without a maintainer's explicit agreement.
+
+1. **Electron + TypeScript only** for the desktop app. When you need a system capability, prefer,
+   in order: Electron APIs → npm native modules with prebuilt binaries → scripts the OS already
+   ships (macOS JXA/AppleScript, Windows PowerShell, Linux Python/gdbus). A C++ N-API module is a
+   last resort and needs prior agreement. The Android app (`apps/mobile`) uses React Native +
+   Expo + TypeScript; the relay (`apps/relay`) is a Cloudflare Worker in TypeScript.
+2. **pi is a pinned npm dependency, imported only in `packages/agent`.** Use the
+   `@earendil-works/*` packages at exact versions. Never call a `pi` CLI installed on the
+   machine, and never read or write pi's data directory (`~/.pi`): Pi Bot keeps credentials,
+   models, settings and sessions in its own data directory or in memory.
+3. **The brain does not depend on Electron.** `packages/*` (except `packages/ui`) must not import
+   `electron` and must run under plain Node, because the same code runs headless. Electron
+   capabilities reach the brain through interfaces defined in `packages/protocol` and injected by
+   `apps/desktop`.
+4. **Three platforms.** Every feature considers macOS, Windows and Linux. Keep platform
+   differences inside their own modules behind one interface, build paths with `path.join` and
+   the data-directory helpers, and never rely on one shell's syntax. If a platform cannot support
+   something yet, return an explicit "unsupported" instead of pretending.
+5. **Both languages, both themes.** All UI text goes through `packages/i18n`, with Chinese and
+   English added in the same change. All colours come from the `packages/ui` theme tokens (light
+   and dark); components never hard-code colour values. Language and appearance both support
+   "follow the system".
+6. **Security.**
+   - Every tool an agent can call goes through `packages/policy`; there is no bypass.
+   - Secrets and API keys never reach logs, the renderer, or pi's configuration files.
+   - Approvals, command execution and anything sent outward are written to the audit log.
+7. **No telemetry, no automatic reporting.** Crash feedback is only a user-confirmed, prefilled
+   GitHub issue opened in the browser, or an exported log; neither contains chats, file contents
+   or secrets. Anything that sends data out is off by default and explained before the user turns
+   it on.
+8. **Command isolation only through `packages/execution`**, built on
+   `@anthropic-ai/sandbox-runtime`. No other package spawns child processes for agent commands.
+
+## Code conventions
+
+- TypeScript `strict`, ESM, pnpm workspaces.
+- Every method and event between the UI and the brain is defined with zod in
+  `packages/protocol`, and both sides share the types.
+- Prefer what Node and Electron already provide (`node:sqlite`, `safeStorage`, …); justify a new
+  third-party dependency in the commit message.
+- Long prompts live in `prompts/<name>.md` next to the code that uses them. Edit the md file and
+  run `pnpm gen:prompts`; `pnpm lint` checks that the generated modules match.
+- Comments explain why, not what.
+
+## Engineering practices
+
+- **One-way dependencies.** Layers L1 (execution & infrastructure) → L2 (capabilities & adapters)
+  → L3 (agent harness) → L4 (orchestration & services) → L5 (product & interfaces); dependencies
+  only point downward, and cross-cutting packages (contracts, policy & approval, audit &
+  observability) depend only on contracts and L1. Every package declares its layer in
+  `package.json` (`"pibot": { "layer": … }`) and `tools/dev/domain-boundaries.ts` enforces it in
+  `pnpm lint`. A capability is split into `@pibot/<capability>-contract` (zod interfaces and
+  shared strings) and `@pibot/<capability>` (implementation, with `/store`, `/brain`, `/host`,
+  `/ui` entries); capabilities depend only on each other's contracts.
+- **Ports and adapters, dependency injection.** Business code depends on interfaces; concrete
+  implementations (Electron, safeStorage, the pi SDK) are injected at the edge. No module-level
+  connections, `process.env` reads (except in entry points) or mutable global state.
+- **Validate at the boundary, trust types inside.** IPC, RPC, files, environment variables,
+  network responses and pi results are parsed with zod where they enter.
+- **One entry point for RPC.** Handlers go through the shared wrapper: validation → redacted
+  logging → execution → mapping to protocol error codes. Cross-cutting concerns live there or in
+  middleware, not scattered in handlers.
+- **Errors.** Expected business errors return explicit codes; programming errors are logged
+  (redacted) and returned as `internal`. Never swallow an error silently; say in a comment why
+  ignoring one is safe. Errors and logs never contain secrets, full prompts or file contents.
+- **Concurrency and resources.** Long operations accept an `AbortSignal` and have a timeout;
+  concurrent writes to one resource are serialised or refused; high-frequency events are
+  throttled; whoever creates a listener, timer, port, connection or child process also releases
+  it.
+- **Data.** Multi-step writes use transactions; migrations are append-only and idempotent; lists
+  are paginated; SQL is parameterised; frequent queries are indexed.
+- **Performance.** Avoid quadratic work on hot paths, keep heavy work off the UI thread, and
+  measure before optimising.
+- **Logs** are structured JSON with context (module, Bot id, run id) and always redacted.
+- **Tests.** Existing Vitest suites must keep passing and never use the real network, real keys
+  or the real user directory.
+
+## Before you merge
+
+Run `pnpm verify`. Commit messages say what changed and why; never commit secrets, `.env` files
+or local paths.

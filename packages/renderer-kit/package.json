@@ -1,0 +1,28 @@
+{
+  "name": "@pibot/renderer-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L5"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./bot-avatar": "./src/widgets/bot-avatar.tsx",
+    "./platform": "./src/host/platform.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/i18n": "workspace:0.0.0",
+    "@pibot/protocol": "workspace:0.0.0",
+    "@pibot/ui": "workspace:0.0.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["src/ui/**", "**/*.test.ts", "**/*.test.tsx", "test/**"],
+  "references": [
+    {
+      "path": "../agent"
+    },
+    {
+      "path": "../brain"
+    },
+    {
+      "path": "../i18n"
+    },
+    {
+      "path": "../observability"
+    },
+    {
+      "path": "../policy"
+    },
+    {
+      "path": "../protocol"
+    },
+    {
+      "path": "../renderer-kit"
+    },
+    {
+      "path": "../routines-contract"
+    },
+    {
+      "path": "../scheduler"
+    },
+    {
+      "path": "../storage"
+    },
+    {
+      "path": "../ui"
+    }
+  ]
+}

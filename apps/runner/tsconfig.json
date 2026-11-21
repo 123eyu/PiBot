@@ -1,0 +1,40 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "composite": true,
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "outDir": ".cache/tsc",
+    "tsBuildInfoFile": ".cache/tsc/tsconfig.tsbuildinfo",
+    "disableSourceOfProjectReferenceRedirect": true,
+    "noCheck": true
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts"],
+  "references": [
+    {
+      "path": "../../packages/computer"
+    },
+    {
+      "path": "../../packages/execution"
+    },
+    {
+      "path": "../../packages/link"
+    },
+    {
+      "path": "../../packages/policy"
+    },
+    {
+      "path": "../../packages/protocol-base"
+    },
+    {
+      "path": "../../packages/runner"
+    },
+    {
+      "path": "../../packages/secrets"
+    }
+  ],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "test/**"]
+}

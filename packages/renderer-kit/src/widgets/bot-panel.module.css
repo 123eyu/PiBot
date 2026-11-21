@@ -1,0 +1,1386 @@
+.panel {
+  flex: 0 0 360px;
+  width: 360px;
+  min-width: 0;
+  box-sizing: border-box;
+  border-left: 1px solid var(--b1);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  overflow-wrap: anywhere;
+}
+.closeRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 16px 0;
+}
+.identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 24px 14px;
+  text-align: center;
+}
+.avatar {
+  padding: 6px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+}
+.avatar:hover,
+.inlineInput:hover {
+  background: var(--hover);
+}
+/* The name and description are edited in place; a dashed underline on hover says so. */
+.inlineInput:not(textarea):hover:enabled {
+  text-decoration: underline dashed var(--b3);
+  text-underline-offset: 4px;
+}
+.inlineInput {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  color: var(--text);
+  text-align: center;
+}
+.name {
+  font-size: 18px;
+  font-weight: 650;
+}
+/* The grip only while editing: at rest an (empty) description looked like a stray box. */
+.job {
+  resize: none;
+  min-height: 42px;
+  max-width: 300px;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--text2);
+}
+.job:focus {
+  resize: vertical;
+}
+.avatar:focus-visible,
+.tab:focus-visible,
+.textButton:focus-visible,
+.topicButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.inlineInput:focus-visible,
+.renameInput:focus-visible {
+  outline: none;
+  border-color: var(--text2);
+}
+.inlineInput[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+.tabs {
+  display: flex;
+  /* Four short labels in one row in both languages. */
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 16px 12px;
+  border-bottom: 1px solid var(--b1);
+}
+.tab {
+  /* Never break a word; the row wraps (above) and the ellipsis only guards a single huge label. */
+  flex: 0 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 15px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.tab:hover {
+  background: var(--hover);
+}
+.tab[aria-selected="true"] {
+  background: var(--tert);
+  font-weight: 650;
+}
+.content,
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.content {
+  padding: 16px 18px 24px;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.section > p {
+  margin: 0;
+}
+.section h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.note,
+.rowLabel {
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.modelRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.folder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.folderInfo {
+  flex: 1;
+  min-width: 0;
+}
+.folderInfo strong {
+  font-weight: 600;
+}
+.path {
+  font-size: 12px;
+  color: var(--text2);
+}
+.home {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--text2);
+}
+.folderActions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.current {
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  background: var(--okBg);
+  color: var(--ok);
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+.smallPill {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 16px;
+  font-size: 13px;
+}
+.textButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 8px;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 15px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  align-self: flex-start;
+}
+.textButton:hover {
+  background: var(--hover);
+}
+.persona {
+  padding: 10px 12px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 13px;
+  line-height: 19px;
+  text-align: left;
+  resize: vertical;
+}
+.soon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--text2);
+}
+.soon > span:first-child {
+  flex: 1;
+}
+.soon > span:last-child {
+  font-size: 12px;
+}
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--b1);
+  padding-top: 16px;
+}
+.danger {
+  color: var(--danger);
+}
+.error {
+  color: var(--danger);
+  font-size: 12.5px;
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--b2);
+  border-radius: 17px;
+  background: var(--card);
+  color: var(--text2);
+}
+.search:focus-within {
+  border-color: var(--text2);
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+}
+.topicGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.groupTitle {
+  padding: 8px 4px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.topic {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 12px;
+}
+.topic:hover {
+  background: var(--hover);
+}
+.topic[data-current="true"] {
+  background: var(--tert);
+}
+/* The topic's chat tile, before its title. */
+.topicMark {
+  margin-left: 10px;
+}
+.topicButton {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 9px 4px 9px 10px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 12px;
+}
+.topicTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+/* Topic run state after the title: running spins, queued / waiting are still icons. */
+.topicRunMark {
+  flex: none;
+  display: inline-flex;
+  color: var(--text2);
+}
+.topicRunMark[data-state="running"] {
+  color: var(--accent);
+}
+.topicRunMark[data-state="waiting"] {
+  color: var(--warn);
+}
+.topicRunSpinner {
+  width: 10px;
+  height: 10px;
+  border: 1.6px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: topic-run-spin 0.9s linear infinite;
+}
+@keyframes topic-run-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topicRunSpinner {
+    animation: none;
+  }
+}
+.topicTitle {
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.topic[data-current="true"] .topicTitle {
+  font-weight: 650;
+}
+.topicMeta {
+  font-size: 12px;
+  color: var(--text2);
+}
+.rename {
+  width: 30px;
+  min-height: 30px;
+  height: 30px;
+  margin-right: 6px;
+  padding: 0;
+  border: 0;
+  color: var(--text2);
+  background: transparent;
+}
+.renameInput {
+  flex: 1;
+  min-width: 0;
+  margin: 8px 4px 8px 10px;
+  padding: 4px 8px;
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  background: var(--card);
+  font: inherit;
+}
+.more {
+  align-self: center;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 14px;
+  border-radius: 15px;
+  font-size: 12.5px;
+}
+.link {
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 400;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  align-self: flex-start;
+  cursor: pointer;
+}
+.link:hover {
+  text-decoration: underline;
+}
+.link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.permRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--b1);
+}
+.permLabel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+.permGlobal {
+  font-size: 12px;
+  color: var(--text2);
+}
+.stricter {
+  color: var(--warn);
+}
+.domains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.domain {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  padding: 0 4px 0 10px;
+  border-radius: 14px;
+  background: var(--tert);
+  font-size: 12.5px;
+}
+.domainRemove {
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+}
+.addDomain {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px 0 8px;
+  border: 1px dashed var(--b3);
+  border-radius: 14px;
+  background: transparent;
+  font-size: 12.5px;
+}
+@media (max-width: 1100px) {
+  .panel {
+    position: absolute;
+    right: 0;
+    top: 64px;
+    bottom: 0;
+    z-index: 25;
+    box-shadow: var(--shadow);
+    width: min(360px, 100%);
+  }
+}
+
+.memoryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.memoryGroup h2 {
+  padding: 0 4px 2px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.memoryGroup h2 span {
+  font-weight: 400;
+  margin-left: 4px;
+}
+.memoryRow {
+  display: flex;
+  gap: 6px;
+  padding: 10px 6px 10px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.memoryText {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+}
+.memoryText small {
+  font-size: 12px;
+  color: var(--text2);
+}
+.memoryText:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.memoryDelete {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+}
+.memoryUndo {
+  align-self: center;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 14px;
+  font-size: 13px;
+}
+.memoryEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.memoryEdit textarea {
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  resize: vertical;
+}
+.memoryEdit textarea:focus-visible {
+  outline: none;
+  border-color: var(--text2);
+}
+.memoryFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--b1);
+  font-size: 12px;
+  color: var(--text2);
+}
+.proposal {
+  padding: 12px 14px;
+  border: 1px solid var(--b3);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+}
+.proposal > strong {
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 600;
+}
+.stack p,
+.proposal p {
+  margin: 0;
+}
+
+.memoryMode {
+  flex: none;
+  flex-wrap: nowrap;
+  background: var(--tert);
+  border-radius: 17px;
+}
+.memoryMode label span {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+}
+.permRow[data-level="always"] button[role="combobox"] {
+  background: var(--okBg);
+  color: var(--ok);
+}
+.permRow[data-level="ask"] button[role="combobox"] {
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.permRow[data-level="never"] button[role="combobox"] {
+  background: var(--dangerBg);
+  color: var(--danger);
+}
+
+.activity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.activity h2 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.activityRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--b1);
+}
+.activityRow time {
+  width: 40px;
+  flex: none;
+  font-size: 12px;
+  color: var(--text2);
+  font-variant-numeric: tabular-nums;
+}
+.activitySummary {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.activityRow small {
+  flex: none;
+  max-width: 110px;
+  font-size: 12px;
+  color: var(--text2);
+}
+.activity > .link {
+  margin-top: 6px;
+}
+
+.deleteButton {
+  background: var(--danger);
+  color: var(--onPrim);
+}
+
+.activityRow small[data-tone="ok"] {
+  color: var(--ok);
+}
+.activityRow small[data-tone="danger"] {
+  color: var(--danger);
+}
+.activityRow small[data-tone="warn"] {
+  color: var(--warn);
+}
+
+/* 「记忆与技能」 shows skills first, then this heading above memory. */
+.panelHeading {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text);
+}
+
+/* Panel cleanup: "⋯" menu, cards of rows, compact segmented controls. Theme tokens only. */
+.moreButton {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  background: var(--tert);
+  border-color: var(--b2);
+}
+.menuTrigger {
+  min-height: 28px;
+  height: 28px;
+  padding: 0 10px 0 12px;
+  gap: 4px;
+  font-size: 12.5px;
+}
+.menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 6px;
+  border: 1px solid var(--b2);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.menu > button {
+  width: 100%;
+  min-height: 32px;
+  height: auto;
+  padding: 6px 10px;
+  border-radius: 8px;
+  justify-content: flex-start;
+  font-size: 13.5px;
+  font-weight: 400;
+  text-align: left;
+  white-space: normal;
+}
+.menu > .menuDanger {
+  color: var(--danger);
+}
+/* The divider before a destructive item that follows others. */
+.menu > .menuDanger:not(:first-child) {
+  position: relative;
+  margin-top: 5px;
+}
+.menu > .menuDanger:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 2px;
+  right: 2px;
+  border-top: 1px solid var(--b1);
+}
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+}
+.sectionHead > h2 {
+  flex: 1;
+  min-width: 0;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--b2);
+  border-radius: 16px;
+  background: var(--card);
+}
+.cardRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.cardRow + .cardRow {
+  border-top: 1px solid var(--b1);
+}
+.cardRow > svg {
+  flex: none;
+  color: var(--text2);
+}
+.cardEmpty {
+  justify-content: center;
+  color: var(--text2);
+  font-size: 12.5px;
+}
+.rowText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.rowText > strong {
+  font-weight: 600;
+}
+.rowText > small {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+.rowButton {
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+}
+.rowButton:hover {
+  background: var(--hover);
+}
+.rowButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.badge {
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--accentBg);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+.segSmall {
+  flex: none;
+  flex-wrap: nowrap;
+}
+.segSmall label span {
+  padding: 3px 9px;
+  font-size: 12.5px;
+}
+.collapseButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 28px;
+  padding: 2px 6px;
+  margin-left: -6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+.collapseButton:hover {
+  background: var(--hover);
+}
+.collapseButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.collapseButton > svg {
+  color: var(--text2);
+}
+.folderName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+}
+/* A small label above a group of rows inside one card (e.g. remembered grants by kind). */
+.cardGroupTitle {
+  padding: 10px 12px 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+/* Groups after the first are separated like rows are. */
+div + div > .cardGroupTitle {
+  border-top: 1px solid var(--b1);
+}
+
+.cardRow.rowButton {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 0;
+}
+
+/* Lively panel: the Bot's colour washes the top; tabs are one equal-width segmented control
+   whose selection block slides by index (--tab-count / --tab-index set by the frame). */
+.panel {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--panel-c, transparent) 16%, transparent),
+      transparent 220px
+    )
+    no-repeat local,
+    var(--card);
+  animation: panelIn 320ms var(--ease-out);
+}
+@keyframes panelIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+.tabs {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(var(--tab-count, 4), minmax(0, 1fr));
+  gap: 0;
+  margin: 0 16px 12px;
+  padding: 3px;
+  border-bottom: 0;
+  border-radius: var(--radius-pill);
+  background: var(--hover);
+}
+.tabs::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / var(--tab-count, 4));
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  transform: translateX(calc(var(--tab-index, 0) * 100%));
+  transition: transform 280ms var(--ease-out);
+}
+.tabs .tab {
+  /* Equal columns are ~80px in the default panel: the label gets the width, not the padding
+     ("Permissions" was cut to "Permis…"). */
+  padding: 0 2px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  color: var(--text2);
+  text-align: center;
+}
+.tabs .tab:hover {
+  background: transparent;
+  color: var(--text);
+}
+.tabs .tab[aria-selected="true"] {
+  background: transparent;
+  color: color-mix(in srgb, var(--panel-c, var(--text)) 55%, var(--text));
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .tabs::before {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Lively panel contents (bp-* in the prototype): section headings lead with a dot in the
+   panel colour, every group of rows is a soft card, rows lead with coloured icon tiles, the
+   persona reads as a document card, suggested memories are ringed. Shared by the Bot panel,
+   the group panel and the capability sections they host. */
+.section h2,
+.sectionHead > h2,
+.memoryGroup h2,
+.activity h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.section h2::before,
+.sectionHead > h2::before {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--panel-c, var(--text2));
+}
+.card {
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+.card > .cardRow {
+  min-height: 52px;
+  transition: background-color 150ms ease;
+}
+.cardRow.rowButton:hover {
+  background: var(--hover);
+}
+.modelRows,
+.section:has(> .row) {
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.row > [data-tone] + span {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+.persona {
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  line-height: 1.6;
+}
+.folder {
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.search {
+  border-color: transparent;
+  background: var(--tert);
+}
+.search:focus-within {
+  border-color: color-mix(in srgb, var(--panel-c, var(--text2)) 55%, transparent);
+}
+.topic[data-current="true"] {
+  background: color-mix(in srgb, var(--panel-c, var(--text2)) 12%, transparent);
+}
+.memoryRow {
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.proposal {
+  border: 0;
+  background: var(--card);
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--panel-c, var(--avatar-violet)) 60%, transparent),
+    var(--shadow-soft);
+}
+.badge {
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.activityRow:last-child {
+  border-bottom: 0;
+}
+.footer {
+  border-top: 0;
+}
+
+/* Avatar picker (settings-gaps g-avatar): a soft card under the big avatar; choices are
+   ringed in the Bot's ink colour when chosen, and the big avatar is ringed while it is open. */
+.avatar[aria-expanded="true"] {
+  box-shadow:
+    0 0 0 3px var(--bg),
+    0 0 0 5px color-mix(in srgb, var(--panel-c, var(--text2)) 70%, var(--text));
+}
+.avatarHint {
+  font-size: 12px;
+  color: var(--text2);
+}
+.avatarCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  text-align: left;
+  animation: avatarCardIn 260ms var(--ease-out);
+}
+.avatarCard > strong {
+  font-size: 13px;
+}
+.avatarGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.avatarGroupTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text2);
+}
+.avatarChoices {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  justify-items: center;
+}
+.avatarChoices[data-kind="avatarEyes"] {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.avatarChoice {
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  line-height: 0;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-spring);
+}
+.avatarChoice:enabled:hover {
+  transform: scale(1.08);
+}
+.avatarChoice[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--card),
+    0 0 0 4px var(--avatar-ring, var(--text));
+}
+.avatarChoice:focus-visible {
+  outline: 2px solid var(--avatar-ring, var(--text));
+  outline-offset: 2px;
+}
+.avatarSwatch {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+@keyframes avatarCardIn {
+  from {
+    transform: translateY(-4px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatarCard {
+    animation: none;
+  }
+  .avatarChoice {
+    transition: none;
+  }
+  .avatarChoice:enabled:hover {
+    transform: none;
+  }
+}
+
+/* Maintainers 2026-11-13 (PermissionRow): the side panel is too narrow for label + chip + three
+   segments on one line, which wrapped the label one character per line. The row is a size
+   container: narrow → label line above a full-width control; wide → one line. */
+.permissionRow {
+  display: block;
+  container-type: inline-size;
+}
+.permissionInner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.permissionHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.permissionTitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+.permissionTitle > strong {
+  font-weight: 600;
+  /* Short labels break between words, never between every CJK character. */
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+.permissionRestore {
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+.permissionRestore:hover:enabled {
+  text-decoration: underline;
+}
+.permissionRestore:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.permissionRestore:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.segSmall.permissionSeg {
+  display: grid;
+  width: 100%;
+}
+@container (min-width: 480px) {
+  .permissionInner {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .permissionHead {
+    flex: 1;
+  }
+  .segSmall.permissionSeg {
+    display: inline-grid;
+    width: auto;
+  }
+}
+
+/* A row that continues the row above it lines up with that row's text, past the tile. */
+.indentedRow {
+  padding-left: 52px;
+}
+.cardRow + .indentedRow {
+  border-top: 0;
+}
+.addDomain.addDomain {
+  border: 0;
+  background: color-mix(in srgb, var(--panel-c, var(--avatar-green)) 14%, transparent);
+  color: var(--text);
+}
+.domainForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.domainActions {
+  display: flex;
+  gap: 8px;
+}
+
+/* A short number edited in place on a row (log retention): a tinted field that saves on
+   blur / Enter; a refused value shows its error under the field. */
+.numberCell {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: 120px;
+}
+.inlineInput.numberField {
+  width: 84px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel-c, var(--text2)) 10%, var(--tert));
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  transition: box-shadow 150ms ease;
+}
+.inlineInput.numberField:hover:enabled {
+  text-decoration: none;
+  background: color-mix(in srgb, var(--panel-c, var(--text2)) 16%, var(--tert));
+}
+.inlineInput.numberField:focus-visible {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--panel-c, var(--accent)) 60%, transparent);
+}
+.numberCell > .error {
+  font-size: 11.5px;
+  text-align: right;
+}
+@media (prefers-reduced-motion: reduce) {
+  .inlineInput.numberField {
+    transition: none;
+  }
+}
+
+/* Each period's topics sit in one soft card; the current one is
+   tinted and carries a 当前 chip in the panel colour. */
+.topicCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.topic .current {
+  margin-right: 6px;
+  background: color-mix(in srgb, var(--panel-c, var(--avatar-teal)) 18%, transparent);
+  color: color-mix(in srgb, var(--panel-c, var(--text)) 55%, var(--text));
+}
+
+/* A collapsed block (persona & norms) is a soft card whose head row leads
+   with a tile and says what is inside; the chevron turns and the body appears inside the card. */
+.foldCard {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.foldHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.foldHead:hover {
+  background: var(--hover);
+}
+.foldHead:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.foldChevron {
+  flex: none;
+  color: var(--text2);
+  transition: transform 200ms var(--ease-out);
+}
+.foldCard[data-open] .foldChevron {
+  transform: rotate(90deg);
+}
+.foldBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 12px 12px;
+  animation: foldIn 220ms var(--ease-out);
+}
+.foldBody > .persona {
+  box-shadow: none;
+  background: var(--tert);
+}
+@keyframes foldIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .foldHead,
+  .foldChevron {
+    transition: none;
+  }
+  .foldBody {
+    animation: none;
+  }
+}
+
+/* Windows acceptance 2026-11-20: in English at 960–1280 px the label beside a segmented control
+   (「Thinking level」) shrank to one letter per line. The label keeps its width and the control
+   moves to the next line when the panel is narrow. */
+.row:has(> .segSmall) {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+.row:has(> .segSmall) > [data-tone] + span {
+  min-width: max-content;
+}
+.row:has(> .segSmall) > .segSmall {
+  margin-left: auto;
+}

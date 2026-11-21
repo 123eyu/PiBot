@@ -1,0 +1,190 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--b2);
+  border-radius: 14px;
+  color: var(--text);
+  background: var(--card);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.head,
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.head span,
+.card p,
+.steps ul {
+  color: var(--text2);
+}
+.card p {
+  margin: 4px 0;
+}
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding-left: 22px;
+}
+.modify {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.modify textarea {
+  min-height: 70px;
+  padding: 8px;
+  border: 1px solid var(--b2);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+.card p.error {
+  color: var(--danger);
+}
+.note {
+  margin: 4px 0;
+  color: var(--text2);
+  font-size: 13px;
+}
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 4px;
+  color: var(--text2);
+  list-style: none;
+}
+
+.warning {
+  padding: 12px;
+  border: 1px solid var(--warn);
+  border-radius: 10px;
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.warning ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+/* Lively plan card: soft card, a teal timeline of steps led by the owner's avatar, status
+   dots on live progress and a thin progress bar. Shared by chat, inbox and the tasks pane. */
+.card {
+  border-color: var(--b1);
+  box-shadow: var(--shadow-soft);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--avatar-teal) 9%, transparent),
+      transparent 160px
+    )
+    no-repeat,
+    var(--card);
+}
+.head > b {
+  font-size: 14px;
+}
+.steps {
+  position: relative;
+  padding-left: 32px;
+  list-style: none;
+}
+.steps::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--b2);
+}
+.step {
+  position: relative;
+}
+.steps > li > .step {
+  margin-top: 8px;
+}
+.owner {
+  position: absolute;
+  left: -32px;
+  top: -1px;
+  box-shadow: 0 0 0 3px var(--card);
+}
+.bar {
+  height: 6px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--tert);
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--avatar-teal);
+  transition: width 400ms var(--ease-out);
+}
+.progress {
+  gap: 2px;
+  padding-left: 0;
+}
+.progress > li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+.progress > li[data-status="running"] {
+  color: var(--text);
+  background: color-mix(in srgb, var(--avatar-blue) 9%, transparent);
+}
+.progress > li[data-status="blocked"] {
+  color: var(--text);
+  background: color-mix(in srgb, var(--avatar-amber) 12%, transparent);
+}
+.dot {
+  margin-top: 5px;
+}
+.stepLine {
+  flex: 1;
+  min-width: 0;
+}
+/* Maintainers 2026-11-14: where a writing step works, under its line. */
+.workspace {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.workspace[data-state="conflict"] {
+  color: var(--warn);
+}
+.workspace button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text2);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bar > i {
+    transition: none;
+  }
+}

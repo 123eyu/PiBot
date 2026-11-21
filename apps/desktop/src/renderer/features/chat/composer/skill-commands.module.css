@@ -1,0 +1,110 @@
+.anchor {
+  position: relative;
+}
+/* Maintainers 2026-11-13: a compact soft card at the composer's start, not a full-width box. */
+.menu {
+  position: absolute;
+  bottom: 6px;
+  left: 12px;
+  width: min(420px, calc(100% - 24px));
+  box-sizing: border-box;
+  max-height: 280px;
+  overflow: auto;
+  z-index: 4;
+  padding: 6px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+  animation: menuIn 180ms var(--ease-out);
+}
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation: none;
+  }
+}
+.menu p {
+  padding: 4px 12px;
+  font-size: 13px;
+}
+/* Each skill leads with a violet tile spanning its name and description. */
+.option {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-row);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.option:hover,
+.option[aria-selected="true"] {
+  background: var(--hover);
+}
+.option small {
+  color: var(--text2);
+  overflow-wrap: anywhere;
+}
+.option > small {
+  grid-column: 2;
+}
+.tile {
+  grid-row: span 2;
+}
+.heading.heading {
+  margin: 2px 0 4px;
+  padding: 4px 10px 0;
+  color: var(--text2);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.empty.empty {
+  color: var(--text2);
+}
+.none {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 10px;
+}
+.none > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.none b {
+  font-size: 13px;
+}
+.none small {
+  color: var(--text2);
+  font-size: 12px;
+}
+/* After an agent command is chosen, what it expects next (not interactive). */
+.inputHint.inputHint {
+  margin: 0;
+  padding: 8px 14px;
+  color: var(--text2);
+  font-size: 12.5px;
+}
+/* Agents describe some commands in paragraphs: two lines are enough to choose. */
+.clamp {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

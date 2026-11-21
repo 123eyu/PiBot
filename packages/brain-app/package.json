@@ -1,0 +1,37 @@
+{
+  "name": "@pibot/brain-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "L4"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/brain": "workspace:0.0.0",
+    "@pibot/protocol": "workspace:0.0.0",
+    "@pibot/plugins": "workspace:0.0.0",
+    "@pibot/routines": "workspace:0.0.0",
+    "@pibot/models": "workspace:0.0.0",
+    "@pibot/office": "workspace:0.0.0",
+    "@pibot/orchestration": "workspace:0.0.0",
+    "@pibot/images": "workspace:0.0.0",
+    "@pibot/memory": "workspace:0.0.0",
+    "@pibot/plugin-sdk": "workspace:0.0.0",
+    "@pibot/credentials": "workspace:0.0.0",
+    "@pibot/skills": "workspace:0.0.0",
+    "@pibot/computer-use": "workspace:0.0.0",
+    "@pibot/browser": "workspace:0.0.0",
+    "@pibot/workspaces": "workspace:0.0.0",
+    "@pibot/teams": "workspace:0.0.0",
+    "@pibot/remote": "workspace:0.0.0",
+    "@pibot/storage": "workspace:0.0.0",
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "@pibot/external-agents": "workspace:0.0.0"
+  }
+}

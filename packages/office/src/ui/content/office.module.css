@@ -1,0 +1,317 @@
+.preview {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.toolbar {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--b1);
+}
+.openArea {
+  min-width: 0;
+  max-width: 100%;
+}
+.openControl {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-pill);
+}
+.body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 16px;
+}
+.notice,
+.previewInfo {
+  margin: 0 0 12px;
+  color: var(--text2);
+  font-size: 12px;
+}
+.previewInfo summary {
+  cursor: pointer;
+}
+.previewInfo p {
+  margin: 8px 0;
+}
+.error {
+  color: var(--danger);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.sheetTabs {
+  flex: none;
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  overflow-x: auto;
+  border-top: 1px solid var(--b1);
+  background: var(--side);
+}
+.sheetTabs > button {
+  flex: none;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 0;
+  border-radius: var(--radius-row);
+  background: transparent;
+  color: var(--text2);
+  font: inherit;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.sheetTabs > button:hover {
+  background: var(--hover);
+}
+.sheetTabs > button[aria-selected="true"] {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--b2);
+}
+.sheetTabs > button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.openControl > button {
+  flex: none;
+}
+.openControl > div {
+  min-width: 0;
+}
+.openControl > div > button {
+  min-width: 0;
+  max-width: 220px;
+  border: 0;
+  border-left: 1px solid var(--b1);
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: transparent;
+}
+.document {
+  max-width: 720px;
+  margin: auto;
+  white-space: pre-wrap;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.document p {
+  margin: 0 0 12px;
+}
+.heading {
+  margin: 18px 0 10px;
+  font-size: 20px;
+  font-weight: 650;
+}
+.heading[data-level="2"] {
+  font-size: 18px;
+}
+.heading[data-level="3"],
+.heading[data-level="4"],
+.heading[data-level="5"],
+.heading[data-level="6"] {
+  font-size: 16px;
+}
+.tableScroll {
+  max-width: 100%;
+  overflow: auto;
+  margin-bottom: 16px;
+}
+.tableScroll table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tableScroll td,
+.tableScroll th {
+  min-width: 72px;
+  max-width: 420px;
+  padding: 7px 10px;
+  border: 1px solid var(--b2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+.tableScroll th {
+  background: var(--hover);
+  font-weight: 500;
+  color: var(--text2);
+}
+.formula small {
+  display: block;
+  color: var(--text2);
+  font-size: 11px;
+}
+.slide {
+  margin: 0 auto 16px;
+  padding: 28px;
+  max-width: 720px;
+  min-height: 200px;
+  border: 1px solid var(--b2);
+  border-radius: var(--radius-row);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.slide small {
+  color: var(--text2);
+}
+.slide h2 {
+  font-size: 22px;
+}
+.footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--b2);
+  font-size: 13px;
+}
+.revision {
+  color: var(--text2);
+  font-size: 11px;
+}
+@media (max-width: 560px) {
+  .body {
+    padding: 12px;
+  }
+  .toolbar,
+  .footer {
+    padding: 10px 12px;
+  }
+  .slide {
+    padding: 16px;
+  }
+}
+
+/* Sheet tabs as pills (the open one tinted violet like the preview tabs); slides read as
+   soft cards with an orange wash, as in the prototype. */
+.sheetTabs {
+  border-top: 0;
+  background: transparent;
+}
+.sheetTabs > button[aria-selected],
+.sheetTabs > button[aria-selected="true"] {
+  border-radius: var(--radius-pill);
+}
+.sheetTabs > button[aria-selected="true"] {
+  box-shadow: none;
+  color: var(--ink-violet);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--avatar-violet) 13%, transparent);
+}
+.slide {
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--avatar-orange) 12%, var(--card)),
+    var(--card)
+  );
+  box-shadow: var(--shadow-soft);
+}
+
+/*
+ * Content preview. Preview is violet: the open control is a
+ * violet pill, 「关于内容预览」 a grey band, the truncation note an amber band, tables soft cards
+ * with a tinted header and violet formulas, the pager a floating pill.
+ */
+.toolbar.toolbar {
+  border-bottom: 0;
+}
+.openControl.openControl {
+  border: 0;
+  color: var(--ink-violet);
+  background: color-mix(in srgb, var(--avatar-violet) 12%, transparent);
+}
+.openControl.openControl > button {
+  color: var(--ink-violet);
+}
+.openControl.openControl > div > button {
+  border-left-color: color-mix(in srgb, var(--avatar-violet) 25%, transparent);
+  color: var(--ink-violet);
+}
+.previewInfo.previewInfo {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--tert);
+}
+.previewInfo.previewInfo summary {
+  font-weight: 600;
+}
+.previewInfo .notice {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+.truncated {
+  padding: 8px 12px;
+  border-radius: 12px;
+  color: var(--warn);
+  background: var(--warnBg);
+}
+.tableScroll.tableScroll {
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.tableScroll.tableScroll td,
+.tableScroll.tableScroll th {
+  border: 0;
+  border-top: 1px solid var(--b1);
+}
+.tableScroll.tableScroll th {
+  background: color-mix(in srgb, var(--avatar-violet) 7%, var(--tert));
+}
+.formula small {
+  color: var(--ink-violet);
+  font-family: var(--font-mono);
+}
+.workbook h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.workbook h3::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--avatar-violet);
+}
+.footer.footer {
+  align-self: center;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
+  justify-content: center;
+  gap: 4px 10px;
+  margin: 0 0 10px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+.footer.footer > button[type] {
+  min-height: 30px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+}
+.error {
+  display: block;
+  margin: 6px 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--dangerBg);
+}
