@@ -171,12 +171,19 @@ export class ComputerRuns {
     const run = this.map.get(context.runId);
     const grant = this.valid(run);
     const host = this.local.computerHost(context);
-    if (!run || !grant || !host || !coversApps(grant, [step.app])) return "skip";
+    // The grant holds resolved app IDs (com.apple.finder) while a tool call may still name the
+    // app as the model wrote it (Finder); matching only IDs skipped every foreground step of
+    // such a call without ever showing the card.
+    const app = grant?.apps.find(
+      (held) => sameAppId(held.id, step.app) || sameAppId(held.name, step.app),
+    );
+    if (!run || !grant || !host || !app) {
+      this.local.deps.logger.warn(
+        `computer foreground skipped run=${context.runId} reason=${!run ? "no_run" : !grant ? "no_grant" : !host ? "no_host" : "app_not_in_grant"}`,
+      );
+      return "skip";
+    }
     const action = clean(step.description, 200, "foreground step");
-    const app = grant.apps.find((held) => sameAppId(held.id, step.app)) ?? {
-      id: step.app,
-      name: step.app,
-    };
     await this.whilePaused(run, signal);
     const held = this.lock.holds(run.runId);
     const request: ComputerForeground = {
