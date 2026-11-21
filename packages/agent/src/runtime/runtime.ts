@@ -267,7 +267,7 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
         headers,
         models: config.models.map((model) => ({
           ...customModels.resolve(model).effective,
-          compat: config.compat,
+          compat: customCompat(config),
         })),
       });
       const provider = runtime.getProvider(config.id);
@@ -400,4 +400,25 @@ export function createAgentRuntime(deps: AgentRuntimeDeps): AgentRuntime {
     portableModel: portable.portableModel,
     seedSession: portable.seedSession,
   };
+}
+
+/**
+ * GitHub #5: for an OpenAI-compatible URL it does not recognize, pi sends a reasoning model's
+ * system prompt as role "developer", which most gateways (SiliconFlow, AMD, InternLM) reject. Every
+ * compatible server accepts "system"; only OpenAI's own API keeps "developer". A saved explicit
+ * setting still wins.
+ */
+function customCompat(config: CustomProviderConfig) {
+  if (config.api !== "openai-completions" || config.compat?.supportsDeveloperRole !== undefined)
+    return config.compat;
+  let host = "";
+  try {
+    host = new URL(config.baseUrl).hostname.toLowerCase();
+  } catch {
+    // An unparsable URL was refused when the provider was saved; keep pi's default here.
+    return config.compat;
+  }
+  return host === "api.openai.com"
+    ? config.compat
+    : { ...config.compat, supportsDeveloperRole: false };
 }
