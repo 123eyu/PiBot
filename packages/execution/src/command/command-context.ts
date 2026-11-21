@@ -133,8 +133,16 @@ export async function commandResources(
           options.systemHome,
           temp,
           input.pathEntries,
+          options.resourcesDir,
         )
-      : commandEnvironment(options.platform, options.env, home, temp, input.pathEntries),
+      : commandEnvironment(
+          options.platform,
+          options.env,
+          home,
+          temp,
+          input.pathEntries,
+          options.resourcesDir,
+        ),
     input.secretEnv,
   );
   // A skill runtime lives outside the workplace, so these variables are the only way a

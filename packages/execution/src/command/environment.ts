@@ -34,12 +34,30 @@ function windowsUserPath(original: Readonly<NodeJS.ProcessEnv>, taken: readonly 
   return entries;
 }
 
+/**
+ * Windows builds ship MinGit (resources/bin/git); most Windows computers have no Git. Its `cmd`
+ * folder goes after everything else on PATH, so an installed Git always wins and the bundled copy
+ * only fills the gap. Nothing is added on other platforms, in dev runs, or for an odd path.
+ */
+function bundledGitPath(platform: NodeJS.Platform, resourcesDir: string | undefined) {
+  if (platform !== "win32" || !resourcesDir) return [];
+  if (!win32.isAbsolute(resourcesDir) || /[\0\r\n;%"]/.test(resourcesDir)) return [];
+  const directory = win32.join(resourcesDir, "bin", "git", "cmd");
+  try {
+    return statSync(directory).isDirectory() ? [directory] : [];
+  } catch {
+    // No bundled Git (dev run, non-Windows build): commands see only the user's own PATH.
+    return [];
+  }
+}
+
 export function commandEnvironment(
   platform: NodeJS.Platform,
   original: Readonly<NodeJS.ProcessEnv>,
   home: string,
   temp: string,
   additions: string[] = [],
+  resourcesDir?: string,
 ): NodeJS.ProcessEnv {
   const { delimiter, isAbsolute, join } = platform === "win32" ? win32 : posix;
   if (
@@ -61,7 +79,9 @@ export function commandEnvironment(
     : commandPaths(platform, original.PATH ?? "");
   // Explicit choices and the launcher environment select the user's Node/toolchain on Unix.
   // Windows retains System32 precedence. No variables other than PATH are imported here.
-  const search = windows ? [...paths, ...additions, ...user] : [...additions, ...user, ...paths];
+  const search = windows
+    ? [...paths, ...additions, ...user, ...bundledGitPath(platform, resourcesDir)]
+    : [...additions, ...user, ...paths];
   return {
     PATH: [...new Set(search)].join(delimiter),
     HOME: home,
@@ -139,8 +159,9 @@ export function userTerminalEnvironment(
   userHome: string,
   temp: string,
   additions: string[] = [],
+  resourcesDir?: string,
 ): NodeJS.ProcessEnv {
-  const env = commandEnvironment(platform, original, userHome, temp, additions);
+  const env = commandEnvironment(platform, original, userHome, temp, additions, resourcesDir);
   // Pinned only so a sandboxed command cannot plant a global file for a later one.
   delete env.GIT_CONFIG_GLOBAL;
   for (const [name, valid] of Object.entries(USER_POINTERS)) {
