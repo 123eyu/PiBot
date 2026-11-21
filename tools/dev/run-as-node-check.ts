@@ -7,7 +7,7 @@ import { join, relative, resolve } from "node:path";
 
 const repo = resolve(import.meta.dirname, "../..");
 const roots = ["apps", "packages", "tools"];
-const skip = /(^|\/)(node_modules|out|dist|\.cache|coverage)(\/|$)/;
+const skip = /(^|[\\/])(node_modules|out|dist|\.cache|coverage)([\\/]|$)/;
 const setting = /ELECTRON_RUN_AS_NODE["']?\s*(?:[:=]|\]\s*=)/;
 const clearing = /\b(?:delete\s+[\w.]+\.ELECTRON_RUN_AS_NODE|unset\s+ELECTRON_RUN_AS_NODE)\b/;
 

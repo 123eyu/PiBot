@@ -4,6 +4,7 @@
 // Run: node tools/dev/domain-boundaries.ts   (part of `pnpm lint`)
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildSync } from "esbuild";
 import {
   desktopMainInputs,
@@ -81,7 +82,7 @@ const modular: { src: string; root: string[] }[] = [
   { src: "packages/tools/src", root: ["index.ts", "full.ts"] },
 ];
 
-const repo = resolve(dirname(new URL(import.meta.url).pathname), "../..");
+const repo = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const valueImport =
   /(?:^|\n)\s*(import|export)\s+(?!type\s)(?:[^;'"]*?\sfrom\s+)?["'](\.{1,2}\/[^"']+)["']|(?<![.\w])import\(\s*["'](\.{1,2}\/[^"']+)["']\s*\)(?!\s*\.)/g;
 const problems: string[] = [];
@@ -179,7 +180,9 @@ for (const rule of rules) {
     for (const match of text.matchAll(valueImport)) {
       const spec = match[2] ?? match[3];
       if (!spec) continue;
-      const target = relative(src, resolve(dirname(file), spec));
+      const target = relative(src, resolve(dirname(file), spec))
+        .split(sep)
+        .join("/");
       if (!target.startsWith("core/") && !target.startsWith(".."))
         problems.push(`${relative(repo, file)}: core imports ${target} (value import)`);
     }

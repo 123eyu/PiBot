@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, posix, relative, resolve, sep } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 export interface WorkspaceProject {
   name: string;
@@ -104,7 +104,7 @@ function configPath(from: string, to: string): string {
 }
 
 export function loadWorkspaceProjects(
-  repo = resolve(dirname(new URL(import.meta.url).pathname), "../.."),
+  repo = resolve(dirname(fileURLToPath(import.meta.url)), "../.."),
 ) {
   const manifests = workspacePatterns(repo)
     .flatMap((pattern) => expandPattern(repo, pattern))
@@ -183,7 +183,7 @@ function updateConfig(
 export function affectedWorkspaceProjects(
   projects: WorkspaceProject[],
   changedFiles: readonly string[],
-  repo = resolve(dirname(new URL(import.meta.url).pathname), "../.."),
+  repo = resolve(dirname(fileURLToPath(import.meta.url)), "../.."),
 ) {
   const globalFiles = new Set([
     "package.json",
@@ -224,7 +224,7 @@ export function affectedWorkspaceProjects(
 }
 
 function run(mode: "check" | "write") {
-  const repo = resolve(dirname(new URL(import.meta.url).pathname), "../..");
+  const repo = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
   const projects = loadWorkspaceProjects(repo);
   const byName = new Map(projects.map((project) => [project.name, project]));
   const expected = projects.map((project) => ({
