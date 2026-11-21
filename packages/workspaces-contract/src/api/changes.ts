@@ -40,6 +40,20 @@ const scopedTarget = <T extends z.ZodRawShape>(shape: T) =>
     .strictObject({ ...targetFields, ...shape })
     .refine((p) => validTarget(p as { conversationKey: string; topicId?: string }));
 const ok = z.strictObject({ ok: z.literal(true) });
+const shortText = z.string().min(1).max(200);
+export const GitSetupStatusSchema = z.strictObject({
+  state: z.enum(["available", "missing", "installing", "failed", "unsupported"]),
+  version: z.string().max(100).optional(),
+  /** xcode: Apple's Command Line Tools; package: the system package manager; manual: neither found. */
+  installer: z.enum(["xcode", "package", "manual"]).optional(),
+  /** What Pi Bot runs, e.g. "dnf install -y git". */
+  command: shortText.optional(),
+  /** What the user can run in a terminal instead, e.g. "sudo dnf install -y git". */
+  manualCommand: shortText.optional(),
+  /** Why the last attempt did not end with Git. */
+  reason: z.enum(["denied", "failed", "no_elevation", "timeout", "cancelled"]).optional(),
+});
+export type GitSetupStatus = z.infer<typeof GitSetupStatusSchema>;
 export const ChangesMethods = {
   "changes.reveal": {
     params: z.union([
@@ -283,6 +297,17 @@ export const ChangesMethods = {
     }),
     result: ok,
   },
+  /**
+   * Whether this computer has Git, and how Pi Bot would install it (maintainers 2026-11-21). Every
+   * call looks again, so it doubles as 「再检查」. Windows ships Git and answers "unsupported".
+   */
+  "changes.gitStatus": { params: z.strictObject({}), result: GitSetupStatusSchema },
+  /**
+   * The user clicked 「安装」 on the card: starts the system installer outside the sandbox and
+   * returns at once ("installing"); the card polls changes.gitStatus. A second click while one
+   * runs gets the same "installing" answer, never a second installer.
+   */
+  "changes.gitInstall": { params: z.strictObject({}), result: GitSetupStatusSchema },
 } as const;
 export const ChangesEvents = {
   /** Coalesced, at most once per second per folder; diff text is fetched on demand, never pushed. */

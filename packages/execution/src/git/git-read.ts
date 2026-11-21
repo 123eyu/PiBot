@@ -281,7 +281,11 @@ export function createGitReader(options: GitReaderOptions) {
   let disposed = false;
 
   function locate() {
-    program ??= findGit(options);
+    // Only a found Git is remembered: the user may install one while Pi Bot runs (git-install.ts).
+    program ??= findGit(options).then((found) => {
+      if (!found) program = undefined;
+      return found;
+    });
     return program;
   }
   async function acquire(signal: AbortSignal) {

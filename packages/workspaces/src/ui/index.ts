@@ -6,4 +6,5 @@ export { TurnCard } from "./changes/history/TurnCard.tsx";
 export { ChangesIcon } from "./changes/icons.tsx";
 export type { SourceState } from "./changes/store.ts";
 export { useChatChanges } from "./changes/use-chat-changes.ts";
+export { GitInstallCard } from "./git/GitInstallCard.tsx";
 export { type WorkspacesUiPorts, WorkspacesUiProvider } from "./shell/ports.tsx";

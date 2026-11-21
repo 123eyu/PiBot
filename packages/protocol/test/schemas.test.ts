@@ -2725,6 +2725,23 @@ const methodCases = {
     badParams: { conversationKey: `group:${id}`, topicId: id },
     badResult: { runIds: [1] },
   },
+  "changes.gitStatus": {
+    params: {},
+    result: { state: "available", version: "2.39.5" },
+    badParams: { force: true },
+    badResult: { state: "absent" },
+  },
+  "changes.gitInstall": {
+    params: {},
+    result: {
+      state: "installing",
+      installer: "package",
+      command: "dnf install -y git",
+      manualCommand: "sudo dnf install -y git",
+    },
+    badParams: { manager: "dnf" },
+    badResult: { state: "failed", reason: "unknown" },
+  },
   "changes.reviewers": {
     params: { conversationKey: `dm:${id}` },
     result: {

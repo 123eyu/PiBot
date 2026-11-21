@@ -3,6 +3,7 @@ import { OFFICE_COMPARE_PORT, type OfficeComparePort } from "@pibot/office-contr
 import { RpcError, RpcErrorCodes } from "@pibot/workspaces-contract/full";
 import { registerChangesRpc } from "./changes/changes-rpc.ts";
 import { ChangesService } from "./changes/changes-service.ts";
+import { GitSetup } from "./changes/git-setup.ts";
 import { createCommitDrafter } from "./changes/write/changes-draft.ts";
 import { GroupMemberWorktrees } from "./groups/group-member-worktrees.ts";
 import { registerManagedResourceRpc } from "./managed/managed-resource-rpc.ts";
@@ -15,6 +16,7 @@ export function workspacesCapability(): BrainCapability {
       let closed = false;
       const pending = new Set<Promise<unknown>>();
       const changes = new ChangesService(ctx.workspaces.host.local);
+      const gitSetup = new GitSetup(ctx.workspaces.host.local);
       // Absent when the office capability is not installed; the panel then stays binary.
       changes.office = ctx.ports.get<OfficeComparePort>(OFFICE_COMPARE_PORT);
       let members: GroupMemberWorktrees;
@@ -46,6 +48,7 @@ export function workspacesCapability(): BrainCapability {
               changes.quiesce();
               await Promise.allSettled([...pending]);
               const settled = await Promise.allSettled([
+                gitSetup.dispose(),
                 resources?.dispose(),
                 members.dispose(),
                 changes.dispose(),
@@ -87,6 +90,12 @@ export function workspacesCapability(): BrainCapability {
           return operation;
         });
       registerChangesRpc(handle, changes);
+      handle("changes.gitStatus", (_params, { signal }) =>
+        gitSetup.status(AbortSignal.any([signal, changes.signal(15_000)])),
+      );
+      handle("changes.gitInstall", (_params, { signal }) =>
+        gitSetup.install(AbortSignal.any([signal, changes.signal(15_000)])),
+      );
       registerManagedResourceRpc(handle, resources);
       return {
         stop: async () => {

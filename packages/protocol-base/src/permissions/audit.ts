@@ -109,6 +109,9 @@ export const AuditKindSchema = z.enum([
   // A skill's runtime environment was prepared, failed, or removed. Counts and a reason
   // code only; the command text and its output stay in the environment's log file.
   "skill.runtime.prepared",
+  // The user asked Pi Bot to install Git system-wide (started, then how it ended); the command
+  // text and outcome only, never the installer's output.
+  "git.install",
   "memory.changed",
   // Saved website accounts. Site, display name and Bots only; never the secret.
   "credential.saved",

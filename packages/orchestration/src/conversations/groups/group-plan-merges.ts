@@ -27,6 +27,8 @@ export class GroupPlanMerges {
   private timer?: ReturnType<typeof setInterval>;
   private stopped = false;
   private readonly noted = new Set<string>();
+  /** Plans that already showed the 「安装 Git」 card; one card per plan is enough. */
+  private readonly gitCards = new Set<string>();
   constructor(private readonly engine: WorkflowEngine) {}
 
   private get service(): GroupService {
@@ -241,6 +243,14 @@ export class GroupPlanMerges {
       step.stepId;
     const zh = this.service.deps.chat.currentLanguage() === "zh";
     const why = turnsReason(reason, zh);
+    // Maintainers 2026-11-21: without Git the plan offers to install it, once, at this point.
+    const plan = record.budgetRootRunId ?? record.id;
+    const gitCard = reason === "git_unavailable" && !this.gitCards.has(plan);
+    if (gitCard) {
+      this.gitCards.add(plan);
+      if (this.gitCards.size > 200)
+        this.gitCards.delete(this.gitCards.values().next().value as string);
+    }
     new MessagesRepo(this.service.deps.db).create({
       conversationId: group.conversationId,
       botId: record.coordinatorBotId,
@@ -251,7 +261,10 @@ export class GroupPlanMerges {
           : `“${title}” takes turns in the group folder: ${why}.`,
       ),
       status: "done",
-      usage: { groupWorkflowStatus: { workflowRunId: record.id } },
+      usage: {
+        groupWorkflowStatus: { workflowRunId: record.id },
+        ...(gitCard ? { gitSetup: "parallel" } : {}),
+      },
     });
     this.service.changed(record.groupId, "updated");
   }

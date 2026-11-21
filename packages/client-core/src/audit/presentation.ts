@@ -144,6 +144,8 @@ const kindGroups: Record<AuditKind, readonly [AuditGroup, ...AuditGroup[]]> = {
   // Preparing a runtime installs a skill's dependencies, so it belongs beside the skill it serves.
   "skill.runtime.prepared": ["connectors"],
   "skill.downloaded": ["connectors"],
+  // A system installer the user started from a Git card; it ran outside the sandbox.
+  "git.install": ["run"],
   "memory.changed": ["run"],
   "credential.saved": ["web"],
   "credential.updated": ["web"],
@@ -895,6 +897,14 @@ export function auditResult(
       ),
       tone: reason === "ok" ? "ok" : reason === "skill_link_cancelled" ? "muted" : "danger",
     };
+  }
+  if (entry.kind === "git.install") {
+    const reason = detail.reasonCode;
+    if (reason === "started") return { text: t("activity.running"), tone: "muted" };
+    if (reason === "cancelled") return { text: t("audit.result.cancelled"), tone: "muted" };
+    return reason === "installed"
+      ? { text: t("activity.done"), tone: "ok" }
+      : { text: t("activity.failed"), tone: "danger" };
   }
   if (entry.kind === "grant.created" || entry.kind === "grant.revoked")
     return {

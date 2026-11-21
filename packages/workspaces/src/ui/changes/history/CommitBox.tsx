@@ -3,6 +3,7 @@ import { useT } from "@pibot/renderer-kit";
 import { Button } from "@pibot/ui";
 import type { GitIdentity } from "@pibot/workspaces-contract/full";
 import { useState } from "react";
+import { GitInstallCard } from "../../git/GitInstallCard.tsx";
 import styles from "../changes.module.css";
 import { formatCount } from "../diff/FileList.tsx";
 import { ChangesIcon } from "../icons.tsx";
@@ -142,6 +143,7 @@ export function CommitBox({
           {t(error)}
         </p>
       )}
+      {error === "changes.error.changes_git_unavailable" && <GitInstallCard context="changes" />}
       <p className={styles.footNote}>
         {t("changes.commit.hooks")}
         {!writesIsolated && ` ${t("changes.commit.notIsolated")}`}

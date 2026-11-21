@@ -19,7 +19,7 @@ import { BotAvatar, botAvatarLook, useSettings, useT } from "@pibot/renderer-kit
 import { MessageRoutineProposals } from "@pibot/routines/ui";
 import { MessageSkillProposals, TeachTrialReturn } from "@pibot/skills/ui";
 import { Button, Card } from "@pibot/ui";
-import { TurnCard } from "@pibot/workspaces/ui";
+import { GitInstallCard, TurnCard } from "@pibot/workspaces/ui";
 import { type CSSProperties, memo, type ReactNode, useCallback, useMemo, useState } from "react";
 import { RunReceipt } from "../../receipt/RunReceipt.tsx";
 import styles from "../chat.module.css";
@@ -394,6 +394,7 @@ export const ChatMessage = memo(function ChatMessage({
         {!preview && message.role === "assistant" && message.status !== "streaming" && (
           <AgentReplyFacts usage={message.usage} />
         )}
+        {!preview && gitSetupCard(message.usage) && <GitInstallCard context="parallel" />}
         {!preview &&
           (turn && !turn.last ? (
             receipt(false)
@@ -566,3 +567,10 @@ const RoutineNoticeLine = memo(function RoutineNoticeLine({
     </p>
   );
 });
+
+/** A plan's turns notice that also offers to install Git (written by the program, once per plan). */
+function gitSetupCard(usage: Message["usage"]) {
+  return (
+    !!usage && typeof usage === "object" && !Array.isArray(usage) && usage.gitSetup === "parallel"
+  );
+}

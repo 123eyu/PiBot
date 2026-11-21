@@ -3,7 +3,12 @@ import { type ChangesEvents, ChangesMethods } from "./api/changes.ts";
 import { FileCheckpointMethods } from "./api/file-checkpoints.ts";
 import { ManagedWorktreeMethods } from "./api/managed-worktrees.ts";
 
-export { ChangesEvents, ChangesMethods } from "./api/changes.ts";
+export {
+  ChangesEvents,
+  ChangesMethods,
+  type GitSetupStatus,
+  GitSetupStatusSchema,
+} from "./api/changes.ts";
 export { FileCheckpointMethods } from "./api/file-checkpoints.ts";
 export { ManagedWorktreeMethods } from "./api/managed-worktrees.ts";
 

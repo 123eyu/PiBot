@@ -125,10 +125,20 @@ export type {
   GitHookPlan,
   GitHookPrepareInput,
 } from "./git/git-hook-types.ts";
+export {
+  type GitInstallOutcome,
+  type GitInstallPlan,
+  type GitPackageManager,
+  gitInstallPlan,
+  gitVersion,
+  runGitInstaller,
+  waitForGit,
+} from "./git/git-install.ts";
 export * from "./git/git-network.ts";
 export { prepareGitOutput } from "./git/git-output.ts";
 export { GitOutputSourceError } from "./git/git-output-error.ts";
 export { gitOutputIntent } from "./git/git-output-intent.ts";
+export { findGit } from "./git/git-process.ts";
 export {
   createGitReader,
   type GitReader,

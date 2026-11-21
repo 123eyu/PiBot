@@ -1,6 +1,7 @@
 import { useRpc, useSettings, useWorkspace } from "@pibot/renderer-kit";
 import { Button } from "@pibot/ui";
 import type { ReactNode } from "react";
+import { GitInstallCard } from "../git/GitInstallCard.tsx";
 import styles from "./changes.module.css";
 import { formatCount } from "./diff/FileList.tsx";
 import { CommitBox } from "./history/CommitBox.tsx";
@@ -193,19 +194,29 @@ export function Notices({ model }: { model: ChangesPaneModel }) {
         </button>
       </Notice>,
     );
-  if (git?.state === "none" && git.reason === "git_unavailable" && scope === "turn")
+  if (git?.state === "none" && git.reason === "git_unavailable")
+    // macOS and Linux offer the system install here; elsewhere the download link stays.
     items.push(
-      <Notice key="git" tone="info">
-        <span>{t("changes.repo.noGitBody")}</span>
-        <a
-          className={styles.link}
-          href="https://git-scm.com/downloads"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {t("changes.repo.installGit")}
-        </a>
-      </Notice>,
+      <GitInstallCard
+        key="git"
+        context="changes"
+        onInstalled={() => model.source?.refresh()}
+        fallback={
+          scope === "turn" && (
+            <Notice tone="info">
+              <span>{t("changes.repo.noGitBody")}</span>
+              <a
+                className={styles.link}
+                href="https://git-scm.com/downloads"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t("changes.repo.installGit")}
+              </a>
+            </Notice>
+          )
+        }
+      />,
     );
   if (scope === "uncommitted" && git?.state === "repo") {
     if (git.operation) {
@@ -291,12 +302,17 @@ export function Footer({ model }: { model: ChangesPaneModel }) {
       />
     );
   const notice = model.notice && (
-    <p
-      className={model.notice.error ? styles.errorText : styles.okText}
-      role={model.notice.error ? "alert" : "status"}
-    >
-      {t(model.notice.key, { name: model.botName })}
-    </p>
+    <>
+      <p
+        className={model.notice.error ? styles.errorText : styles.okText}
+        role={model.notice.error ? "alert" : "status"}
+      >
+        {t(model.notice.key, { name: model.botName })}
+      </p>
+      {model.notice.key === "changes.error.changes_git_unavailable" && (
+        <GitInstallCard context="changes" onInstalled={() => model.source?.refresh()} />
+      )}
+    </>
   );
   const toast = model.committed && scope === "uncommitted" && (
     <div className={styles.toast} role="status">
