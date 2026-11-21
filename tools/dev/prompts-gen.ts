@@ -83,21 +83,22 @@ function emit(tree: Tree, indent: string): string {
 }
 
 const camel = (name: string) => name.replace(/[-_.]([a-z0-9])/g, (_, c: string) => c.toUpperCase());
-const biome = join(
-  repo,
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "biome.cmd" : "biome",
-);
+// Biome's own JS launcher, run by this Node: the .bin shim is a .cmd file on Windows, which
+// execFileSync refuses to start without a shell.
+const biome = join(repo, "node_modules", "@biomejs", "biome", "bin", "biome");
 
 function generate(md: string) {
   const target = md.replace(/\.md$/, ".ts");
   const source = `// Generated from ${basename(md)} by tools/dev/prompts-gen.ts. Edit the md file, then run \`pnpm gen:prompts\`.\nexport const ${camel(basename(md, ".md"))}Prompts = {\n${emit(parse(md), "  ")}} as const;\n`;
-  const formatted = execFileSync(biome, ["format", `--stdin-file-path=${target}`], {
-    input: source,
-    encoding: "utf8",
-    cwd: repo,
-  });
+  const formatted = execFileSync(
+    process.execPath,
+    [biome, "format", `--stdin-file-path=${target}`],
+    {
+      input: source,
+      encoding: "utf8",
+      cwd: repo,
+    },
+  );
   return { target, formatted };
 }
 

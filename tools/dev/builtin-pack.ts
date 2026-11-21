@@ -85,9 +85,13 @@ async function brain(): Promise<Brain> {
 
 function format(dir: string) {
   // Keep generated JSON in the repository's Biome style so `pnpm lint` stays clean.
-  execFileSync(join(root, "node_modules/.bin/biome"), ["format", "--write", dir], {
-    stdio: "ignore",
-  });
+  execFileSync(
+    process.execPath,
+    [join(root, "node_modules/@biomejs/biome/bin/biome"), "format", "--write", dir],
+    {
+      stdio: "ignore",
+    },
+  );
 }
 
 const skillFolders = (skills: unknown): string[] =>
