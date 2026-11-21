@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { memoryPorts } from "../test-port.ts";
 import { startDesktopBrain } from "./runtime.ts";
@@ -29,7 +30,7 @@ describe("desktop brain adapter", () => {
     await startDesktopBrain(options);
     expect(module.startBrain).toHaveBeenCalledWith({
       ...options,
-      pluginDir: "test-resources/plugins",
+      pluginDir: join("test-resources", "plugins"),
     });
   });
 });
