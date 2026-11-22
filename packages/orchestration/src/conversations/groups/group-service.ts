@@ -304,6 +304,26 @@ export class GroupService implements CollaborationPort {
     this.changed(group.id, "created");
     return group;
   }
+  /**
+   * Windows retest 2026-11-21: killing a running command's process tree took 13 s during a brain
+   * stall, the stop's own bound answered busy after 5 s, and the pause was never saved although
+   * the step had already been stopped; the next step then started. A pause commits once the stop
+   * is issued: the reconciler parks the step when its run settles (pausedFor is true by then).
+   */
+  private async cancelForMutation(
+    groupId: string,
+    filter: Parameters<GroupService["deps"]["chat"]["queue"]["cancel"]>[0],
+  ) {
+    try {
+      await this.deps.chat.queue.cancel(filter, "superseded");
+    } catch (error) {
+      if (!(this.pausing.has(groupId) && error instanceof RpcError && error.code === -32011))
+        throw error;
+      this.deps.logger.warn(
+        JSON.stringify({ module: "groups", event: "pause_runs_still_stopping", groupId }),
+      );
+    }
+  }
   async mutate(
     groupId: string,
     operation: () => Group | { ok: true },
@@ -332,7 +352,8 @@ export class GroupService implements CollaborationPort {
           }),
         );
       if (!idleOnly)
-        await this.deps.chat.queue.cancel(
+        await this.cancelForMutation(
+          groupId,
           (r) =>
             r.groupId === groupId &&
             (!automaticOnly || r.automatic) &&
@@ -349,7 +370,6 @@ export class GroupService implements CollaborationPort {
                 language: this.deps.chat.currentLanguage(),
               })
             ),
-          "superseded",
         );
       const result = this.safe(operation);
       this.changed(groupId, reason);
