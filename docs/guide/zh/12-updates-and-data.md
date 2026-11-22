@@ -14,7 +14,7 @@ Pi Bot 启动后和运行期间每隔几小时向 pibot.space 查询一次新版
 
 手动检查：左下角头像 ›「检查更新」。
 
-![检查更新](../images/zh/check-updates.png)
+![检查更新窗口，网络不可用时可以重试](../images/zh/check-updates.png)
 
 发现新版本时：
 

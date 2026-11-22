@@ -22,13 +22,13 @@ Pi Bot 是一个桌面应用：一群有名字的 Bot 在你自己的电脑上�
 
 ## 安装
 
-从官网 [pibot.space](https://pibot.space) 下载对应系统的安装包。
+从官网 [下载页](https://pibot.space/cn/download/) 下载对应系统的安装包。
 
 ### macOS
 
 1. 打开下载的 `.dmg`，把 **Pi Bot** 拖进「应用程序」文件夹。
 2. 从「应用程序」或启动台打开 Pi Bot。
-3. 如果系统提示无法验证开发者，打开「系统设置 › 隐私与安全性」，在页面下方点「仍要打开」。
+3. Pi Bot 目前还没有经过 Apple 公证。如果系统提示无法验证 Pi Bot，先确认安装包是从官网下载的；决定继续时，先尝试打开一次，再到「系统设置 › 隐私与安全性」找到 Pi Bot，点「仍要打开」。详见 [Apple 官方说明](https://support.apple.com/zh-cn/102445)。
 
 Pi Bot 平时没有程序坞图标，关掉窗口后在菜单栏的托盘图标里还能找到它（见 [托盘与后台](#托盘与后台)）。
 
@@ -63,13 +63,17 @@ Pi Bot 平时没有程序坞图标，关掉窗口后在菜单栏的托盘图标�
 
 ### 2. 选择模型
 
-「Pi 用哪个模型」有三个选项：
+「Pi 用哪个模型」有四个选项：
 
-- **OpenRouter**（推荐）：一个 Key 用很多模型，已经选好一个便宜、会用工具的模型。消息会先发给 OpenRouter，再转给模型厂商。粘贴 Key 后点「保存并测试」。
+- **推荐**：跟着你选的语言走。中文界面推荐 **DeepSeek**（官方 API，已选好 DeepSeek V4.1 Flash，消息直接发给 DeepSeek）；英文界面推荐 **OpenRouter**（一个 Key 用很多模型，消息先发给 OpenRouter，再转给模型厂商）。粘贴 Key 后点「保存并测试」。
 
-  ![选择 OpenRouter](../images/zh/welcome-model-openrouter.png)
+  ![推荐的模型来源](../images/zh/welcome-model-deepseek.png)
 
-- **本地 · Ollama**：完全离线，在这台电脑上运行，对话不离开这台电脑。需要先安装 Ollama；没检测到时会显示安装说明的链接和「重新检测」按钮。
+- **ChatGPT 计划**：用你的 ChatGPT 计划额度，不需要 API Key。点「通过 ChatGPT 继续」，在浏览器完成登录，再回到 Pi Bot 选模型（详见 [9 · 模型与密钥](09-models-and-keys.md#用-chatgpt-计划登录)）。
+
+  ![欢迎流程里的 ChatGPT 计划](../images/zh/welcome-model-chatgpt.png)
+
+- **本地 · Ollama**：先在这台电脑安装并启动 Ollama，下载一个模型，然后回到 Pi Bot 点「重新检测」。检测到服务后选择模型再继续。下图是尚未检测到服务时的界面。
 
   ![选择本地 Ollama](../images/zh/welcome-model-ollama.png)
 
@@ -81,9 +85,9 @@ Pi Bot 平时没有程序坞图标，关掉窗口后在菜单栏的托盘图标�
 
   ![厂商列表](../images/zh/welcome-providers.png)
 
-Key 用这台电脑的系统密钥库加密保存，保存后不再显示。如果你已经在环境变量里设置了对应的 Key（例如 `OPENROUTER_API_KEY`），这一页会提示检测到了，可以点「导入」。
+Key 用这台电脑的系统密钥库加密保存，保存后不再显示。如果你已经在环境变量里设置了对应的 Key（例如 `DEEPSEEK_API_KEY`、`OPENROUTER_API_KEY`），这一页会提示检测到了，可以点「导入」。
 
-想用 ChatGPT 计划代替 API Key？欢迎流程里先随便选一个能用的方式，之后到 [9 · 模型与密钥](09-models-and-keys.md#用-chatgpt-计划登录) 里操作。
+**网络代理**：在部分地区访问 Google、OpenAI 等模型服务需要代理。在线模型的几种方式下面都有「需要代理？设置网络代理」，点开就能填代理地址；如果这台电脑正在用代理，会自动填进去，打开「使用代理」后才生效。连不上模型时，出错提示旁边也会直接给出「设置网络代理」。之后可以在 设置 › 通用 › 网络代理 里修改（见 [9 · 模型与密钥](09-models-and-keys.md#本地模型和自定义网关)）。
 
 ### 3. 先请一个 Bot 帮忙
 
@@ -99,7 +103,7 @@ Key 用这台电脑的系统密钥库加密保存，保存后不再显示。如�
 - **屏幕录制**：截图（只裁到你允许的应用窗口）
 - **自动化**：让 Bot 用脚本控制「系统事件」和「访达」
 
-> 截图待补：中文界面的「系统权限」步骤。
+![欢迎流程可跳过，之后在设置的「操作电脑」里检查系统授权](../images/zh/settings-computer-use-1.png)
 
 开启屏幕录制后如果没有生效，点「重启 Pi Bot」。不需要操作电脑就点「稍后再说」，以后可以在 设置 › 操作电脑 里再开。Windows 不需要额外权限；Linux 在 X11 下不需要，Wayland 下截图每次会话确认一次。
 

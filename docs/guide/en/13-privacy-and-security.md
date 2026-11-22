@@ -48,6 +48,8 @@ Pi Bot collects no usage data and doesn't report crashes automatically. There ar
 
 ## Keys
 
+![An empty API key field; the system protects it after saving](../images/en/provider-openai.png)
+
 - API keys, sign-in tokens and saved account passwords are encrypted with the system secret store on this computer.
 - After saving, the interface shows only the last 4 characters of a key.
 - Keys are never written to logs, sent to the interface, or shown to Bots and models. When the Bot browser signs in with a saved account, neither the Bot nor the model sees the password.
@@ -64,6 +66,8 @@ Pi Bot collects no usage data and doesn't report crashes automatically. There ar
 - **Untrusted content**: web pages, files and model output are treated as untrusted and never executed as instructions.
 
 ## Traceability
+
+![Check actions, approvals, and deliverables in a work receipt](../images/en/work-receipt.png)
 
 - **Work receipts**: each run lists what it read, what it changed, which commands ran, which approvals it went through, what it cost and what wasn't verified.
 - **Activity records**: every approval, run and outgoing action, stored only on this computer.

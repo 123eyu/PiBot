@@ -11,12 +11,11 @@ On this page:
 - [When the computer is offline: the phone replies](#when-the-computer-is-offline-the-phone-replies)
 - [Notifications, wake-up and staying connected](#notifications-wake-up-and-staying-connected)
 - [Unpair](#unpair)
-
-> Screenshot to be added: phone screens for this page (scan to pair, chat, approvals, offline mode).
+- [Example: approve a desktop task from your phone](#example-approve-a-desktop-task-from-your-phone)
 
 ## Install
 
-The phone app is currently available as an Android package (APK) from [pibot.space](https://pibot.space). The desktop app updates itself; on the phone, download and install the new APK to update. An iOS version isn't available for download yet.
+The phone app is currently available as an Android package (APK) from the [download page](https://pibot.space/en/download/). The desktop app updates itself; on the phone, download and install the new APK to update. An iOS version isn't available for download yet. After installing it, open Pi Bot and start pairing from the first-launch screen.
 
 ## Turn on remote access on the computer
 
@@ -44,7 +43,10 @@ The text below the switch explains what the relay sees: IP addresses, connection
 
    ![Scan with the phone](../images/en/devices-qr.png)
 
-2. On the phone: open Pi Bot, tap **Scan to pair**, allow the camera, and scan the QR code. If scanning doesn't work, you can paste the pairing code copied on the computer instead.
+2. On the phone, open Pi Bot to **Connect your computer**. Tap **Allow camera to scan**, grant access, and point the camera at the QR code on the computer. You can also copy the code on the computer and tap **Paste pairing code** on the phone.
+
+   ![Android pairing screen with camera and paste options](../images/en/android-pair-guide.png)
+
 3. Both sides show the same safety code. If they match, nobody intercepted the connection: tap **They match, finish pairing**. If not, cancel and scan again.
 
 One phone can pair with up to 16 computers.
@@ -54,12 +56,28 @@ One phone can pair with up to 16 computers.
 The phone app has five tabs at the bottom:
 
 - **Chats**: chats with Bots and groups, the same history as on the computer. While the computer is offline you can keep writing; messages are queued and sent in order once it's back (Bots with offline replies turned on answer from the phone, see below).
+
+   ![Chats lists Pi and shows when the test computer was last online.](../images/en/android-chats-guide.png)
+
 - **To-dos**: your personal to-dos on a month calendar (the same list as **Personal to-dos** in the computer's Inbox). Tap a day to see its to-dos, tap the circle to mark one done, tap a to-do to change its title, date, time, end date, colour and sticker, or delete it; **+** adds one on the selected day. It works with the computer offline too: changes stay on the phone marked **Not synced yet** and sync in order once the computer is back; if the same to-do was changed on the computer later, the newer change wins.
 - **Tasks**: running tasks, group tasks and routine runs; you can stop or resume them.
+
+   ![Tasks shows run counts, routines and recent results. No task has been started in this test environment.](../images/en/android-tasks-guide.png)
+
 - **Approvals**: approval cards waiting for you, showing what will happen and why approval is needed, with **Show decision steps**. You can **Allow this kind of action from now on**; dangerous actions can't be remembered and need Face ID / fingerprint or the phone passcode before you allow them. A few approvals (such as computer sign-ins and outgoing drafts) can only be handled on the computer. Unanswered approvals are denied when time runs out, and the Bot tries another way.
+
+   ![An empty Approvals tab. Approval cards appear here when a Bot requests permission.](../images/en/android-approvals-guide.png)
+
 - **Devices**: paired computers and runners, the phone data you share with the computer, notifications, language and appearance.
 
 Loosening a Bot's permissions, deleting memories and removing a Bot from a group also need you to unlock the phone.
+
+In a group chat:
+
+- **Tasks N/M** at the top opens **Task progress**: each step of the plan with who does it and whether it is in progress, waiting, needs you or done; tap a step to see what it does and its result.
+- A stuck step marked **Needs you** has **Retry**, which has its Bot do it again. Edit the plan, skip or reassign steps on the computer.
+- When a group member needs your approval, the approval card appears right in the group chat, where you can handle it.
+- While the group is working, **Pause** stops it and keeps progress; **Continue** picks up from the stopped steps. It is the same pause as on the computer (see [6 · Group chats](06-groups.md#pause-and-continue)).
 
 ## When the computer is offline: the phone replies
 
@@ -70,6 +88,8 @@ If you turned on offline replies for this phone on the computer, private chats w
 1. Settings › Devices › click this phone › **When this computer is offline** tab.
 2. Check **Models the phone uses directly**: the config and keys of the models your Bots use sync to this phone automatically and follow changes made on the computer.
 3. Under **Bots that can reply offline**, switch each Bot on or off.
+
+![Phone replies shows the models and Bots synced from the computer and the privacy ledger. A model has yet to be configured in this test environment.](../images/en/android-offline-model-guide.png)
 
 Limits:
 
@@ -83,10 +103,21 @@ If the phone is authorized for a runner (**Runners it can direct** on the device
 
 ## Notifications, wake-up and staying connected
 
-- The phone gets a notification when a Bot needs your approval or a task finishes. Notifications contain only "Pi Bot" and a fixed short sentence, never chat or approval content; tapping one opens the app and reloads.
+![Wake and connection options on the desktop](../images/en/devices-advanced.png)
+
+- The phone gets a notification when a Bot needs your approval or a task finishes. The title is only the Bot's or group's name ("Pi Bot" for notifications that arrive as a push), and the text is a fixed short sentence, never chat or approval content; tapping one opens the app and reloads.
 - When the computer needs one of the phone's capabilities, it can wake the phone app with a high-priority push.
 - On Android you can turn on **Stay connected** to keep the connection with a foreground service (off by default; uses more battery).
 
 ## Unpair
 
-On the phone: Devices › the computer › **Unpair**. This deletes the keys, cache and pending messages on the phone; revoke the device record on the computer separately in Settings › Devices. To switch computers, unpair first, then scan the new computer's QR code.
+On the phone, open **Devices** and switch to the computer if you have more than one. Scroll to **Connection**, tap **Unpair**, then read the confirmation and tap **Unpair** again. This deletes the keys, cache and pending messages on the phone. Revoke the device record separately on the computer under **Settings › Devices**. When switching computers, scan the QR code from the new computer after unpairing.
+
+![The Unpair confirmation in Devices explains which data will be removed from this phone.](../images/en/android-unpair-guide.png)
+
+## Example: approve a desktop task from your phone
+
+1. After pairing, test on the same local network. Confirm the computer shows as online in Devices, then send Pi a short message.
+2. Start a task in a test folder. If approval is required, open Approvals and check the Bot, action, and folder before allowing or denying it. Use the computer for desktop-only requests.
+3. Follow progress under Tasks and open the result when done. Verify the same task appears in the desktop conversation.
+4. If the computer stays offline, check that Pi Bot is running and paired connections are enabled. Pair again if you switched relays. Ordinary messages queue while the computer is temporarily offline.

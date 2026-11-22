@@ -1,8 +1,8 @@
 # Pi Bot 用户指南 · Pi Bot User Guide
 
-Pi Bot 是一个桌面应用：一群有名字的 Bot 在你自己的电脑上干活。本指南适用于 Pi Bot 0.0.2，macOS、Windows 和 Linux。
+Pi Bot 是一个桌面应用：一群有名字的 Bot 在你自己的电脑上干活。本指南适用于 Pi Bot 0.0.3，macOS、Windows 和 Linux。
 
-Pi Bot is a desktop app where a team of named Bots works on your own computer. This guide covers Pi Bot 0.0.2 on macOS, Windows and Linux.
+Pi Bot is a desktop app where a team of named Bots works on your own computer. This guide covers Pi Bot 0.0.3 on macOS, Windows and Linux.
 
 | # | 中文 | English |
 |---|---|---|
@@ -23,6 +23,6 @@ Pi Bot is a desktop app where a team of named Bots works on your own computer. T
 | 15 | [自建中继](zh/15-self-hosting-relay.md) | [Self-hosting the relay](en/15-self-hosting-relay.md) |
 | 16 | [在编辑器里用 Pi Bot（ACP）](zh/16-editor-acp.md) | [Using Pi Bot from your editor (ACP)](en/16-editor-acp.md) |
 
-截图来自 Pi Bot 0.0.2 的测试实例，示例数据均为虚构。中文页面使用中文界面截图，英文页面使用英文界面截图；默认浅色外观，第 1 章有深色外观示例。标注「截图待补」的地方以文字说明为准。
+截图来自 Pi Bot 的独立测试实例（0.0.1 到 0.0.3），示例数据均为虚构；个别截图和当前界面略有出入时，以文字说明为准。中文页面使用中文界面截图，英文页面使用英文界面截图；默认浅色外观，第 1 章有深色外观示例。标注「截图待补」的地方以文字说明为准。
 
-Screenshots come from a Pi Bot 0.0.2 test instance with made-up sample data. Chinese pages use the Chinese interface and English pages the English interface; light appearance by default, with dark examples in chapter 1. Where a page says "Screenshot to be added", the text describes the screen.
+Screenshots come from separate Pi Bot test instances (0.0.1 to 0.0.3) with made-up sample data; where a screenshot differs slightly from the current interface, the text is what counts. Chinese pages use the Chinese interface and English pages the English interface; light appearance by default, with dark examples in chapter 1. Where a page says "Screenshot to be added", the text describes the screen.

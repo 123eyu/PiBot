@@ -13,6 +13,7 @@ On this page:
 - [When the computer sleeps or Pi Bot quits](#when-the-computer-sleeps-or-pi-bot-quits)
 - [Inbox](#inbox)
 - [Personal to-dos](#personal-to-dos)
+- [Example: summarize new files every weekday](#example-summarize-new-files-every-weekday)
 
 ## The Routines page
 
@@ -63,7 +64,9 @@ After choosing **Once at a specified time**, click **Pick a date and time**:
 
 ## Preauthorizations and how it runs
 
-**Preauthorizations for this routine**: you may be away when a routine runs, so you can allow reading files, listing folders, writing files, running commands, visiting websites and so on in its work location ahead of time. They apply only to this routine and don't change chat permissions. Dangerous operations and sudo can't be preauthorized, and the current policy and isolation still apply at run time. Computer use can't be allowed in advance; when it's needed, it goes to the Inbox.
+![Triggers and pre-approval in the routine editor](../images/en/routine-trigger.png)
+
+**Preauthorizations for this routine**: you may be away when a routine runs, so you can allow reading files, listing folders, writing files, running commands, visiting websites and so on in its work location ahead of time. They apply only to this routine and don't change chat permissions. Dangerous operations and sudo can't be preauthorized, and the current policy and isolation still apply at run time. A routine that runs a script can preauthorize that one exact script; if the script's content changes, the run asks you again. Computer use can't be allowed in advance; when it's needed, it goes to the Inbox.
 
 **How it runs**:
 
@@ -118,3 +121,13 @@ The **Personal to-dos** tab is your own to-do list.
 ![Personal to-dos](../images/en/todos.png)
 
 Each to-do can be marked complete (**Mark complete**), edited (**Edit to-do**) or deleted (**Delete to-do**); filter by Open or Completed. Due dates don't create calendar notifications.
+
+## Example: summarize new files every weekday
+
+![Describe the work in New routine before selecting a trigger](../images/en/routine-new.png)
+
+1. Put a few sample files in a test folder. Open Routines → New routine and choose a Bot.
+2. Specify input and output. For example: “Read new documents in the working folder. Save a summary with filenames, key points, and any files you couldn't read. Leave originals intact.”
+3. Verify the working folder and read-only references. Choose Schedule → Weekdays, set the time, and check the time zone.
+4. Run a trial before saving. Check the work receipt for files read and the report path. Handle any approvals.
+5. Save and confirm the next run time. Run history distinguishes trial, manual, and scheduled runs.

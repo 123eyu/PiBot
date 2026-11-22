@@ -55,6 +55,7 @@ Execute / Plan only shares a row with the working folder: in a new topic you can
 - **Step rows**: for example "6 steps · Edit file, Run command, Use browser ×4"; expand to see each step.
 - **Approval cards**: actions that need your consent show up as cards in the chat (see [5 · Approvals and permissions](05-approvals-and-permissions.md)).
 - **Changed files**: "Changed 3 files this turn"; **View** opens the changes panel (see [4 · Working folders and changes](04-folders-and-changes.md)).
+- **Attached files**: documents, pictures, sheets, decks, web pages, recordings and archives the Bot created this turn, and files it names in its reply or puts in the output folder, are attached under the reply by the program, without relying on the Bot to send them. A reply carries up to 10 files; a note says which folder holds the rest. A run that fails or is stopped still attaches the files it wrote. Edited source code isn't attached file by file; see the changed files instead.
 - **Web results**: when a development task produces a web page, a local HTML file or a web service, the Bot opens it in its own browser to check it; visual results get a screenshot self-check, and obvious layout errors are fixed before hand-off.
 
 ## Work receipts
@@ -77,7 +78,17 @@ The receipt is built from this computer's records (audit, changes, approvals, bu
 
 Bots can run commands in the background, such as a local preview server. The chat shows a **Running in background** card with the output line count and run time; you can **Open … in Bot browser**, **View output** or **Stop** it.
 
-![Background command](../images/en/background-command.png)
+### Start, inspect, and stop a local preview
+
+1. Verify the working folder at the top of the chat and switch to Execute. In a test project, ask: “Run a local preview in the background. Listen only on 127.0.0.1 and tell me the port.”
+2. On the approval card, verify the command, directory, and port. Choose Allow this time if they match the task.
+3. The green Running in background card appears. Use Open … in Bot browser to preview the detected port, or View output to inspect the logs.
+
+![Running in background card with the preview port, output and stop controls](../images/en/background-command.png)
+
+4. When finished, choose Stop and check that the card shows the stopped state. The stopped process no longer serves the page.
+
+If the card shows a process without a port, check the output for a port conflict or missing runtime. Request a different port and review the new approval. The browser shortcut appears for detected loopback listeners started by the Bot.
 
 Background commands run for up to 2 hours by default (Settings › General › Background commands › Total time limit), and also end when you stop them, delete the chat, archive the Bot or quit the app. They may only listen on this computer (127.0.0.1). Starting one always needs your approval.
 
@@ -85,9 +96,16 @@ Background commands run for up to 2 hours by default (Settings › General › B
 
 Click **Browser** at the top of the chat to open the Bot browser panel and watch the page the Bot is looking at.
 
-> Screenshot to be added: the Bot browser panel in the English interface.
+![The local preview running in the Bot browser panel](../images/en/bot-browser.png)
 
 - It's completely separate from your own browser, with none of your sign-ins.
 - **Take over** lets you use the page yourself; **Full screen** enlarges it; **Diagnostics** and **Select element** help inspect the page.
 - The sidebar view updates at up to 2 frames per second, 5 when enlarged or taken over, and none while hidden. Pages close after 10 minutes unused.
 - By default the Bot browser can't open this computer's or private network addresses; a local preview the Bot started itself opens from **Open … in Bot browser** on the background command card.
+
+### View a page, take over, and give control back
+
+1. Send a public URL in chat and ask the Bot to open it. Review the domain if prompted. For a local preview, use the background command card.
+2. Select Browser at the top of the chat. Check the address, tab and page in the side panel. Use Full screen for a larger view.
+3. Choose Take over when you need to click or type yourself. Give control back when finished, then tell the Bot what to check next. Handle sensitive accounts and forms in your own browser.
+4. Select an element or open Diagnostics to inspect the page. If a local preview stops responding, check whether the background service is still running.

@@ -22,13 +22,13 @@ You also need a model: an API key for an online provider, a ChatGPT plan, or a m
 
 ## Install
 
-Download the package for your system from [pibot.space](https://pibot.space).
+Download the package for your system from the [download page](https://pibot.space/en/download/).
 
 ### macOS
 
 1. Open the `.dmg` and drag **Pi Bot** into the Applications folder.
 2. Open Pi Bot from Applications or Launchpad.
-3. If macOS says the developer can't be verified, open System Settings › Privacy & Security and click **Open Anyway** near the bottom.
+3. Pi Bot has not been notarized by Apple yet. If macOS says it can't verify Pi Bot, first check that you downloaded it from the official site. If you choose to continue, try opening it once, then find Pi Bot under System Settings › Privacy & Security and click **Open Anyway**. See the [Apple Support instructions](https://support.apple.com/en-us/102445).
 
 Pi Bot normally has no Dock icon. After you close the window you find it in the menu bar (see [Tray and background](#tray-and-background)).
 
@@ -63,13 +63,17 @@ This page covers three things: a team of Bots, your data stays on your computer,
 
 ### 2. Choose a model
 
-"Which model should Pi use?" has three options:
+"Which model should Pi use?" has four options:
 
-- **OpenRouter** (Recommended): one key for many models, with a low-cost model that handles tools already picked. Messages go to OpenRouter, then to the model's vendor. Paste your key and click **Save & test**.
+- **Recommended**: follows the language you picked. In English it is **OpenRouter**: one key for many models, with a low-cost model that handles tools already picked; messages go to OpenRouter, then to the model's vendor. In Chinese it is **DeepSeek**: the official API with DeepSeek V4.1 Flash picked; messages go straight to DeepSeek. Paste your key and click **Save & test**.
 
   ![OpenRouter](../images/en/welcome-model-openrouter.png)
 
-- **Local · Ollama**: fully offline; the model runs on this computer and your conversation stays here. Install Ollama first; if it isn't detected you get a link to the installation instructions and a **Check again** button.
+- **ChatGPT plan**: use your ChatGPT plan's allowance, no API key needed. Choose **Continue with ChatGPT**, sign in in your browser and return to Pi Bot to pick a model (details in [9 · Models and keys](09-models-and-keys.md#sign-in-with-a-chatgpt-plan)).
+
+  ![ChatGPT plan in the welcome flow](../images/en/welcome-model-chatgpt.png)
+
+- **Local · Ollama**: install and start Ollama on this computer and download a model, then return to Pi Bot and click **Check again**. Once the service is detected, choose a model and continue. The screenshot shows the page before Ollama is detected.
 
   ![Local Ollama](../images/en/welcome-model-ollama.png)
 
@@ -81,9 +85,9 @@ This page covers three things: a team of Bots, your data stays on your computer,
 
   ![Provider list](../images/en/welcome-providers.png)
 
-Keys are encrypted with this computer's system secret store and never shown again. If the matching environment variable is already set (for example `OPENROUTER_API_KEY`), the page says it was detected and offers **Import**.
+Keys are encrypted with this computer's system secret store and never shown again. If the matching environment variable is already set (for example `OPENROUTER_API_KEY` or `DEEPSEEK_API_KEY`), the page says it was detected and offers **Import**.
 
-Want to use a ChatGPT plan instead of an API key? Pick any working option here, then follow [9 · Models and keys](09-models-and-keys.md#sign-in-with-a-chatgpt-plan).
+**Network proxy**: in some regions, model services such as Google and OpenAI need a proxy. Each online route has **Need a proxy? Set up a network proxy** below it, where you enter the proxy address; if this computer is already using a proxy, it is filled in for you and takes effect once you turn on **Use proxy**. When a model can't be reached, the error offers **Set up a network proxy** right there. You can change it later in Settings › General › Network proxy (see [9 · Models and keys](09-models-and-keys.md#local-models-and-custom-gateways)).
 
 ### 3. Pick a Bot to start with
 

@@ -11,6 +11,8 @@ On this page:
 - [Command isolation (sandbox)](#command-isolation-sandbox)
 - [Computer use](#computer-use)
 - [Activity records](#activity-records)
+- [Sandbox doctor](#sandbox-doctor)
+- [Example: approve a command once for this project](#example-approve-a-command-once-for-this-project)
 
 ## Permission settings
 
@@ -63,11 +65,15 @@ Buttons:
 
 ![Website approval card](../images/en/approval-web.png)
 
+**Scripts are judged by their content**: when a Bot wants to run a script (for example `python tidy.py`), Pi Bot reads the script first. A script that only reads and does nothing risky runs without a card; a risky one asks, and the card says "A script checked by its content (asks again if it changes)". If the script changes after the check, the command isn't run.
+
 If a card in a chat isn't answered within 10 minutes, the task pauses and waits for you. Approvals from routines go to the Inbox and are denied automatically after 24 hours. A message you send while an approval is pending is sent as a new request once the approval is handled.
 
 ## Remembered permissions
 
-Permissions granted with **Always allow** are stored on that Bot; review and revoke them on the Permissions tab of its profile. Routines also have **Preauthorizations for this routine**, which apply only to that routine (see [7 · Routines and to-dos](07-routines-and-todos.md)).
+Permissions granted with **Always allow** are stored on that Bot; review and revoke them on the Permissions tab of its profile. Routines also have **Preauthorizations for this routine**, which apply only to that routine (see [7 · Routines and to-dos](07-routines-and-todos.md#preauthorizations-and-how-it-runs)).
+
+![Open the Bot’s Permissions tab before managing saved approvals](../images/en/bot-permissions.png)
 
 ## YOLO mode
 
@@ -92,7 +98,7 @@ When the sandbox blocks a command, the Bot explains why and can ask you to confi
 
 ## Computer use
 
-Bots can operate apps on your computer the way a person does (press buttons, fill in fields, take screenshots). Each task asks with an approval card first. The settings are in Settings › Computer use:
+Bots can operate apps on your computer the way a person does (press buttons, fill in fields, take screenshots). Each task asks with an approval card first, where you tick the apps it may use. **Ask me before taking over the foreground** is ticked by default: a step that needs the foreground and moves your mouse first shows a **Foreground confirmation** card, where you choose **Allow** or **Skip this step**. If the window is on another desktop or behind a full-screen app, the Bot tells you to switch to it. The settings are in Settings › Computer use:
 
 ![Computer use](../images/en/settings-computer-use-1.png)
 
@@ -139,3 +145,19 @@ Linux (from the extracted app directory, or substitute your downloaded AppImage 
 The report lists pass, fail or skip, duration, denial rules and fixed error features. It checks command isolation, HTTPS certificates, macOS system proxy lookup, scratch workspace writes, protected names and domain denials. Names are resolved by the sandbox proxy; the HTTPS check covers that resolution and connection path, with no separate direct DNS check. It uses its own temporary folder and a fixed network profile allowing only `example.com`, with an attempt to reach `example.org` to verify blocking. It does not read your network settings or establish whether a particular Bot's permissions are correct. These public test sites receive diagnostic requests, with no chat, file content or keys; no tools are installed. Windows has no command isolation: containment checks are skipped, and other passing checks do not prove isolation.
 
 The report contains fixed codes and features, without raw commands, PATH, accounts, chat or file content, and can be copied to developers. Network, proxy or test-site outages can also cause failures. Temporary files are deleted after confirmed cleanup; if process cleanup cannot be confirmed, the command fails and retains its temporary folder instead of deleting files still in use. Exit code `0` means no failed items; `1` means a failed or incomplete check. Interrupting stops and cleans up this check.
+
+## Example: approve a command once for this project
+
+![Review the project folder and command before allowing this run](../images/en/approval-command.png)
+
+1. Verify the test project in the conversation's working-folder selector. Add reference-only directories as read-only.
+2. Set Run commands to Ask under Settings → Permissions. Check the Bot's Permissions tab for a saved approval that could apply.
+3. State the task and scope. For example: “List changes in the current Git working tree. Tell me what command you plan to run first. Leave the files alone.”
+4. If an approval card appears, expand Why am I asked? Check the exact command, working directory, and program. Choose Allow this time for one run. Decline if the scope is wider than expected, then tell the Bot what is acceptable.
+5. Open Activity records and filter by Bot and action type to find the decision. For file changes, open Changes to inspect the actual diff.
+
+### When an approval card does not appear
+
+- **The action completed immediately.** Check its recorded decision, saved approvals for the Bot, and YOLO mode for the conversation. To return to interactive approval, revoke the relevant approval and check the conversation mode.
+- **The Bot is waiting.** Look for a card in the chat, or open Todos for approvals generated by a routine. Check that the request still belongs to the task before deciding.
+- **The action was denied immediately.** Review whether a permission or a system limitation applied. Group permissions can narrow a member's permissions, and remote approval depends on the request. Then request an action within the allowed scope.

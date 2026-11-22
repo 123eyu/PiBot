@@ -14,7 +14,7 @@ After it starts and every few hours while running, Pi Bot asks pibot.space for t
 
 To check yourself: your avatar › **Check for updates**.
 
-![Check for updates](../images/en/check-updates.png)
+![Check for updates dialog with Retry when offline](../images/en/check-updates.png)
 
 When a new version is available:
 

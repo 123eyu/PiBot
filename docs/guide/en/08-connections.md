@@ -17,6 +17,7 @@ On this page:
 - [Import skills and plugin packages](#import-skills-and-plugin-packages)
 - [Knowledge](#knowledge)
 - [Access tokens](#access-tokens)
+- [Mail](#mail)
 
 ## Apps
 
@@ -97,6 +98,8 @@ Then say "do a pre-launch check" in a chat and the Bot follows the skill. Each B
 
 **Import a plugin package from a folder** and **Import from link** bring in ready-made skill packages (compatible with the Claude Code plugin format), including large skills with scripts and dependencies. You preview before importing; a package containing links or files that can't be imported for safety reasons is refused with the reason.
 
+![Import from a folder or link using the Add menu in Connections](../images/en/connections-add.png)
+
 ## Knowledge
 
 ![Connections · Knowledge](../images/en/connections-knowledge.png)
@@ -108,7 +111,18 @@ Bots only read knowledge sources and never change your notes.
 
 ## Access tokens
 
-**Access tokens** at the top right manages the tokens connections use (for example ones brought over from other tools). Saving a new value reconnects with it. Tokens are stored encrypted on this computer.
+**Access tokens** at the top right manages the tokens connections use (for example ones brought over from other tools).
+
+1. Open Connections, then choose **Access tokens** at the top right. The dialog lists tokens used by connections and tokens you added yourself; with none yet it shows **No access tokens yet**.
+
+   ![The Access tokens dialog](../images/en/connections-tokens.png)
+
+2. To add or replace a connection's token, check which connection the entry belongs to and use the button on that entry. After you save the new value, Pi Bot reconnects with it.
+3. To add a separate token for commands, choose **New token** and enter a name and value. Tokens are stored encrypted on this computer; you can replace a value later but not view the original.
+
+   ![The New token form](../images/en/connections-token-form.png)
+
+Manage model API keys under **Settings → Models & API keys** and website credentials under **Settings → Permissions → Saved accounts**.
 
 ## Mail
 
