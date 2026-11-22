@@ -107,6 +107,43 @@ function projectSourceIssue(path: string, at: (string | number)[]) {
   };
 }
 
+/**
+ * Linux retest 2026-11-21: the coordinator added fileNaming checks ("uses the expected file name")
+ * to 测试报告.md and 审查报告.md. fileNaming is the dated 主题_类型_YYYY-MM-DD convention, so the
+ * check could never pass and every round failed until the step reached the user. A fixed name is
+ * already checked by exists.
+ */
+const DATED = /^(.+)_([^_]+)_(\d{4})-(\d{2})-(\d{2})$/u;
+function fixedNameChecks(
+  steps: readonly {
+    id: string;
+    deliverables: readonly { id: string; path: string }[];
+    acceptance?: readonly { id?: string; check?: string; deliverable?: string }[];
+  }[],
+  completed: ReadonlySet<string>,
+) {
+  const issues: { code: string; path: (string | number)[]; expected: string; message?: string }[] =
+    [];
+  steps.forEach((step, index) => {
+    if (completed.has(step.id)) return;
+    (step.acceptance ?? []).forEach((item, n) => {
+      if (item.check !== "fileNaming") return;
+      const target = step.deliverables.find((d) => d.id === item.deliverable);
+      if (!target) return;
+      const base = pathApi.posix.basename(target.path.replaceAll("\\", "/"));
+      if (DATED.test(base.slice(0, base.length - pathApi.posix.extname(base).length))) return;
+      issues.push({
+        code: "plan_check_file_naming_fixed",
+        path: ["steps", index, "acceptance", n, "check"],
+        expected:
+          "exists (or a 主题_类型_YYYY-MM-DD name) / exists（或 主题_类型_YYYY-MM-DD 命名）",
+        message: `fileNaming 只检查「主题_类型_YYYY-MM-DD」这种带日期的命名；「${target.path}」是固定文件名，这项检查永远通不过。去掉这项检查（文件是否存在已由 exists 检查）。 / fileNaming only checks the dated topic_type_YYYY-MM-DD naming; ${target.path} has a fixed name, so this check can never pass. Remove it (exists already checks the file).`,
+      });
+    });
+  });
+  return issues;
+}
+
 /** Plan validation chooses without creating directories, so confirmation and execution refer to one folder. */
 export async function preparePlanDelivery(
   value: unknown,
@@ -193,6 +230,7 @@ export async function preparePlanDelivery(
     for (const issue of await Promise.all(checks)) if (issue) issues.push(issue);
     signal.throwIfAborted();
   }
+  for (const issue of fixedNameChecks(steps, completed)) issues.push(issue);
   const key = (stepId: string, id: string) => `${stepId}/${id}`;
   const paths = new Map(
     steps.flatMap((step) =>
