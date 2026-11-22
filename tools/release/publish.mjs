@@ -165,7 +165,20 @@ const runnerFiles = desktopOnly ? [] : [
   ["runner-linux", join(runnerDist, "installer", `pibot-runner_${version}_amd64.deb`), `PiBot-Runner-${version}-linux-x64.deb`],
 ];
 const runnerApp = join(runnerDist, "darwin-x64", "Pi Bot Runner.app");
-if (!desktopOnly && existsSync(runnerApp)) {
+// v0.0.3 dry run: the tray app left from the 0.0.1 build was zipped and labelled 0.0.3. Only a
+// bundle whose own version is this release is published; otherwise its download stays.
+const runnerAppVersion = () => {
+  const plist = join(runnerApp, "Contents", "Info.plist");
+  if (!existsSync(plist)) return undefined;
+  const read = spawnSync("/usr/libexec/PlistBuddy", ["-c", "Print :CFBundleShortVersionString", plist], {
+    encoding: "utf8",
+  });
+  return read.status === 0 ? read.stdout.trim() : undefined;
+};
+const runnerAppCurrent = !desktopOnly && existsSync(runnerApp) && runnerAppVersion() === version;
+if (!desktopOnly && existsSync(runnerApp) && !runnerAppCurrent)
+  console.warn(`The runner-mac build is ${runnerAppVersion() ?? "of unknown version"}, not ${version}; its download stays as it is.`);
+if (runnerAppCurrent) {
   const zip = join(runnerDist, `PiBot-Runner-${version}-mac-x64.zip`);
   if (!dryRun || !existsSync(zip)) {
     // ditto keeps the bundle's symlinks and signature; a plain zip would break the app.
