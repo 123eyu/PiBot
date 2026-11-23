@@ -13,6 +13,8 @@ const SearchConversationSchema = ConversationSchema.pick({
   botId: true,
   groupId: true,
   title: true,
+  readOnly: true,
+  importSource: true,
 });
 export const SearchMethods = {
   "search.query": {

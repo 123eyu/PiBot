@@ -314,6 +314,12 @@ importers:
       '@pibot/images-contract':
         specifier: workspace:*
         version: link:../../packages/images-contract
+      '@pibot/import':
+        specifier: workspace:0.0.0
+        version: link:../../packages/import
+      '@pibot/import-contract':
+        specifier: workspace:*
+        version: link:../../packages/import-contract
       '@pibot/link':
         specifier: workspace:*
         version: link:../../packages/link
@@ -888,6 +894,9 @@ importers:
       '@pibot/images':
         specifier: workspace:0.0.0
         version: link:../images
+      '@pibot/import':
+        specifier: workspace:0.0.0
+        version: link:../import
       '@pibot/memory':
         specifier: workspace:0.0.0
         version: link:../memory
@@ -1317,6 +1326,39 @@ importers:
         specifier: 4.6.5
         version: 4.6.5
 
+  packages/import:
+    dependencies:
+      '@pibot/brain':
+        specifier: workspace:0.0.0
+        version: link:../brain
+      '@pibot/execution':
+        specifier: workspace:0.0.0
+        version: link:../execution
+      '@pibot/import-contract':
+        specifier: workspace:0.0.0
+        version: link:../import-contract
+      '@pibot/policy':
+        specifier: workspace:0.0.0
+        version: link:../policy
+      '@pibot/protocol-base':
+        specifier: workspace:0.0.0
+        version: link:../protocol-base
+      '@pibot/storage':
+        specifier: workspace:0.0.0
+        version: link:../storage
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+
+  packages/import-contract:
+    dependencies:
+      '@pibot/protocol-base':
+        specifier: workspace:0.0.0
+        version: link:../protocol-base
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+
   packages/link:
     dependencies:
       '@noble/ciphers':
@@ -1617,6 +1659,9 @@ importers:
       '@pibot/images-contract':
         specifier: workspace:0.0.0
         version: link:../images-contract
+      '@pibot/import-contract':
+        specifier: workspace:0.0.0
+        version: link:../import-contract
       '@pibot/models-contract':
         specifier: workspace:0.0.0
         version: link:../models-contract

@@ -8,7 +8,7 @@ export type ChatSearchScope = { botId: string } | { botId: string; groupId: stri
 const SHORT_QUERY_BATCH = 64;
 const scopeFilter = `
   EXISTS(SELECT 1 FROM bots b WHERE b.id=$bot AND b.archived_at IS NULL)
-  AND c.internal_task_id IS NULL
+  AND c.internal_task_id IS NULL AND c.import_id IS NULL
   AND (($group IS NULL AND c.kind='dm' AND c.bot_id=$bot AND (m.role='user' OR m.bot_id=$bot))
     OR ($group IS NOT NULL AND c.kind='group' AND c.group_id=$group
       AND EXISTS(SELECT 1 FROM group_members gm WHERE gm.group_id=$group

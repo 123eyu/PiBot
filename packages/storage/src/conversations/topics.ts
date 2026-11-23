@@ -7,7 +7,7 @@ import {
   KernelMethods,
 } from "@pibot/protocol-base";
 import { transaction } from "../database/database.ts";
-import { ConversationsRepo } from "./conversations.ts";
+import { ConversationsRepo, importProjection } from "./conversations.ts";
 import { TopicFoldersRepo } from "./topic-folders.ts";
 
 export class TopicsRepo {
@@ -45,12 +45,13 @@ export class TopicsRepo {
     const rows = this.db
       .prepare(`SELECT * FROM (SELECT c.id,c.kind,c.bot_id AS botId,c.pi_session_file AS piSessionFile,
       c.routine_id AS routineId,c.workplace_folder_id AS workplaceFolderId,c.workplace_revision AS workplaceRevision,c.group_id AS groupId,c.thread_of AS threadOf,c.title,c.archived_at AS archivedAt,
-      c.created_at AS createdAt,c.updated_at AS updatedAt,wf.name AS workplaceFolderName,
+      c.created_at AS createdAt,c.updated_at AS updatedAt,c.import_source AS importSource,wf.name AS workplaceFolderName,
       (SELECT COUNT(*) FROM messages m WHERE m.conversation_id=c.id) AS messageCount,
       ${sortAt} AS sortAt
       FROM conversations c LEFT JOIN working_folders wf ON wf.bot_id=c.bot_id AND wf.id=c.workplace_folder_id
       WHERE c.kind='dm' AND c.bot_id=? AND (CASE WHEN ? THEN c.archived_at IS NOT NULL ELSE c.archived_at IS NULL END) AND c.internal_task_id IS NULL
-      AND (? OR c.routine_id IS NOT NULL OR c.id=? OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id) OR EXISTS(SELECT 1 FROM conversation_retries cr WHERE cr.conversation_id=c.id AND cr.state='done'))
+      AND (c.import_id IS NULL OR c.import_id IN (SELECT id FROM import_jobs WHERE state='completed'))
+      AND (? OR c.routine_id IS NOT NULL OR c.import_id IS NOT NULL OR c.id=? OR EXISTS(SELECT 1 FROM messages m WHERE m.conversation_id=c.id) OR EXISTS(SELECT 1 FROM conversation_retries cr WHERE cr.conversation_id=c.id AND cr.state='done'))
       AND instr(lower(c.title),lower(?))>0 AND (?=0 OR c.id=?)) t
       WHERE t.sortAt IS NOT NULL AND (? IS NULL OR t.sortAt<? OR (t.sortAt=? AND t.id<?))
       ORDER BY t.sortAt DESC,t.id DESC LIMIT ?`)
@@ -69,8 +70,9 @@ export class TopicsRepo {
         limit,
       );
     return KernelMethods["topics.list"].result.parse(
-      rows.map(({ sortAt: _sortAt, ...row }) => ({
+      rows.map(({ sortAt: _sortAt, importSource, ...row }) => ({
         ...row,
+        ...importProjection(importSource),
         isCurrent: row.id === currentId,
         workplaceFolderName:
           typeof row.workplaceFolderName === "string"
@@ -126,6 +128,7 @@ export class TopicsRepo {
         new ConversationsRepo(this.db).isInternal(topicId)
       )
         throw new TypeError("Unknown topic");
+      if (topic.readOnly) throw new TypeError("import_topic_read_only");
       if (this.busy(topicId)) throw new TypeError("topic_workplace_busy");
       new TopicFoldersRepo(this.db).set(botId, topicId, selection, options);
       const updated = new ConversationsRepo(this.db).get(topicId);

@@ -1,5 +1,6 @@
 export const activityZh = {
   "audit.workflow.started": "群计划已登记",
+  "audit.conversationImport": "对话导入",
   "audit.externalAgent.prewarmed": "外部 Agent 已预热",
   "audit.workflow.migrated": "群计划已迁移",
   "audit.workflow.recovered": "群计划已恢复",
@@ -321,6 +322,7 @@ export const activityZh = {
 
 export const activityEn = {
   "audit.workflow.started": "Group plan registered",
+  "audit.conversationImport": "Conversation import",
   "audit.externalAgent.prewarmed": "External agent prewarmed",
   "audit.workflow.migrated": "Group plan migrated",
   "audit.workflow.recovered": "Group plan recovered",

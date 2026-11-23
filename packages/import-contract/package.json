@@ -1,0 +1,20 @@
+{
+  "name": "@pibot/import-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "pibot": {
+    "layer": "cross"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./full": "./src/full.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pibot/protocol-base": "workspace:0.0.0",
+    "zod": "4.6.5"
+  }
+}

@@ -16,12 +16,26 @@ import { TopicFoldersRepo } from "./topic-folders.ts";
 export type Conversation = ProtocolConversation;
 export type DmConversation = Conversation & { kind: "dm"; botId: string };
 const columns =
-  "id,kind,bot_id AS botId,pi_session_file AS piSessionFile,group_id AS groupId,thread_of AS threadOf,routine_id AS routineId,workplace_folder_id AS workplaceFolderId,workplace_revision AS workplaceRevision,title,archived_at AS archivedAt,created_at AS createdAt,updated_at AS updatedAt";
+  "id,kind,bot_id AS botId,pi_session_file AS piSessionFile,group_id AS groupId,thread_of AS threadOf,routine_id AS routineId,workplace_folder_id AS workplaceFolderId,workplace_revision AS workplaceRevision,title,archived_at AS archivedAt,created_at AS createdAt,updated_at AS updatedAt,import_source AS importSource";
+
+// The batch state is the publication barrier. Rows from an interrupted writer stay private.
+export const visibleImport =
+  "(import_id IS NULL OR import_id IN (SELECT id FROM import_jobs WHERE state='completed'))";
+
+export function importProjection(source: unknown) {
+  return typeof source === "string" ? { readOnly: true as const, importSource: source } : {};
+}
+
+function parseConversation({ importSource, ...row }: Record<string, unknown>) {
+  return ConversationSchema.parse({ ...row, ...importProjection(importSource) });
+}
 export class ConversationsRepo {
   constructor(private readonly db: DatabaseSync) {}
   get(id: string): Conversation | undefined {
-    const row = this.db.prepare(`SELECT ${columns} FROM conversations WHERE id=?`).get(id);
-    return row ? ConversationSchema.parse(row) : undefined;
+    const row = this.db
+      .prepare(`SELECT ${columns} FROM conversations WHERE id=? AND ${visibleImport}`)
+      .get(id);
+    return row ? parseConversation(row) : undefined;
   }
   isInternal(id: string): boolean {
     return !!this.db
@@ -34,15 +48,15 @@ export class ConversationsRepo {
       botId === undefined
         ? this.db
             .prepare(
-              `SELECT ${columns} FROM conversations WHERE kind='dm' AND internal_task_id IS NULL ORDER BY rowid`,
+              `SELECT ${columns} FROM conversations WHERE kind='dm' AND internal_task_id IS NULL AND ${visibleImport} ORDER BY rowid`,
             )
             .all()
         : this.db
             .prepare(
-              `SELECT ${columns} FROM conversations WHERE kind='dm' AND bot_id=? AND internal_task_id IS NULL ORDER BY rowid`,
+              `SELECT ${columns} FROM conversations WHERE kind='dm' AND bot_id=? AND internal_task_id IS NULL AND ${visibleImport} ORDER BY rowid`,
             )
             .all(botId);
-    return rows.map((r) => ConversationSchema.parse(r) as DmConversation);
+    return rows.map((r) => parseConversation(r) as DmConversation);
   }
   topics(botId: string, page: Page = {}): DmConversation[] {
     return readPage(this.db, "conversations", columns, "updated_at", page, [
@@ -50,7 +64,8 @@ export class ConversationsRepo {
       ["kind", "dm"],
       ["archived_at", null],
       ["internal_task_id", null],
-    ]).map((r) => ConversationSchema.parse(r) as DmConversation);
+      ["import_id", null],
+    ]).map((r) => parseConversation(r) as DmConversation);
   }
   /**
    * Every new topic owns its folders from the start: the given selection (a new-topic draft)
@@ -130,13 +145,13 @@ export class ConversationsRepo {
         `SELECT ${columns} FROM conversations WHERE kind='group' AND group_id=? ORDER BY id=(SELECT conversation_id FROM group_current_topics WHERE group_id=?) DESC,archived_at IS NULL DESC,updated_at DESC,id DESC LIMIT 1`,
       )
       .get(groupId, groupId);
-    return row ? ConversationSchema.parse(row) : undefined;
+    return row ? parseConversation(row) : undefined;
   }
   threads(groupId: string, page: Page = {}): Conversation[] {
     return readPage(this.db, "conversations", columns, "created_at", page, [
       ["group_id", groupId],
       ["kind", "thread"],
-    ]).map((r) => ConversationSchema.parse(r));
+    ]).map(parseConversation);
   }
   switchTopic(botId: string, topicId: string): DmConversation {
     const topic = this.get(topicId);
@@ -147,6 +162,7 @@ export class ConversationsRepo {
       this.isInternal(topicId)
     )
       throw new TypeError("Unknown topic");
+    if (topic.readOnly) return topic as DmConversation;
     this.db
       .prepare(
         "INSERT INTO settings(key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
@@ -163,6 +179,7 @@ export class ConversationsRepo {
     return topic?.kind === "dm" &&
       topic.botId === botId &&
       !topic.archivedAt &&
+      !topic.readOnly &&
       !this.isInternal(topic.id)
       ? (topic as DmConversation)
       : this.latestChatTopic(botId);
@@ -194,10 +211,14 @@ export class ConversationsRepo {
     });
   }
   ensureDm(botId: string): DmConversation {
-    return transaction(
-      this.db,
-      () => this.list(botId).find((t) => !t.archivedAt) ?? this.create({ botId }),
-    );
+    return transaction(this.db, () => {
+      const row = this.db
+        .prepare(`SELECT ${columns} FROM conversations
+        WHERE kind='dm' AND bot_id=? AND internal_task_id IS NULL AND archived_at IS NULL
+          AND import_id IS NULL ORDER BY rowid LIMIT 1`)
+        .get(botId);
+      return row ? (parseConversation(row) as DmConversation) : this.create({ botId });
+    });
   }
   archive(id: string): void {
     this.db
@@ -211,6 +232,10 @@ export class ConversationsRepo {
   }
   remove(id: string): boolean {
     return transaction(this.db, () => {
+      if (this.get(id)?.readOnly)
+        this.db
+          .prepare("DELETE FROM messages WHERE conversation_id=? AND import_id IS NOT NULL")
+          .run(id);
       this.db.prepare("DELETE FROM bot_sessions WHERE conversation_id=?").run(id);
       return this.db.prepare("DELETE FROM conversations WHERE id=?").run(id).changes > 0;
     });

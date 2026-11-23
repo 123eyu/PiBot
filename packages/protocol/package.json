@@ -22,6 +22,7 @@
     "@pibot/models-contract": "workspace:0.0.0",
     "@pibot/office-contract": "workspace:0.0.0",
     "@pibot/images-contract": "workspace:0.0.0",
+    "@pibot/import-contract": "workspace:0.0.0",
     "@pibot/credentials-contract": "workspace:0.0.0",
     "@pibot/skills-contract": "workspace:0.0.0",
     "@pibot/computer-use-contract": "workspace:0.0.0",

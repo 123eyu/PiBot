@@ -13,6 +13,7 @@ const PAGE_BUDGET_MS = 120;
 const SCAN_CHUNK = 400;
 
 const visible = `c.archived_at IS NULL AND c.internal_task_id IS NULL
+  AND (c.import_id IS NULL OR c.import_id IN (SELECT id FROM import_jobs WHERE state='completed'))
   AND (c.bot_id IS NULL OR EXISTS(SELECT 1 FROM bots b WHERE b.id=c.bot_id AND b.archived_at IS NULL))`;
 const order = "ORDER BY m.created_at DESC,m.rowid DESC";
 const seek = "AND (m.created_at,m.rowid)<($at,$row)";
@@ -62,7 +63,7 @@ export class SearchRepo {
       ? []
       : this.db
           .prepare(
-            `SELECT id FROM conversations WHERE archived_at IS NULL AND internal_task_id IS NULL AND kind IN ('dm','group') AND title LIKE ? ESCAPE '\\' AND (bot_id IS NULL OR EXISTS(SELECT 1 FROM bots b WHERE b.id=conversations.bot_id AND b.archived_at IS NULL)) ORDER BY updated_at DESC,id DESC LIMIT ?`,
+            `SELECT id FROM conversations c WHERE ${visible} AND kind IN ('dm','group') AND title LIKE ? ESCAPE '\\' ORDER BY updated_at DESC,id DESC LIMIT ?`,
           )
           .all(pattern, limit);
     const page =
@@ -71,12 +72,13 @@ export class SearchRepo {
         : this.scanned(pattern, limit, from);
     const conversations = new ConversationsRepo(this.db),
       found = page.ids.map((id) => messages.get(id)).filter((m) => m !== undefined),
-      pick = ({ id, kind, botId, groupId, title }: Conversation) => ({
+      pick = ({ id, kind, botId, groupId, title, readOnly, importSource }: Conversation) => ({
         id,
         kind,
         botId,
         groupId,
         title,
+        ...(readOnly ? { readOnly, importSource } : {}),
       });
     return {
       topics: topics

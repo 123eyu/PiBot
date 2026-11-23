@@ -50,6 +50,8 @@ export const MessageSchema = z.strictObject({
   tools: z.array(ToolCallRecordSchema).optional(),
 });
 export const ConversationSchema = z.strictObject({
+  readOnly: z.literal(true).optional(),
+  importSource: z.string().min(1).max(32).optional(),
   workplaceFolderId: z
     .union([z.literal("home"), IdSchema])
     .nullable()

@@ -368,6 +368,7 @@ export class ChatService {
         : this.conversations.currentDm(botId);
     if (!newTopic && (selected?.kind !== "dm" || selected.botId !== botId || selected.archivedAt))
       throw new RpcError(-32602, "Unknown topic");
+    if (selected?.readOnly) throw new RpcError(-32602, "import_topic_read_only");
     if (selected) this.queue.assertTopicAdmission(selected.id);
     // The folders chosen on a new-topic draft must be this Bot's registered folders.
     if (workplace) this.validateFolders(botId, workplace);
@@ -412,7 +413,7 @@ export class ChatService {
       const quote = resolveMessageQuote(
         this.db,
         replyToMessageId,
-        { botId, conversationId: selected?.id },
+        { botId, conversationId: selected?.id, importedSource: newTopic === true },
         this.redactor,
       );
       const refs = quotedAttachmentIds(
@@ -456,7 +457,7 @@ export class ChatService {
         resolveMessageQuote(
           this.db,
           replyToMessageId,
-          { botId, conversationId: selected?.id },
+          { botId, conversationId: selected?.id, importedSource: newTopic === true },
           this.redactor,
           quote,
         );

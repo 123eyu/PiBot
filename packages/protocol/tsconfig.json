@@ -29,6 +29,9 @@
       "path": "../images-contract"
     },
     {
+      "path": "../import-contract"
+    },
+    {
       "path": "../models-contract"
     },
     {

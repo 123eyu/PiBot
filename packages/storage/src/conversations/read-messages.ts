@@ -8,7 +8,7 @@ import {
 } from "@pibot/protocol-base";
 
 // Scope is applied in SQL, never by loading another Bot's history and filtering it afterwards.
-const readable = `c.archived_at IS NULL AND c.internal_task_id IS NULL AND EXISTS(SELECT 1 FROM bots b WHERE b.id=$bot AND b.archived_at IS NULL)
+const readable = `c.archived_at IS NULL AND c.internal_task_id IS NULL AND c.import_id IS NULL AND EXISTS(SELECT 1 FROM bots b WHERE b.id=$bot AND b.archived_at IS NULL)
   AND ((c.kind='dm' AND c.bot_id=$bot) OR (c.kind IN ('group','thread') AND
     EXISTS(SELECT 1 FROM groups g JOIN group_members gm ON gm.group_id=g.id
       WHERE g.id=c.group_id AND gm.bot_id=$bot AND gm.left_at IS NULL) AND
@@ -43,7 +43,7 @@ export class ReadMessagesRepo {
         AND rr.decision_consumed_at IS NULL AND json_type(rr.wait_checkpoint,'$.drain')='object'
         AND json_extract(rr.wait_checkpoint,'$.messageId')=m.id
         AND json_extract(rr.wait_checkpoint,'$.conversationId')=c.id)))
-      AND r.message_id=? AND c.id=? AND c.internal_task_id IS NULL AND m.role='assistant' AND m.status='streaming'
+      AND r.message_id=? AND c.id=? AND c.internal_task_id IS NULL AND c.import_id IS NULL AND m.role='assistant' AND m.status='streaming'
       AND m.bot_id=r.bot_id AND m.run_id=r.id AND m.conversation_id=c.id
       AND r.group_id IS c.group_id`)
       .get(runId, botId, parkedRoutineId ?? null, messageId, conversationId);

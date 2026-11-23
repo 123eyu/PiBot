@@ -54,6 +54,8 @@
     "@pibot/i18n": "workspace:*",
     "@pibot/images": "workspace:*",
     "@pibot/images-contract": "workspace:*",
+    "@pibot/import": "workspace:0.0.0",
+    "@pibot/import-contract": "workspace:*",
     "@pibot/link": "workspace:*",
     "@pibot/memory": "workspace:*",
     "@pibot/models": "workspace:0.0.0",

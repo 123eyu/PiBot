@@ -69,6 +69,7 @@ export const AuditKindSchema = z.enum([
   "image.started",
   "image.finished",
   "messages.read",
+  "import.changed",
   "grant.created",
   "grant.revoked",
   "policy.denied",
@@ -204,6 +205,15 @@ export const AuditAuthEventSchema = z.enum([
 export type AuditAuthEvent = z.infer<typeof AuditAuthEventSchema>;
 // Detail contains facts only. Tool output, prompts and file content have separate storage paths.
 export const AuditDetailSchema = z.strictObject({
+  conversationImport: z
+    .strictObject({
+      importId: IdSchema,
+      source: z.string().min(1).max(32),
+      state: z.enum(["completed", "cancelled", "failed", "undone"]),
+      topics: count,
+      messages: count,
+    })
+    .optional(),
   pluginInstall: z
     .strictObject({
       name: z.string().max(200),

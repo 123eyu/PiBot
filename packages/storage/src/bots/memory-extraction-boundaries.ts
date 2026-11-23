@@ -6,7 +6,7 @@ const topicOwner = `
   FROM conversations c
   LEFT JOIN groups g ON g.id=c.group_id AND g.archived_at IS NULL
   JOIN bots b ON b.id=COALESCE(c.bot_id,g.coordinator_bot_id)
-  WHERE c.kind IN ('dm','group') AND c.internal_task_id IS NULL
+  WHERE c.import_id IS NULL AND c.kind IN ('dm','group') AND c.internal_task_id IS NULL
     AND b.archived_at IS NULL AND b.memory_extraction=1 AND b.kind IS NOT 'agent'
     AND (c.kind='dm' OR EXISTS (
       SELECT 1 FROM group_members gm WHERE gm.group_id=g.id AND gm.bot_id=b.id AND gm.left_at IS NULL
@@ -135,7 +135,7 @@ export function legacyDueTopics(
           (SELECT COUNT(*) FROM messages m WHERE m.conversation_id=c.id AND m.role='user'
             AND m.status='done') AS userCount
         FROM conversations c LEFT JOIN groups g ON g.id=c.group_id
-        WHERE c.kind IN ('dm','group')
+        WHERE c.import_id IS NULL AND c.kind IN ('dm','group')
       )
       SELECT t.conversationId, t.botId, t.groupId, t.lastMessageId, t.lastUserId, t.lastAt
       FROM t JOIN bots b ON b.id=t.botId AND b.memory_extraction=1 AND b.archived_at IS NULL

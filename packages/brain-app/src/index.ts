@@ -4,6 +4,7 @@ import { computerUseCapability } from "@pibot/computer-use/brain";
 import { credentialsCapability } from "@pibot/credentials/brain";
 import { externalAgentsCapability } from "@pibot/external-agents/brain";
 import { imagesCapability } from "@pibot/images/brain";
+import { importCapability } from "@pibot/import/brain";
 import { memoryCapability } from "@pibot/memory/brain";
 import { providersCapability } from "@pibot/models/brain";
 import { officeCapability } from "@pibot/office/brain";
@@ -93,6 +94,7 @@ export function capabilities(
     // Bots of kind "agent" (external coding agents over ACP).
     externalAgentsCapability(),
     memoryCapability(),
+    importCapability(),
     credentialsCapability(),
     // Plugin skills register through the generic capability port; their host must exist first.
     skillsCapability(),

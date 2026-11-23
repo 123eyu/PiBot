@@ -8,19 +8,20 @@ import type { BrainRedactor } from "../../core/privacy.ts";
 export function resolveMessageQuote(
   db: DatabaseSync,
   id: string | undefined,
-  scope: { botId?: string; groupId?: string; conversationId?: string },
+  scope: { botId?: string; groupId?: string; conversationId?: string; importedSource?: boolean },
   redactor: BrainRedactor,
   expected?: MessageQuote,
 ): MessageQuote | undefined {
   if (!id) return;
   const message = new MessagesRepo(db).get(id);
-  const conversation = scope.conversationId
-    ? new ConversationsRepo(db).get(scope.conversationId)
-    : undefined;
+  const sourceId =
+    scope.conversationId ?? (scope.importedSource ? message?.conversationId : undefined);
+  const conversation = sourceId ? new ConversationsRepo(db).get(sourceId) : undefined;
   if (
     !message ||
     !conversation ||
     conversation.archivedAt ||
+    (scope.importedSource && !conversation.readOnly) ||
     message.conversationId !== conversation.id ||
     message.status === "streaming"
   )

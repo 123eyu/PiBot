@@ -436,7 +436,37 @@ const backgroundState = {
   restartCount: 0,
   at: date,
 } as const;
+const importStatus = {
+  importId: id,
+  source: "fixture",
+  state: "running",
+  topics: 0,
+  messages: 0,
+  reason: null,
+} as const;
+
 const methodCases = {
+  "import.detect": {
+    params: { source: "fixture" },
+    result: { available: true },
+    badParams: {},
+    badResult: {},
+  },
+  "import.preview": { params: { source: "fixture" }, result: null, badParams: {}, badResult: {} },
+  "import.start": {
+    params: { importId: id, botId: id },
+    result: importStatus,
+    badParams: {},
+    badResult: {},
+  },
+  "import.status": { params: { importId: id }, result: importStatus, badParams: {}, badResult: {} },
+  "import.cancel": { params: { importId: id }, result: importStatus, badParams: {}, badResult: {} },
+  "import.undo": {
+    params: { importId: id },
+    result: { ...importStatus, state: "undone" },
+    badParams: {},
+    badResult: {},
+  },
   "acp.state": {
     params: {},
     result: { connected: false },
@@ -3848,6 +3878,7 @@ function browserHostCases() {
   };
 }
 const eventCases = {
+  "import.progress": { payload: importStatus, bad: {} },
   "acp.changed": { payload: { connected: false }, bad: { connected: true } },
   "botHooks.changed": { payload: { botId: id }, bad: { botId: "invalid" } },
   ...remoteEventCases,

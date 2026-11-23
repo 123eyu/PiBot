@@ -62,6 +62,7 @@ const kindGroups: Record<AuditKind, readonly [AuditGroup, ...AuditGroup[]]> = {
   "acp.session.attach": ["run"],
   "bot.updated": ["run"],
   "feedback.opened": ["approval"],
+  "import.changed": ["file"],
   "hook.finished": ["run"],
   "remote.request": ["phone"],
   "remote.changed": ["phone"],
@@ -331,6 +332,7 @@ export function auditSummary(
   if (isFileCheckpoint(entry)) return t("audit.checkpoint.automatic");
   const workflow = groupWorkflowSummary(entry, t);
   if (workflow) return workflow;
+  if (entry.kind === "import.changed") return t("audit.conversationImport");
   if (entry.kind === "feedback.opened") return t("appMenu.feedbackOpened");
   // The stored summary carries both languages for exports; the page shows the reader's own.
   if (entry.kind === "git.install") return gitInstallSummary(entry, t);

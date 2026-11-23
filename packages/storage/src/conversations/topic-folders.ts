@@ -47,7 +47,7 @@ export class TopicFoldersRepo {
     const currentId = current ? (JSON.parse(String(current.value)) as unknown) : undefined;
     const candidate = this.db
       .prepare(
-        `SELECT c.id FROM conversations c WHERE c.kind='dm' AND c.bot_id=? AND c.archived_at IS NULL AND c.routine_id IS NULL AND c.internal_task_id IS NULL AND c.acp_session=0
+        `SELECT c.id FROM conversations c WHERE c.kind='dm' AND c.bot_id=? AND c.archived_at IS NULL AND c.routine_id IS NULL AND c.internal_task_id IS NULL AND c.acp_session=0 AND c.import_id IS NULL
          AND id IS NOT ?
          AND NOT EXISTS (
            SELECT 1 FROM working_folders sf

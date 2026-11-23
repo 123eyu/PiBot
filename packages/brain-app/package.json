@@ -21,6 +21,7 @@
     "@pibot/office": "workspace:0.0.0",
     "@pibot/orchestration": "workspace:0.0.0",
     "@pibot/images": "workspace:0.0.0",
+    "@pibot/import": "workspace:0.0.0",
     "@pibot/memory": "workspace:0.0.0",
     "@pibot/plugin-sdk": "workspace:0.0.0",
     "@pibot/credentials": "workspace:0.0.0",

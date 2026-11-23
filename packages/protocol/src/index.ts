@@ -3,6 +3,7 @@ export * from "@pibot/computer-use-contract";
 export * from "@pibot/credentials-contract";
 export * from "@pibot/external-agents-contract";
 export * from "@pibot/images-contract";
+export * from "@pibot/import-contract";
 export * from "@pibot/models-contract";
 export * from "@pibot/office-contract";
 export * from "@pibot/plugins-contract";

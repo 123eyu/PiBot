@@ -86,7 +86,8 @@ export class MemoryExtractionsRepo {
         `INSERT INTO memory_extractions
         (id, bot_id, conversation_id, group_id, status, reason, priority, source_message_id, created_at)
       SELECT ?,?,?,?, 'queued', ?,?,?,?
-      WHERE NOT EXISTS (
+      WHERE NOT EXISTS (SELECT 1 FROM conversations WHERE id=? AND import_id IS NOT NULL)
+        AND NOT EXISTS (
         SELECT 1 FROM memory_extractions
         WHERE conversation_id=? AND status='running'
           AND (?=0 OR (reason=? AND source_message_id IS ?))
@@ -111,6 +112,7 @@ export class MemoryExtractionsRepo {
         priority,
         source,
         at,
+        input.conversationId,
         input.conversationId,
         priority,
         input.reason,

@@ -10,7 +10,7 @@ import {
 } from "@pibot/protocol-base";
 import { BotsRepo } from "../bots/bots.ts";
 import { AttachmentsRepo } from "../conversations/attachments.ts";
-import { ConversationsRepo } from "../conversations/conversations.ts";
+import { ConversationsRepo, visibleImport } from "../conversations/conversations.ts";
 import { routineTopicReference } from "../conversations/routine-topic-reference.ts";
 import { SidebarRepo } from "../conversations/sidebar.ts";
 import { transaction } from "../database/database.ts";
@@ -154,7 +154,9 @@ export class MessagesRepo {
   ) {}
 
   get(id: string): Message | undefined {
-    const row = this.db.prepare(`SELECT ${messageColumns} FROM messages WHERE id = ?`).get(id);
+    const row = this.db
+      .prepare(`SELECT ${messageColumns} FROM messages WHERE id = ? AND ${visibleImport}`)
+      .get(id);
     return row ? this.withDetails([parseMessage(row)])[0] : undefined;
   }
   /** The program's own plan checkpoint only; explicit user pauses keep their original meaning. */
@@ -181,7 +183,7 @@ export class MessagesRepo {
     if (!ids.length || ids.length > 50) throw new TypeError("Invalid message selection");
     const rows = this.db
       .prepare(
-        `SELECT ${messageColumns} FROM messages WHERE conversation_id=? AND id IN (${ids.map(() => "?").join(",")}) ORDER BY created_at,rowid`,
+        `SELECT ${messageColumns} FROM messages WHERE conversation_id=? AND ${visibleImport} AND id IN (${ids.map(() => "?").join(",")}) ORDER BY created_at,rowid`,
       )
       .all(conversationId, ...ids);
     return this.withDetails(rows.map(parseMessage));
@@ -713,12 +715,14 @@ export class MessagesRepo {
     let rows: Record<string, unknown>[];
     if (before !== undefined) {
       const cursor = this.db
-        .prepare("SELECT created_at, rowid FROM messages WHERE id = ? AND conversation_id = ?")
+        .prepare(
+          `SELECT created_at, rowid FROM messages WHERE id = ? AND conversation_id = ? AND ${visibleImport}`,
+        )
         .get(before, conversationId);
       if (!cursor) return [];
       // UUIDs do not encode order; rowid preserves insertion order for equal millisecond timestamps.
       rows = this.db
-        .prepare(`SELECT ${messageColumns} FROM messages WHERE conversation_id = ?
+        .prepare(`SELECT ${messageColumns} FROM messages WHERE conversation_id = ? AND ${visibleImport}
         AND (created_at < ? OR (created_at = ? AND rowid < ?)) ORDER BY created_at DESC, rowid DESC LIMIT ?`)
         .all(
           conversationId,
@@ -729,7 +733,7 @@ export class MessagesRepo {
         );
     } else {
       rows = this.db
-        .prepare(`SELECT ${messageColumns} FROM messages WHERE conversation_id = ?
+        .prepare(`SELECT ${messageColumns} FROM messages WHERE conversation_id = ? AND ${visibleImport}
         ORDER BY created_at DESC, rowid DESC LIMIT ?`)
         .all(conversationId, limit);
     }
@@ -753,6 +757,8 @@ export class MessagesRepo {
 
   remove(id: string): boolean {
     return transaction(this.db, () => {
+      if (this.db.prepare("SELECT 1 FROM messages WHERE id=? AND import_id IS NOT NULL").get(id))
+        throw new TypeError("import_topic_read_only");
       // Tool foreign keys must reject deletion before attachment files are irreversibly removed.
       if (this.db.prepare("SELECT id FROM tool_calls WHERE message_id = ? LIMIT 1").get(id)) {
         throw new TypeError("Cannot delete message with tool calls");

@@ -73,6 +73,12 @@
       "path": "../../packages/images-contract"
     },
     {
+      "path": "../../packages/import"
+    },
+    {
+      "path": "../../packages/import-contract"
+    },
+    {
       "path": "../../packages/link"
     },
     {

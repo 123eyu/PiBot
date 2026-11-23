@@ -17,6 +17,7 @@ import {
 } from "@pibot/credentials-contract";
 import { ExternalAgentEvents, ExternalAgentMethods } from "@pibot/external-agents-contract";
 import { ImageArtifactMethods } from "@pibot/images-contract";
+import { ImportEvents, ImportMethods } from "@pibot/import-contract";
 import { ModelProviderEvents, ModelProviderMethods } from "@pibot/models-contract";
 import { OfficeMethods } from "@pibot/office-contract";
 import {
@@ -184,6 +185,7 @@ const count = z.number().int().nonnegative().safe();
 
 export const Events = {
   ...KernelEvents,
+  ...ImportEvents,
   ...ExternalAgentEvents,
   ...CapabilityEvents,
   ...RemoteEvents,
@@ -263,6 +265,7 @@ function eventSchema<K extends keyof typeof Events>(method: K) {
 }
 export const EventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("acp.changed"),
+  eventSchema("import.progress"),
   eventSchema("capabilities.changed"),
   eventSchema("botHooks.changed"),
   eventSchema("devices.changed"),
@@ -483,6 +486,7 @@ Omit<typeof KernelMethods, keyof typeof InboxMethods | keyof typeof AppMethods> 
   typeof ContinuationMethods &
   typeof PersonalTodoMethods &
   typeof OfficeMethods &
+  typeof ImportMethods &
   typeof PreviewMethods &
   typeof ChatRecoveryMethods &
   typeof MessageActionMethods &
@@ -563,6 +567,7 @@ Omit<typeof KernelMethods, keyof typeof InboxMethods | keyof typeof AppMethods> 
   ...ContinuationMethods,
   ...PersonalTodoMethods,
   ...OfficeMethods,
+  ...ImportMethods,
   ...PreviewMethods,
   ...ChatRecoveryMethods,
   ...MessageActionMethods,
