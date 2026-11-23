@@ -63,3 +63,4 @@ internal/
 
 # Private release tooling (tracked in the private repository)
 tools/release/role-catalog-site/
+tools/release/firefox-extension.mjs
