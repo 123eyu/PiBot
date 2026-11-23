@@ -1,3 +1,4 @@
+// Coordinates brain admission and producer shutdown before releasing durable state.
 import type { Logger } from "@pibot/observability";
 import {
   BrainWakeControlSchema,
@@ -111,8 +112,11 @@ export function createBrainController(ctx: StartupContext): Awaited<ReturnType<t
     desktopClient(connected) {
       if (!ctx.sleepService.interrupt())
         return Promise.reject(new RpcError(RpcErrorCodes.closed, "brain_sleep_committed"));
+      // Initial attachment sync may report offline without a desktop having quit.
+      const leaving = !connected && ctx.interactiveAttached;
       // Close admission synchronously; a preflight accepted before this boundary must drain.
       if (!connected) {
+        if (leaving) ctx.capabilities.memoryExtraction?.pause();
         ctx.ports
           ?.get<import("../../core/capability.ts").InteractiveClientPort>("interactive-client")
           ?.setInteractive("quit");
@@ -133,6 +137,7 @@ export function createBrainController(ctx: StartupContext): Awaited<ReturnType<t
           ]);
           // Bounded: an RPC that never settles must not keep admission closed forever.
           await settleWithin(ctx.logger, ctx.interactiveRequests, "interactive_requests_timeout");
+          if (leaving && !ctx.stopping) await ctx.capabilities.memoryExtraction?.saveOnExit();
           if (drained.some((result) => result.status === "rejected"))
             throw new Error("interactive_drain_unconfirmed");
         } else {
@@ -143,6 +148,7 @@ export function createBrainController(ctx: StartupContext): Awaited<ReturnType<t
           ctx.ports
             ?.get<import("../../core/capability.ts").InteractiveClientPort>("interactive-client")
             ?.setInteractive("available");
+          ctx.capabilities.memoryExtraction?.resume();
           ctx.chat.admitInteractive(true);
           ctx.groups.admitInteractive(true);
         }
@@ -195,6 +201,8 @@ export function createBrainController(ctx: StartupContext): Awaited<ReturnType<t
     stop() {
       stopped ??= (async () => {
         ctx.stopping = true;
+        const extraction = ctx.capabilities.memoryExtraction;
+        extraction?.pause();
         const sessionRecoveryStopped = ctx.stopSessionRecovery();
         await ctx.stopStartupMaintenance();
         ctx.sleepService.dispose();
@@ -217,6 +225,7 @@ export function createBrainController(ctx: StartupContext): Awaited<ReturnType<t
         await ctx.chat.stop();
         await ctx.groups.stop();
         await ctx.botBusiness.stop();
+        await extraction?.saveOnExit();
         ctx.unsubscribeCheckpoints?.();
         await settleWithin(ctx.logger, ctx.requests, "shutdown_requests_timeout");
         await ctx.modelPort?.stop();

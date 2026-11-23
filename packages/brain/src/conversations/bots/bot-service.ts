@@ -1,3 +1,4 @@
+// Owns Bot changes and private topic lifecycle operations.
 import { randomInt } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import type { AgentRuntime } from "@pibot/agent";
@@ -423,19 +424,21 @@ export class BotService {
     // every message in a phone's new topic fail at once (v0.0.2 B7).
     const { selection } = await this.topicWorkplace.initial({ botId });
     this.active(botId);
+    const previous = this.conversations.currentDmIfPresent(botId)?.id;
     const topic = transaction(this.deps.db, () => {
       const topic = this.conversations.create({ botId, workplace: selection });
       this.conversations.switchTopic(botId, topic.id);
       return topic;
     });
-    this.deps.chat.openConversation(topic.id);
+    this.deps.chat.openConversation(topic.id, previous);
     this.deps.peer.emit("sidebar.changed", { conversationKey: `dm:${botId}` });
     return topic;
   }
   async switchTopic(botId: string, topicId: string) {
     this.active(botId);
+    const previous = this.conversations.currentDmIfPresent(botId)?.id;
     const topic = businessResult(() => this.conversations.switchTopic(botId, topicId));
-    this.deps.chat.openConversation(topic.id);
+    this.deps.chat.openConversation(topic.id, previous);
     return topic;
   }
   start() {

@@ -1,3 +1,4 @@
+// Registers memory services and owns the lifetime of the maintenance workers.
 import type { BrainCapability } from "@pibot/brain/kit";
 import { registerGroupMemoryRpc } from "./group-memory-service.ts";
 import { MemoryExtractionQueue } from "./memory-extraction-queue.ts";
@@ -78,6 +79,7 @@ export function memoryCapability(): BrainCapability {
       registerGroupMemoryRpc(ctx.rpc.handle, memory);
       const releasePort = ctx.memory.provide({
         personal: memory,
+        extraction,
         group: { prompt: (groupId, botId, request) => memory.groupPrompt(groupId, botId, request) },
       });
       const releaseTools = (["memory_add", "memory_update", "memory_remove"] as const).map((tool) =>

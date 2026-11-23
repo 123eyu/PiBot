@@ -1,3 +1,4 @@
+// Admits routine runs and reconciles their durable terminal records.
 import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
@@ -419,6 +420,7 @@ export class RoutineExecution {
           // A routine failing the same way (a gone working folder, a missing model) used
           // to leave a trace only in the log; this streak is what the inbox card shows.
           if (finished) {
+            this.deps.local.memoryExtraction?.boundary(ended.conversationId);
             const health = new BackgroundTaskHealthRepo(this.deps.db);
             const subject = current.routineId ?? "";
             if (status === "failed")

@@ -1,3 +1,4 @@
+// Stores workflow progress and owns the transition when a plan stops.
 import { createHash } from "node:crypto";
 import type { ToolRunContext } from "@pibot/brain/orchestration-kit";
 import {
@@ -381,6 +382,8 @@ export class GroupWorkflowProgress {
       return true;
     });
     if (!stopped) return;
+    const source = new MessagesRepo(this.service.deps.db).get(record.sourceMessageId);
+    if (source) this.service.deps.local.memoryExtraction?.boundary(source.conversationId);
     settlePlanWebConsent(this.service, record);
     // Maintainers 2026-11-14: unmerged step workspaces and Pi Bot's folder repository go with the plan.
     this.service.workflows.merges.ended(record);

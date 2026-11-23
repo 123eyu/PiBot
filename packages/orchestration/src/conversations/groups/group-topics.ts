@@ -1,3 +1,4 @@
+// Owns committed group topic selection and its workspace bindings.
 import {
   abortable,
   GroupTopicFolderChoices,
@@ -116,6 +117,7 @@ export class GroupTopicsService {
       false,
       true,
     );
+    this.service.deps.local.memoryExtraction?.boundary(previous.conversationId);
     return this.service.folders.present(this.required(groupId));
   }
   async archive(
@@ -243,7 +245,7 @@ export class GroupTopicsService {
     const binding = await this.binding(previous, finalFolders, finalPrimary);
     this.idle(groupId);
     this.assertSource(groupId, previous);
-    return (await this.service.mutate(
+    const created = (await this.service.mutate(
       groupId,
       () =>
         transaction(this.service.deps.db, () => {
@@ -264,6 +266,9 @@ export class GroupTopicsService {
       false,
       true,
     )) as Group;
+    if (created.conversationId !== previous.conversationId)
+      this.service.deps.local.memoryExtraction?.boundary(previous.conversationId);
+    return created;
   }
   /** Only short-lived group picker choices reach ACP; client paths never enter folder tables. */
   async acpSelection(

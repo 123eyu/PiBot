@@ -1,3 +1,4 @@
+// Owns the ports and shared runtime services of the local brain.
 import { join } from "node:path";
 import type { LocalToolCall, LocalToolPorts } from "@pibot/agent";
 import {
@@ -214,6 +215,9 @@ export class LocalService {
     return () => {
       if (this.memoryProvider === port) this.memoryProvider = undefined;
     };
+  }
+  get memoryExtraction() {
+    return this.memoryProvider?.extraction;
   }
   get memory() {
     if (!this.memoryProvider) throw new RpcError(RpcErrorCodes.unsupported, "memory_unavailable");

@@ -1,3 +1,4 @@
+// Manages chat admission, conversation selection and durable runs.
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import type { AgentRuntime } from "@pibot/agent";
@@ -450,6 +451,7 @@ export class ChatService {
         )
           throw new RpcError(-32602, "routine_proposal_unavailable");
       }
+      const previousTopic = newTopic ? this.conversations.currentDmIfPresent(botId)?.id : undefined;
       const [conversation, user, record] = transaction(this.db, () => {
         resolveMessageQuote(
           this.db,
@@ -491,7 +493,7 @@ export class ChatService {
         return [conversation, user, record] as const;
       });
       accepted = true;
-      this.openConversation(conversation.id);
+      this.openConversation(conversation.id, previousTopic);
       this.queue.publish(record, {
         userInitiated: true,
         bot,
@@ -560,10 +562,12 @@ export class ChatService {
     this.queue.retired.delete(botId);
     this.local?.background.foreground.restore(botId);
   }
-  openConversation(conversationId: string) {
+  openConversation(conversationId: string, previousTopic = this.openedConversation) {
     if (this.local?.tasks.tasks.isInternalConversation(conversationId))
       throw new RpcError(-32602, "Unknown topic");
     this.openedConversation = conversationId;
+    if (previousTopic && previousTopic !== conversationId)
+      this.local?.memoryExtraction?.boundary(previousTopic);
   }
   history(botId: string, topicId?: string, page: { before?: string; limit?: number } = {}) {
     if (topicId && this.local?.tasks.tasks.isInternalConversation(topicId))

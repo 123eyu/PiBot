@@ -1,3 +1,4 @@
+// Defines the capability ports consumed by the brain without importing memory.
 import type { Bot, Memory, MemoryProposal } from "@pibot/protocol-base";
 
 export interface MemoryPromptRequest {
@@ -51,7 +52,17 @@ export interface GroupMemoryPort {
   prompt(groupId: string, botId?: string, request?: MemoryPromptRequest): string;
 }
 
+/** In-process producers carry trusted IDs; the capability decides whether a topic is eligible. */
+export interface MemoryExtractionPort {
+  boundary(conversationId: string): void;
+  correction(conversationId: string, sourceMessageId: string): void;
+  pause(): void;
+  saveOnExit(): Promise<void>;
+  resume(): void;
+}
+
 export interface MemoryPort {
+  extraction?: MemoryExtractionPort;
   personal: PersonalMemoryPort;
   group: GroupMemoryPort;
 }

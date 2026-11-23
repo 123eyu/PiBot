@@ -1,3 +1,4 @@
+// Runs group workflows until their steps and durable terminal state settle.
 import {
   type GroupExecutionPlan,
   type GroupPlanCard,
@@ -505,6 +506,8 @@ export class GroupWorkflowScheduler implements WorkflowEngine {
         }
         return { todo: undefined, pauses };
       });
+      const source = new MessagesRepo(this.service.deps.db).get(record.sourceMessageId);
+      if (source) this.service.deps.local.memoryExtraction?.boundary(source.conversationId);
       this.merges.ended(record);
       const completedTodo = completed.todo;
       if (completedTodo) {
