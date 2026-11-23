@@ -25,6 +25,10 @@ Pi Bot patches two pi packages. Both patches are meant to be **add-only** for `p
 If upstream ships a headless entry, switch
 `packages/agent/src/runtime/pi-sdk.ts` to it and drop the patch.
 
+An add-only async session-open helper was considered and not added: a 50 MB session opens in about a
+third of a second, so parsing is not where sessions stall. If it is ever needed, prefer an upstream
+constructor that accepts parsed entries and a persistence path, and port it with every pi upgrade.
+
 版本窄入口不得重导出 `config.js`（它会在环境清理前读包路径配置）。升级时 `dist/version.js` 常量必须与锁定依赖的 package.json.version 相同，d.ts 保持 string；同时核对 diff 不含 deleted file mode、重命名或任何原有代码删除，不能只数以减号开头的内容行。
 
 ## 无状态 context-helpers 的生成出处

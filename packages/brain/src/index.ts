@@ -662,12 +662,29 @@ export async function startBrain(opts: {
       ...contentRuntime,
       async openSession(input) {
         loopWatch?.mark("open.start");
+        const openedAt = performance.now();
         await waitForSessionRecovery(input.signal);
         const session = await contentRuntime.openSession({
           ...input,
           phase: (name) => loopWatch?.mark(`open.${name}`),
+          phaseTiming: (phase, elapsedMs) =>
+            logger.info(
+              JSON.stringify({
+                module: "brain",
+                event: "session_open_phase",
+                phase,
+                elapsedMs,
+              }),
+            ),
         });
         loopWatch?.mark("open.done");
+        logger.info(
+          JSON.stringify({
+            module: "brain",
+            event: "session_open_total",
+            elapsedMs: Math.round(performance.now() - openedAt),
+          }),
+        );
         return session;
       },
       ...(compactHistory && {

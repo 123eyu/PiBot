@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { sanitizeBrainEnv } from "../../core/env.ts";
 import { AgentError, mapAgentError } from "../../core/errors.ts";
@@ -22,6 +23,17 @@ import type { RuntimeContext } from "../runtime.ts";
 import { skillsPrompt } from "../skills-prompt.ts";
 import { toolVersion } from "../tool-identity.ts";
 import { modelInfo, sessionPaths } from "./runtime-shared.ts";
+
+async function warmSessionFile(path: string, signal?: AbortSignal) {
+  const deadline = AbortSignal.timeout(15_000);
+  const combined = signal ? AbortSignal.any([signal, deadline]) : deadline;
+  combined.throwIfAborted();
+  // pi still owns parsing and persistence. This read moves disk and antivirus work before the
+  // synchronous SDK call, so the common cache-hit path does not wait on storage.
+  await readFile(path, { signal: combined });
+  combined.throwIfAborted();
+}
+
 export function createSessionOperations({
   dataDir,
   checkpointCache,
@@ -40,9 +52,20 @@ export function createSessionOperations({
         throw new AgentError("chatgpt_reconnect_required");
       try {
         opts.signal?.throwIfAborted();
-        opts.phase?.("runtime");
+        type OpenPhase = "runtime" | "model" | "session_load" | "extensions" | "create" | "bind";
+        let activePhase: OpenPhase = "runtime";
+        let phaseStarted = performance.now();
+        const phase = (next: OpenPhase) => {
+          if (next !== activePhase) {
+            opts.phaseTiming?.(activePhase, Math.round(performance.now() - phaseStarted));
+            activePhase = next;
+            phaseStarted = performance.now();
+          }
+          opts.phase?.(next);
+        };
+        phase("runtime");
         const { pi, runtime, custom } = await buildRuntime();
-        opts.phase?.("model");
+        phase("model");
         opts.signal?.throwIfAborted();
         // A workflow's `cheap` tier runs on the auxiliary model when one is usable.
         const model =
@@ -61,8 +84,9 @@ export function createSessionOperations({
         opts.signal?.throwIfAborted();
         const sessionFile = await sessionPaths(dataDir, opts);
         opts.signal?.throwIfAborted();
+        phase("session_load");
+        if (sessionFile) await warmSessionFile(sessionFile, opts.signal);
         // pi reads and parses the whole JSONL synchronously here; it grows with the session.
-        opts.phase?.("session_load");
         const manager = sessionFile
           ? pi.SessionManager.open(sessionFile, opts.sessionDir, opts.homeDir)
           : pi.SessionManager.create(opts.homeDir, opts.sessionDir);
@@ -254,7 +278,7 @@ export function createSessionOperations({
           entries: () => manager.getEntries(),
         };
         if (opts.context && !opts.localTools) throw new AgentError("internal");
-        opts.phase?.("extensions");
+        phase("extensions");
         const extensions = await loadLocalExtensions(
           opts.homeDir,
           join(dataDir, "pi"),
@@ -276,7 +300,7 @@ export function createSessionOperations({
         if (compaction)
           compaction.estimateHistory = (messages) =>
             historyTokens(messages, extensions.loadout?.synchronize());
-        opts.phase?.("create");
+        phase("create");
         const { session } = await pi.createAgentSession({
           cwd: opts.homeDir,
           agentDir: join(dataDir, "pi"),
@@ -300,12 +324,13 @@ export function createSessionOperations({
         // A restored JSONL can name another model. Explicit caller selection wins.
         try {
           opts.signal?.throwIfAborted();
-          opts.phase?.("bind");
+          phase("bind");
           if (opts.localTools) await session.bindExtensions({});
           // Tool groups the transcript still declares stay loaded when still allowed.
           extensions.loadout?.reset(session.messages);
           await session.setModel(model);
           session.setThinkingLevel(opts.thinkingLevel);
+          opts.phaseTiming?.(activePhase, Math.round(performance.now() - phaseStarted));
         } catch (error) {
           session.dispose();
           throw error;

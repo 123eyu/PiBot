@@ -55,6 +55,7 @@ export interface OpenSessionOptions {
    * step that held the thread. Names are fixed; nothing about the session is passed.
    */
   phase?(name: "runtime" | "model" | "session_load" | "extensions" | "create" | "bind"): void;
+  phaseTiming?(name: string, elapsedMs: number): void;
   /** The Bot's enabled skills, listed after the system prompt. */
   skills?: { entries: SkillPromptEntry[]; language: "zh" | "en" };
   /**
