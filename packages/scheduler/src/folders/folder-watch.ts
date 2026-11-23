@@ -23,7 +23,7 @@ export async function watchFolder(opts: {
     next: FolderTriggerState,
     paths: string[],
     total: number,
-  ): Promise<void> | Promise<boolean>;
+  ): Promise<FolderTriggerState | false>;
   error(reason: string): Promise<void>;
 }) {
   const config = opts.trigger.config;
@@ -36,9 +36,9 @@ export async function watchFolder(opts: {
   if (!state.snapshot?.complete) {
     const baseline = { ...state, snapshot: initial };
     // Persist before returning the monitor to its creator; the first later scan must not swallow new files.
-    if ((await opts.checkpoint(state, baseline, [], 0)) === false)
-      throw new Error("watch_checkpoint_deferred");
-    state = baseline;
+    const committed = await opts.checkpoint(state, baseline, [], 0);
+    if (committed === false) throw new Error("watch_checkpoint_deferred");
+    state = committed;
   }
   let ready = false,
     closed = false,
@@ -151,7 +151,7 @@ export async function watchFolder(opts: {
     );
     // A mutation fence can defer a commit; retaining the baseline preserves all unconsumed facts.
     if (accepted === false) return;
-    state = next;
+    state = accepted;
     scanned = scanGeneration;
     nextScan = cooling
       ? Math.min(

@@ -1,9 +1,16 @@
+// Coordinates durable trigger checkpoints across recovery scans and native watchers.
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import type { Routine, RoutineRun, RoutineTrigger, RoutineTriggerState } from "@pibot/protocol";
 import { latestCron, nextCron, scanFolder, snapshotChanges, watchFolder } from "@pibot/scheduler";
 import { transaction } from "@pibot/storage";
 import { RoutineSchedulerStateRepo } from "../../store/index.ts";
 import type { RoutineService } from "../service.ts";
+
+// One consumer owns the facts since this checkpoint, regardless of scan time or path truncation.
+function folderBatchId(state: RoutineTriggerState) {
+  return createHash("sha256").update(JSON.stringify(state)).digest("hex");
+}
 
 export class RoutineSchedule {
   private readonly watchers = new Map<
@@ -197,14 +204,18 @@ export class RoutineSchedule {
             )
               return false;
             let run: RoutineRun | undefined;
-            const accepted = transaction(this.service.deps.db, () => {
+            const accepted = transaction(this.service.deps.db, (): RoutineTriggerState | false => {
               const current = this.service.scheduleCurrent(this.service.repo.require(fresh.id));
               if (current?.botId !== fresh.botId || !current?.triggers.some((v) => v.id === id))
                 return false;
               if (!current || current.deletedAt || !current.enabled || current.pausedReason)
                 return false;
-              if (!this.service.triggers.checkpoint(id, expected, next))
-                throw new Error("watch_checkpoint_changed");
+              const trigger = current.triggers.find((value) => value.id === id);
+              if (!trigger) return false;
+              const batchId = total ? folderBatchId(expected) : undefined;
+              if (batchId && trigger.state.folderBatchId === batchId) return trigger.state;
+              const claimed = batchId ? { ...next, folderBatchId: batchId } : next;
+              if (!this.service.triggers.checkpoint(id, expected, claimed)) return trigger.state;
               if (total) {
                 run = this.service.runs.enqueue(
                   {
@@ -212,21 +223,21 @@ export class RoutineSchedule {
                     botId: fresh.botId,
                     triggerId: id,
                     reason: "folder",
-                    scheduledFor: next.lastTriggeredAt as string,
-                    dedupeKey: `folder:${id}:${next.lastTriggeredAt}`,
+                    scheduledFor: claimed.lastTriggeredAt as string,
+                    dedupeKey: `folder:${id}:${batchId}`,
                   },
                   this.service.timing.queueWaitMs,
                 );
                 if (run.status === "scheduled")
                   this.service.execution.triggerMessages.ensure(run, current, { paths, total });
               }
-              return true;
+              return claimed;
             });
             if (!accepted) return false;
             if (run) {
               await this.service.publish(run, this.service.repo.require(fresh.id));
             }
-            return true;
+            return accepted;
           },
           error: async (reason) => {
             const owned = this.watchers.get(id);
@@ -302,6 +313,13 @@ export class RoutineSchedule {
             t.config.events === "new_and_changed",
           );
           const hasChanges = changes.length > 0 || (t.state.pendingCount ?? 0) > 0;
+          const paths = [
+            ...new Set([
+              ...changes.map((p) => join(config.path, p)),
+              ...(t.state.pendingPaths ?? []),
+            ]),
+          ];
+          const total = Math.max(changes.length, t.state.pendingCount ?? 0);
           const cooling =
             t.state.lastTriggeredAt &&
             now - Date.parse(t.state.lastTriggeredAt) < t.config.cooldownMin * 60000;
@@ -311,13 +329,8 @@ export class RoutineSchedule {
             t,
             occurrence,
             changes: {
-              paths: [
-                ...new Set([
-                  ...changes.map((p) => join(config.path, p)),
-                  ...(t.state.pendingPaths ?? []),
-                ]),
-              ],
-              total: Math.max(changes.length, t.state.pendingCount ?? 0),
+              paths,
+              total,
             },
             next: {
               ...t.state,
@@ -331,6 +344,7 @@ export class RoutineSchedule {
                   ].slice(0, 50)
                 : [],
               pendingCount: cooling ? Math.max(t.state.pendingCount ?? 0, changes.length) : 0,
+              ...(occurrence !== null ? { folderBatchId: folderBatchId(t.state) } : {}),
               ...(occurrence !== null ? { lastTriggeredAt: new Date(now).toISOString() } : {}),
             },
           });
@@ -340,33 +354,43 @@ export class RoutineSchedule {
           return;
         }
       }
-    const folders = states.filter((s) => s.t.config.kind === "folder" && s.occurrence !== null);
-    const latest =
-      folders[0] ??
-      states
-        .filter((s) => s.t.config.kind === "cron" && s.occurrence !== null)
-        .sort((a, b) => (b.occurrence as number) - (a.occurrence as number))[0];
-    // Coalesce all observed folders with this tick's cron, without losing file facts or running twice.
-    const paths = new Set<string>();
-    let omitted = 0;
-    for (const folder of folders) {
-      for (const path of folder.changes?.paths ?? []) {
-        paths.add(path);
-        if (paths.size > 10000) {
-          this.service.pause(r, "trigger_error");
-          this.service.changed(r.id);
-          return;
-        }
-      }
-      omitted += Math.max(0, (folder.changes?.total ?? 0) - (folder.changes?.paths.length ?? 0));
-    }
-    const changes = folders.length
-      ? { paths: [...paths].slice(0, 50), total: paths.size + omitted }
-      : undefined;
     let run: RoutineRun | undefined;
     transaction(this.service.deps.db, () => {
-      if (!this.service.scheduleCurrent(r)) return;
-      for (const s of states)
+      const current = this.service.scheduleCurrent(r);
+      if (!current) return;
+      const unclaimed = states.filter(({ t }) => {
+        if (t.config.kind !== "folder") return true;
+        const saved = current.triggers.find((trigger) => trigger.id === t.id)?.state;
+        // The winning scan already advanced the checkpoint. Only coalesce facts from scans
+        // whose baseline is still current; the watcher will rescan any newer observations.
+        return saved && JSON.stringify(saved) === JSON.stringify(t.state);
+      });
+      const folders = unclaimed.filter(
+        (s) => s.t.config.kind === "folder" && s.occurrence !== null,
+      );
+      const latest =
+        folders[0] ??
+        unclaimed
+          .filter((s) => s.t.config.kind === "cron" && s.occurrence !== null)
+          .sort((a, b) => (b.occurrence as number) - (a.occurrence as number))[0];
+      // Coalesce all observed folders with this tick's cron, without losing file facts or running twice.
+      const paths = new Set<string>();
+      let omitted = 0;
+      for (const folder of folders) {
+        for (const path of folder.changes?.paths ?? []) {
+          paths.add(path);
+          if (paths.size > 10000) {
+            this.service.pause(r, "trigger_error");
+            this.service.changed(r.id);
+            return;
+          }
+        }
+        omitted += Math.max(0, (folder.changes?.total ?? 0) - (folder.changes?.paths.length ?? 0));
+      }
+      const changes = folders.length
+        ? { paths: [...paths].slice(0, 50), total: paths.size + omitted }
+        : undefined;
+      for (const s of unclaimed)
         if (!this.service.triggers.checkpoint(s.t.id, s.t.state, s.next))
           throw new Error("cron_checkpoint_changed");
       this.service.repo.watermark(r.id, new Date(now).toISOString());
@@ -389,7 +413,10 @@ export class RoutineSchedule {
           triggerId: latest.t.id,
           reason: cronMissed && policy === "catchup" && !tooOld ? "catchup" : latest.t.config.kind,
           scheduledFor: new Date(latest.occurrence as number).toISOString(),
-          dedupeKey: `${latest.t.config.kind}:${latest.t.id}:${latest.t.config.kind === "folder" ? latest.next.lastTriggeredAt : latest.occurrence}`,
+          dedupeKey:
+            latest.t.config.kind === "folder"
+              ? `folder:${latest.t.id}:${latest.next.folderBatchId}`
+              : `${latest.t.config.kind}:${latest.t.id}:${latest.occurrence}`,
           status,
         },
         this.service.timing.queueWaitMs,

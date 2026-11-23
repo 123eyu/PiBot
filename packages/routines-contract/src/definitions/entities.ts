@@ -207,6 +207,10 @@ export const RoutineTriggerStateSchema = z.strictObject({
   lastTriggeredAt: CanonicalTimeSchema.nullable().optional(),
   pendingPaths: z.array(AbsolutePathSchema).max(50).optional(),
   pendingCount: z.number().int().nonnegative().safe().optional(),
+  folderBatchId: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .optional(),
 });
 export const RoutineTriggerSchema = z.strictObject({
   id: IdSchema,
