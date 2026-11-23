@@ -163,7 +163,7 @@ export interface FileSystem {
 export interface PathContext {
   platform: Platform;
   home: string;
-  /** Host credentials/home protection is independent of the command's expansion base. */
+  /** Host credentials/home protection is independent of the `~` expansion base. */
   protectionHome?: string;
   cwd: string;
   roots: string[];

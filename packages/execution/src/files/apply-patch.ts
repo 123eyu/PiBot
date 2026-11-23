@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { type BigIntStats, constants } from "node:fs";
 import { link, lstat, open, realpath, unlink } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join, normalize, sep } from "node:path";
 import { sameFile } from "../core/file-identity.ts";
 import { missing, writablePath } from "../core/paths.ts";
 import { ExecError, type FileContext } from "../core/types.ts";
@@ -19,6 +19,26 @@ export interface PatchOptions extends FileContext {
   journalDir: string;
   expectedPaths: readonly string[];
   assertCurrent(): void;
+}
+
+/**
+ * `~` names the workplace home, which only the brain knows. Such a header must spell the tail of
+ * the path policy approved for it; that approved path is then checked like any other target.
+ */
+function patchTarget(raw: string, expected: string | undefined) {
+  if (!/^~(?:[\\/]|$)/.test(raw)) return raw;
+  const rest = normalize(raw.slice(2));
+  const fold = (value: string) => (process.platform === "win32" ? value.toLowerCase() : value);
+  if (
+    !expected ||
+    rest === "." ||
+    isAbsolute(rest) ||
+    rest === ".." ||
+    rest.startsWith(`..${sep}`) ||
+    !fold(expected).endsWith(fold(`${sep}${rest}`))
+  )
+    throw new ExecError("invalid_input");
+  return expected;
 }
 
 async function content(file: PatchFile, before: string | null, signal: AbortSignal) {
@@ -89,8 +109,13 @@ export async function applyPatch(options: PatchOptions) {
   if (patch.length !== options.expectedPaths.length) throw new ExecError("invalid_input");
   await verifyWorkspace(context.rootIdentities, context.signal);
   const paths = await Promise.all(
-    patch.map((file) =>
-      writablePath(file.path, context.cwd, context.writeRoots, context.denyWriteRoots),
+    patch.map((file, i) =>
+      writablePath(
+        patchTarget(file.path, options.expectedPaths[i]),
+        context.cwd,
+        context.writeRoots,
+        context.denyWriteRoots,
+      ),
     ),
   );
   // Canonical aliases and ancestor/descendant targets are ambiguous transactions.

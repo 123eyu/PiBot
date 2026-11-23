@@ -26,11 +26,11 @@ export async function preparePolicyFacts(
   };
   const context: PathContext = {
     platform,
-    // Command HOME is injected from the Bot home by execution, including on local targets.
-    home:
-      remoteTarget || input.request.category === "run_command"
-        ? input.workplace.home
-        : options.userHome,
+    // `~` is the workplace home for every tool, as for commands (execution injects it as their
+    // HOME) and the UI. A file tool that expanded it to the computer user's home wrote outside
+    // the workplace, where no file or changes card follows; that home stays reachable only by an
+    // absolute path, and its credential folders stay protected through protectionHome.
+    home: input.workplace.home,
     protectionHome: remoteTarget ? input.workplace.home : options.userHome,
     cwd: input.workplace.home,
     roots: [],

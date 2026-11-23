@@ -189,6 +189,9 @@ async function prepareToolCurrent(
   // An external agent's request is judged with the HOME the agent really uses, so `~` on
   // its approval card names the user's folder, not the Bot's home inside Pi Bot's data.
   const workplace = context.delegatedHome ? { ...resolved, home: context.delegatedHome } : resolved;
+  // Every tool expands `~` against this home, as a command's HOME does: policy, the brain-side
+  // checks below and the UI then name the same place.
+  const policyWorkplace = { ...workplace.value, home: workplace.home };
   if (input.tool === "run_command")
     assertCommandWritePaths(
       input.args,
@@ -579,8 +582,7 @@ async function prepareToolCurrent(
     runGrants: context.runGrants,
     conversationWebDomains: local.approvals.webDomains(context),
     taskWebReadAllowed: local.approvals.taskWebAllowed(context),
-    workplace:
-      input.tool === "run_command" ? { ...workplace.value, home: workplace.home } : workplace.value,
+    workplace: policyWorkplace,
     boundary: workplace.boundary,
     cwd: workplace.cwd,
     ...(workplace.boundary.location?.target !== "local"
@@ -851,7 +853,7 @@ async function prepareToolCurrent(
           ...(botData ? { botData } : {}),
           grants: local.grants(context.botId, context),
           runGrants: context.runGrants,
-          workplace: workplace.value,
+          workplace: policyWorkplace,
           boundary: workplace.boundary,
           cwd: workplace.cwd,
           yolo,
