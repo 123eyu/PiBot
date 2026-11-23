@@ -1,13 +1,33 @@
 # Pull requests and main: the same `pnpm check` maintainers run before merging (frozen install,
-# typecheck, lint, policy matrix, tests) on all three desktop platforms, plus the DCO sign-off.
+# typecheck, lint, policy matrix, tests) on all three desktop platforms (DCO sign-off: dco.yml).
 # `pnpm verify` (build, renderer smoke test, end-to-end suites) still runs on a maintainer's
 # machine before merge: it starts Electron windows and needs a desktop session.
 name: CI
 
+# Changes that touch only the user guide, its images and assets, the READMEs or the license files
+# skip the platform checks (they ran 15–30 min on three runners for text). Prompt markdown and
+# AGENTS.md are code inputs that `pnpm lint` checks, so they are not ignored. The DCO sign-off
+# lives in dco.yml so documentation-only pull requests are still checked.
 on:
   pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "README.*.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "LICENSE"
+      - "NOTICE"
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "README.*.md"
+      - "CONTRIBUTING.md"
+      - "SECURITY.md"
+      - "LICENSE"
+      - "NOTICE"
 
 permissions:
   contents: read
@@ -33,26 +53,3 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm check
-
-  dco:
-    name: DCO sign-off
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Every commit is signed off by its author
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          missing=0
-          for commit in $(git rev-list --no-merges "$BASE..$HEAD"); do
-            author=$(git log -1 --format='%an <%ae>' "$commit")
-            if ! git log -1 --format='%B' "$commit" | grep -qF "Signed-off-by: $author"; then
-              echo "::error::$(git log -1 --format='%h %s' "$commit") has no 'Signed-off-by: $author' (use git commit -s)"
-              missing=1
-            fi
-          done
-          exit $missing

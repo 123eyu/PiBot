@@ -1,0 +1,35 @@
+# Every pull request, including documentation-only ones that skip CI, must carry a DCO sign-off.
+name: DCO
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dco-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dco:
+    name: DCO sign-off
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Every commit is signed off by its author
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          missing=0
+          for commit in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            author=$(git log -1 --format='%an <%ae>' "$commit")
+            if ! git log -1 --format='%B' "$commit" | grep -qF "Signed-off-by: $author"; then
+              echo "::error::$(git log -1 --format='%h %s' "$commit") has no 'Signed-off-by: $author' (use git commit -s)"
+              missing=1
+            fi
+          done
+          exit $missing
