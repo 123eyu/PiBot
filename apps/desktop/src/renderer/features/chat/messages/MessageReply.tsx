@@ -28,6 +28,8 @@ type Menu = Draft & {
   attachmentId?: string;
   /** For a Bot reply: the user message that started its run, the one a retry starts from. */
   retryFrom?: Message;
+  /** Text the user had selected inside this message when the menu opened; Copy copies only it. */
+  selected?: string;
 };
 const ReplyContext = createContext<
   { draft?: Draft; clear(id?: string): void; open(menu: Menu): void } | undefined
@@ -124,7 +126,7 @@ function ReplyMenu({
   useEffect(() => () => copying.current?.abort(), []);
   useMenuPopover(ref, menu.opener, menu.x, menu.y, close);
   // A forward copies only what the user wrote, never the hidden material.
-  const copyText = messageShownText(menu.message, t);
+  const copyText = menu.selected || messageShownText(menu.message, t);
   return (
     <div
       ref={ref}
@@ -159,7 +161,7 @@ function ReplyMenu({
         }}
       >
         <IconTile icon="copy" tone="neutral" size="sm" />
-        {t("messages.copy")}
+        {t(menu.selected ? "messages.copySelection" : "messages.copy")}
       </Button>
       {image && (
         <Button
@@ -277,6 +279,17 @@ function ReplyMenu({
     </div>
   );
 }
+/**
+ * A user report: right-clicking a selection copied the whole message. Text selected wholly inside
+ * this message is what the user means to copy; anything else copies the message as before.
+ */
+function selectedWithin(opener: HTMLElement) {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || !selection.anchorNode || !selection.focusNode)
+    return "";
+  if (!opener.contains(selection.anchorNode) || !opener.contains(selection.focusNode)) return "";
+  return selection.toString().trim();
+}
 export function useMessageReply() {
   return useContext(ReplyContext);
 }
@@ -288,8 +301,17 @@ export function useMessageReplyMenu(
 ) {
   const reply = useMessageReply();
   const actions = useMessageActions();
+  // Read at the right-button press: macOS selects the word under the pointer before the menu
+  // event, which would turn "copy the message" into "copy one word".
+  const pressed = useRef<string | undefined>(undefined);
   if (!reply || preview || message.status === "streaming") return {};
-  const open = (opener: HTMLElement, x: number, y: number, target: EventTarget | null) => {
+  const open = (
+    opener: HTMLElement,
+    x: number,
+    y: number,
+    target: EventTarget | null,
+    selected = selectedWithin(opener),
+  ) => {
     const image =
       target instanceof Element
         ? target.closest<HTMLElement>("[data-file-attachment-id], [data-image-attachment-id]")
@@ -306,6 +328,7 @@ export function useMessageReplyMenu(
       opener,
       x,
       y,
+      ...(selected ? { selected } : {}),
       ...(attachmentId ? { attachmentId } : {}),
       ...(retryFrom ? { retryFrom } : {}),
     });
@@ -318,10 +341,15 @@ export function useMessageReplyMenu(
       event.stopPropagation();
       actions.toggle(message, name);
     },
+    onMouseDown: (event: MouseEvent<HTMLElement>) => {
+      if (event.button === 2) pressed.current = selectedWithin(event.currentTarget);
+    },
     onContextMenu: (event: MouseEvent<HTMLElement>) => {
       event.preventDefault();
       event.stopPropagation();
-      open(event.currentTarget, event.clientX, event.clientY, event.target);
+      const selected = pressed.current ?? selectedWithin(event.currentTarget);
+      pressed.current = undefined;
+      open(event.currentTarget, event.clientX, event.clientY, event.target, selected);
     },
     onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
       if (
