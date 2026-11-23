@@ -89,6 +89,11 @@ export class ChangesService {
       env: local.deps.env,
       userHome: local.deps.userHome,
       resourcesDir: local.deps.resourcesDir,
+      onBundledGitEvent: (event) => {
+        const log =
+          event === "old_copy_remove_failed" ? local.deps.logger.warn : local.deps.logger.info;
+        log(JSON.stringify({ module: "git", event }));
+      },
     });
     this.turn = new RunChanges({
       db: local.deps.db,

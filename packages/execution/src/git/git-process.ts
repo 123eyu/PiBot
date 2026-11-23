@@ -13,6 +13,9 @@ export interface GitProcessOptions {
   userHome: string;
   /** Packaged app resources; on Windows the bundled MinGit there is the last Git candidate. */
   resourcesDir?: string;
+  onBundledGitEvent?: (
+    event: "unpack_started" | "unpack_finished" | "old_copy_removed" | "old_copy_remove_failed",
+  ) => void;
 }
 
 export interface GitProcessResult {
@@ -26,7 +29,7 @@ export interface GitProcessResult {
 }
 
 export async function findGit(
-  options: Pick<GitProcessOptions, "platform" | "env" | "resourcesDir">,
+  options: Pick<GitProcessOptions, "platform" | "env" | "resourcesDir" | "onBundledGitEvent">,
 ) {
   for (const candidate of gitPrograms(options.platform, options.env, options.resourcesDir)) {
     try {
@@ -45,11 +48,11 @@ export async function findGit(
  * turns); the next need after the failure backoff tries again.
  */
 export async function unpackBundledGit(
-  options: Pick<GitProcessOptions, "platform" | "env" | "resourcesDir">,
+  options: Pick<GitProcessOptions, "platform" | "env" | "resourcesDir" | "onBundledGitEvent">,
 ) {
   const git = bundledGit(options.platform, options.env, options.resourcesDir);
   if (!git) return undefined;
-  return prepareBundledGit(git).catch(() => undefined);
+  return prepareBundledGit(git, options.onBundledGitEvent).catch(() => undefined);
 }
 
 export function gitEnvironment(options: GitProcessOptions, executable: string): NodeJS.ProcessEnv {

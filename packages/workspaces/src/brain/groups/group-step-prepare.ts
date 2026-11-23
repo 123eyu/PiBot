@@ -102,12 +102,9 @@ export async function prepareStepWorktree(
   const sharing = owner.turns.reason(folder);
   if (sharing) return turns(sharing);
   if (owner.cleanupPending([primary])) return turns(CLEANUP_PENDING);
-  // Retest 2026-11-21: an own workspace keeps the group folder as a read-only reference, and only
-  // the macOS sandbox can run commands beside one (local-run-authorization refuses elsewhere), so
-  // a test step there could never run its test. Taking turns in the folder keeps commands working.
-  if (!remote && local.deps.platform !== "darwin") return turns("readonly_commands_unsupported");
-  // Without Git nothing below can work. Checked first, so a step never waits for a folder lock
-  // another step holds only to learn that Git is missing (B2: the 120 s prepare limit).
+  // Without Git nothing below can work. Checked before the platform isolation check so Linux
+  // reports the missing prerequisite and offers the Git install card.
+  // another step holds only to learn that Git is missing.
   if (
     !remote &&
     !(await findGit({
@@ -117,6 +114,9 @@ export async function prepareStepWorktree(
     }))
   )
     return turns("git_unavailable");
+  // An own workspace keeps the group folder as a read-only reference. Only macOS can run
+  // commands beside one, so other platforms take turns after Git availability is established.
+  if (!remote && local.deps.platform !== "darwin") return turns("readonly_commands_unsupported");
   owner.stage(context.runId, "probe");
   const repository = (await host.isRepository(primary, signal).catch(() => false))
     ? await host.inspect(primary, signal).catch(() => undefined)

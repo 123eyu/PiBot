@@ -86,7 +86,7 @@ export const changesZh = {
   "changes.repo.worktreeOption": "{name}（工作区改动）",
   "changes.repo.detached": "未在分支上",
   "changes.repo.notRepo": "不是 Git 仓库",
-  "changes.repo.noGit": "没找到 Git",
+  "changes.repo.noGit": "Git 未安装",
   "changes.repo.noGitBody":
     "这台电脑上没找到 Git，所以只能看每一轮改了什么。装好 Git 后就能看全部未提交的改动、撤回和提交。",
   "changes.repo.installGit": "下载 Git",
@@ -501,7 +501,7 @@ export const changesEn: { [K in keyof typeof changesZh]: string } = {
   "changes.repo.worktreeOption": "{name} (workspace changes)",
   "changes.repo.detached": "No branch",
   "changes.repo.notRepo": "Not a Git repository",
-  "changes.repo.noGit": "Git not found",
+  "changes.repo.noGit": "Git is not installed",
   "changes.repo.noGitBody":
     "Git isn't installed on this computer, so only each turn's changes are shown. Install Git to see all uncommitted changes, discard and commit.",
   "changes.repo.installGit": "Get Git",

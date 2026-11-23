@@ -93,7 +93,12 @@ export function bundledGitReady(git: BundledGit) {
  * exclusive lock file; the copy is built in a private temporary folder and renamed into place, so
  * a crash or a power cut never leaves a half-unpacked Git that looks complete.
  */
-export async function prepareBundledGit(git: BundledGit): Promise<string> {
+export async function prepareBundledGit(
+  git: BundledGit,
+  onEvent?: (
+    event: "unpack_started" | "unpack_finished" | "old_copy_removed" | "old_copy_remove_failed",
+  ) => void,
+): Promise<string> {
   const signal = AbortSignal.timeout(EXTRACT_DEADLINE_MS);
   const parent = win32.dirname(git.home);
   const name = win32.basename(git.home);
@@ -118,12 +123,14 @@ export async function prepareBundledGit(git: BundledGit): Promise<string> {
         .writeFile(JSON.stringify({ pid: process.pid, at: Date.now() }))
         .finally(() => handle.close());
       if (bundledGitReady(git)) return git.program;
-      await extract(git, parent, name, signal).catch(async (error) => {
+      onEvent?.("unpack_started");
+      await extract(git, parent, name, signal, onEvent).catch(async (error) => {
         await writeFile(failed, JSON.stringify({ at: Date.now() })).catch(() => {
           // Without the record the next need simply tries again; the failure itself is reported.
         });
         throw error;
       });
+      onEvent?.("unpack_finished");
       return git.program;
     } finally {
       await rm(lock, { force: true });
@@ -131,7 +138,15 @@ export async function prepareBundledGit(git: BundledGit): Promise<string> {
   }
 }
 
-async function extract(git: BundledGit, parent: string, name: string, signal: AbortSignal) {
+async function extract(
+  git: BundledGit,
+  parent: string,
+  name: string,
+  signal: AbortSignal,
+  onEvent?: (
+    event: "unpack_started" | "unpack_finished" | "old_copy_removed" | "old_copy_remove_failed",
+  ) => void,
+) {
   // Leftovers of an unpack that was killed: this lock holder is the only writer for this name.
   for (const entry of await readdir(parent))
     if (entry.startsWith(`${name}.tmp-`))
@@ -152,6 +167,7 @@ async function extract(git: BundledGit, parent: string, name: string, signal: Ab
     // A folder without the marker is an older partial copy (or one a person emptied); replace it.
     await rm(git.home, { recursive: true, force: true });
     await renameWithRetry(temporary, git.home, signal);
+    await removeOldCopies(parent, name, onEvent);
   } finally {
     await rm(temporary, { recursive: true, force: true });
   }
@@ -220,4 +236,31 @@ function pause(ms: number, signal: AbortSignal) {
     const timer = setTimeout(done, ms);
     signal.addEventListener("abort", done, { once: true });
   });
+}
+
+async function removeOldCopies(
+  parent: string,
+  current: string,
+  onEvent?: (
+    event: "unpack_started" | "unpack_finished" | "old_copy_removed" | "old_copy_remove_failed",
+  ) => void,
+) {
+  const entries = await readdir(parent, { withFileTypes: true });
+  for (const entry of entries) {
+    if (
+      !entry.isDirectory() ||
+      entry.name === current ||
+      !/^\d+\.\d+\.\d+-[0-9a-f]{12}$/.test(entry.name)
+    )
+      continue;
+    try {
+      await rm(win32.join(parent, entry.name), { recursive: true, force: true });
+      onEvent?.("old_copy_removed");
+    } catch (error) {
+      const code = error as NodeJS.ErrnoException;
+      onEvent?.("old_copy_remove_failed");
+      // The new copy is already installed. A running old Git may keep files locked on Windows.
+      if (!code || !["EBUSY", "EPERM", "EACCES"].includes(code.code ?? "")) throw error;
+    }
+  }
 }

@@ -78,6 +78,10 @@ export function useChangesPane(options: ChangesPaneOptions) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ key: TranslationKey; error: boolean }>();
   const [committed, setCommitted] = useState<{ oid: string; subject: string }>();
+  const gitState = git?.state === "none" ? git.reason : (git?.state ?? "");
+  useEffect(() => {
+    if (gitState) setNotice(undefined);
+  }, [gitState]);
   const [historyRevision, setHistoryRevision] = useState(0);
   const [comments, updateComments] = useDraftComments(`${conversationKey}|${topicId ?? ""}`);
 
