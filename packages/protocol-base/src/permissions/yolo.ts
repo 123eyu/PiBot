@@ -1,3 +1,4 @@
+// Share YOLO requests, results, and events between the brain and its clients.
 import { z } from "zod";
 import { IdSchema } from "../core/ids.ts";
 import { RiskSchema } from "./approvals.ts";
@@ -24,7 +25,12 @@ export const YoloStepSchema = z.strictObject({ risk: RiskSchema });
 const conversationId = z.strictObject({ conversationId: IdSchema });
 export const YoloMethods = {
   "conversations.yolo.get": { params: conversationId, result: ConversationYoloSchema },
-  /** Turning it on also lets pending cards of that conversation through. */
+  // This desktop-only confirmation can persist the device-wide Windows consent.
+  "conversations.yolo.enableOnWindows": {
+    params: conversationId.extend({ acknowledged: z.literal(true).optional() }),
+    result: ConversationYoloSchema,
+  },
+  /** Turning it on also lets eligible pending cards of that conversation through. */
   "conversations.yolo.set": {
     params: conversationId.extend({ enabled: z.boolean() }),
     result: ConversationYoloSchema,

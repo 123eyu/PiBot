@@ -1,13 +1,12 @@
+// Show the conversation's YOLO switch and its confirmation.
 import type { ChatPeer } from "@pibot/client-core";
-import { isolationReasonText } from "@pibot/client-core";
-import { useAction, useSettings, useT } from "@pibot/renderer-kit";
+import { useAction, useT } from "@pibot/renderer-kit";
 import { Button, Icon, IconButton, IconTile } from "@pibot/ui";
 import { useRef, useState } from "react";
-import { Overlay } from "../../workspace/Overlay.tsx";
 import { menuKeys, useMenuPopover } from "../../workspace/profile/use-menu-popover.ts";
-import workspaceStyles from "../../workspace/workspace.module.css";
 import { useGroupTopicArchive, useTopicArchive } from "../topics/use-topic-archive.ts";
 import { useConversationYolo } from "./use-conversation-yolo.ts";
+import { YoloConfirmation } from "./YoloConfirmation.tsx";
 import styles from "./yolo.module.css";
 
 /**
@@ -29,19 +28,19 @@ export function YoloControl({
   topicBotId?: string;
   topicGroupId?: string;
 }) {
-  const { t, settings } = useSettings();
-  const windows = window.pibot.platform === "win32";
+  const t = useT();
   const { state, set } = useConversationYolo(peer, conversationId);
   const dmArchive = useTopicArchive(peer, topicBotId, conversationId);
   const groupArchive = useGroupTopicArchive(peer, topicGroupId, conversationId);
   const archive = topicGroupId ? groupArchive : dmArchive;
   const action = useAction();
   const [menu, setMenu] = useState<{ opener: HTMLElement; x: number; y: number }>();
-  const [confirming, setConfirming] = useState(false);
+  const [confirmingId, setConfirmingId] = useState<string>();
+  const confirming = !!state && confirmingId === state.conversationId;
   if (!state && !archive.available) return null;
   const change = (enabled: boolean) =>
     action.run(
-      () => set(enabled),
+      (signal) => set(enabled, signal),
       () => "yolo.failed",
     );
   return (
@@ -85,7 +84,7 @@ export function YoloControl({
           toggle={() => {
             setMenu(undefined);
             if (state?.enabled) void change(false);
-            else setConfirming(true);
+            else setConfirmingId(state?.conversationId);
           }}
           archive={
             archive.available
@@ -104,69 +103,13 @@ export function YoloControl({
         </span>
       )}
       {confirming && state && (
-        <Overlay
-          icon="bolt"
-          tone="orange"
-          title={t("yolo.confirmTitle")}
-          close={() => setConfirming(false)}
-          busy={action.busy}
-        >
-          <div className={styles.confirm}>
-            <p>{t("yolo.confirmIntro")}</p>
-            {group && <p>{t("yolo.confirmGroup")}</p>}
-            {!state.isolation.available && (
-              <p className={styles.risk} role="alert">
-                {t(
-                  windows
-                    ? settings?.yoloUnisolatedCommands
-                      ? "yolo.unisolatedEnabled"
-                      : "yolo.unisolatedDisabled"
-                    : "yolo.unisolated",
-                  {
-                    reason:
-                      isolationReasonText(state.isolation.reason, t) || t("yolo.unisolatedUnknown"),
-                  },
-                )}
-              </p>
-            )}
-            {/* What YOLO allows and what still asks sit side by side. */}
-            <div className={styles.scopes}>
-              <section className={styles.scope} data-tone="ok">
-                <h2>{t("yolo.skips")}</h2>
-                <p>{t(windows ? "yolo.skipsList.windows" : "yolo.skipsList")}</p>
-              </section>
-              <section className={styles.scope} data-tone="danger">
-                <h2>{t("yolo.keeps")}</h2>
-                <p>{t("yolo.keepsList")}</p>
-                <p>
-                  {t(state.isolation.available ? "yolo.keepsSafety" : "yolo.keepsSafetyUnisolated")}
-                </p>
-              </section>
-            </div>
-            <p className={styles.note}>{t("yolo.nothingRemembered")}</p>
-          </div>
-          <div className={workspaceStyles.actions}>
-            <Button variant="secondary" disabled={action.busy} onClick={() => setConfirming(false)}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              className={styles.turnOn}
-              loading={action.busy}
-              onClick={() =>
-                void change(true).then((value) => {
-                  if (value) setConfirming(false);
-                })
-              }
-            >
-              {t("yolo.confirm")}
-            </Button>
-          </div>
-          {action.error && (
-            <p role="alert" className={workspaceStyles.error}>
-              {t(action.error)}
-            </p>
-          )}
-        </Overlay>
+        <YoloConfirmation
+          key={state.conversationId}
+          isolation={state.isolation}
+          group={group}
+          close={() => setConfirmingId(undefined)}
+          enable={(signal, acknowledged) => set(true, signal, acknowledged)}
+        />
       )}
     </span>
   );

@@ -1,3 +1,4 @@
+// Expose local operations through the validated brain RPC dispatcher.
 import { join } from "node:path";
 import { discoverCommandPaths, listHostSshAliases } from "@pibot/execution";
 import { RpcError } from "@pibot/protocol-base";
@@ -91,6 +92,9 @@ export function registerLocalRpc(handle: KernelRegisterRpc, local: LocalService)
     local.openLog(runId, toolCallId, signal),
   );
   handle("conversations.yolo.get", ({ conversationId }) => local.yolo.get(conversationId));
+  handle("conversations.yolo.enableOnWindows", ({ conversationId, acknowledged }, { signal }) =>
+    local.yolo.enableOnWindows(conversationId, acknowledged === true, signal),
+  );
   handle("conversations.yolo.set", ({ conversationId, enabled }) =>
     local.yolo.set(conversationId, enabled),
   );

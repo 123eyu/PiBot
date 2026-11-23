@@ -1,3 +1,4 @@
+// Arrange the global permissions and command environment settings.
 import { isolationReasonText } from "@pibot/client-core";
 import { PasswordSettings, useCredentialList } from "@pibot/credentials/ui";
 import type { Category, Level } from "@pibot/protocol";
@@ -128,7 +129,7 @@ export function PermissionsSettings({ target }: { target?: "passwords" }) {
                   levels={data.levels}
                   disabled={disabled}
                   info
-                  unisolated={category === "run_command" && !data.isolation.available}
+                  unisolated={sandboxed && category === "run_command" && !data.isolation.available}
                   note={
                     category === "run_command"
                       ? window.pibot.platform === "win32"
@@ -141,10 +142,13 @@ export function PermissionsSettings({ target }: { target?: "passwords" }) {
                   change={change}
                 />
               ))}
-              <UnisolatedYoloRow disabled={disabled} />
             </SettingsSection>
             <SettingsSection title={t("permissions.commandEnv")}>
-              <SandboxRemembered disabled={disabled} open={() => setSub("sandbox")} />
+              {sandboxed ? (
+                <SandboxRemembered disabled={disabled} open={() => setSub("sandbox")} />
+              ) : (
+                <UnisolatedYoloRow disabled={disabled} />
+              )}
               <PathPermissions data={data} disabled={disabled} save={settings.save} />
               <DockerPermissions data={data} disabled={disabled} save={settings.save} />
               <SettingsLinkRow

@@ -1,64 +1,45 @@
-import { layoutStyles, SettingsRow, useSettings } from "@pibot/renderer-kit";
-import { Button, Switch } from "@pibot/ui";
-import { useState } from "react";
+// Show and withdraw the Windows consent that was recorded in the YOLO confirmation.
+import { SettingsLine, SettingsRow, useAction, useSettings } from "@pibot/renderer-kit";
+import { Button } from "@pibot/ui";
 
-/**
- * Windows only: commands there run without a sandbox, so YOLO approves them
- * only after the user turns this on and confirms the risk. Other platforms never run commands
- * unisolated, so the row is not shown there.
- */
 export function UnisolatedYoloRow({ disabled }: { disabled: boolean }) {
-  const { t, settings, update } = useSettings();
-  const [confirming, setConfirming] = useState(false);
-  if (window.pibot.platform !== "win32" || !settings) return null;
-  const on = settings.yoloUnisolatedCommands === true;
+  const { t, settings, update, language } = useSettings();
+  const action = useAction();
+  if (window.pibot.platform !== "win32") return null;
+  const consented = settings?.yoloUnisolatedCommands === true;
+  const at = settings?.yoloUnisolatedCommandsAt;
+  const date = at ? new Date(at).toLocaleDateString(language === "zh" ? "zh-CN" : "en") : null;
+  const status = !settings
+    ? t("common.loading")
+    : consented
+      ? date
+        ? t("permissions.yoloWindowsConsentedAt", { date })
+        : t("permissions.yoloWindowsConsented")
+      : t("permissions.yoloWindowsNotConsented");
   return (
     <>
       <SettingsRow
-        icon="warning"
-        tone="red"
+        icon="shield"
+        tone="orange"
         label={t("permissions.yoloUnisolated")}
-        note={t("permissions.short.yoloUnisolated")}
-        info={t("permissions.yoloUnisolatedNote")}
+        note={status}
       >
-        <Switch
-          label={t("permissions.yoloUnisolated")}
-          checked={on}
-          disabled={disabled || confirming}
-          onCheckedChange={(next) => {
-            if (next) setConfirming(true);
-            else void update({ yoloUnisolatedCommands: false });
-          }}
-        />
-      </SettingsRow>
-      {confirming && (
-        <div
-          role="alertdialog"
-          aria-label={t("permissions.yoloUnisolated")}
-          className={layoutStyles.banner}
-          data-tone="danger"
-        >
-          <span>{t("permissions.yoloUnisolatedConfirm")}</span>
+        {consented && (
           <Button
             variant="ghost"
-            className={layoutStyles.small}
-            disabled={disabled}
-            onClick={() => setConfirming(false)}
+            disabled={disabled || action.busy}
+            onClick={() =>
+              void action.run(
+                () => update({ yoloUnisolatedCommands: false }),
+                () => "permissions.yoloWindowsWithdrawFailed",
+              )
+            }
           >
-            {t("common.cancel")}
+            {t("permissions.yoloWindowsWithdraw")}
           </Button>
-          <Button
-            className={layoutStyles.small}
-            disabled={disabled}
-            onClick={() => {
-              setConfirming(false);
-              void update({ yoloUnisolatedCommands: true });
-            }}
-          >
-            {t("permissions.yoloUnisolatedEnable")}
-          </Button>
-        </div>
-      )}
+        )}
+      </SettingsRow>
+      {action.error && <SettingsLine tone="danger">{t(action.error)}</SettingsLine>}
     </>
   );
 }

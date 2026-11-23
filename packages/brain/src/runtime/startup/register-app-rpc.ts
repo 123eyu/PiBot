@@ -1,3 +1,4 @@
+// Register application settings and other shared brain RPCs at startup.
 import { readFile as readDependencyManifest } from "node:fs/promises";
 import { PI_VERSION } from "@pibot/agent";
 import {
@@ -130,7 +131,16 @@ export function registerAppRpc(ctx: StartupContext) {
   );
   ctx.handle("network.test", async () => ctx.network.test(ctx.providerTests.signal));
   ctx.handle("settings.get", async () => ctx.settings.get());
-  ctx.handle("settings.set", async (patch) => {
+  ctx.handle("settings.set", async (patch, { signal }) => {
+    if (patch.yoloUnisolatedCommandsAt !== undefined || patch.yoloUnisolatedCommands === true)
+      throw new RpcError(RpcErrorCodes.invalidParams, "windows_yolo_consent_required");
+    if (patch.yoloUnisolatedCommands === false) {
+      // Keep the original withdrawal request. Its settings write and audit must commit together.
+      if (Object.keys(patch).length !== 1)
+        throw new RpcError(RpcErrorCodes.invalidParams, "windows_yolo_withdrawal_is_separate");
+      signal.throwIfAborted();
+      return ctx.capabilities.yolo.revokeWindowsConsent();
+    }
     const value = await ctx
       .models()
       .settings.setSettings(
@@ -140,19 +150,6 @@ export function registerAppRpc(ctx: StartupContext) {
     ctx.peer.emit("settings.changed", value.settings);
     if (patch.backgroundCommandLimitMinutes !== undefined)
       ctx.capabilities.background.refreshLimits();
-    // Turning command auto-approval without isolation on or off is a security decision (rule 6).
-    if (patch.yoloUnisolatedCommands !== undefined)
-      ctx.audit.append({
-        botId: ctx.bots.getMain()?.id ?? "",
-        kind: "yolo.changed",
-        summary: `YOLO unisolated commands ${patch.yoloUnisolatedCommands ? "on" : "off"}`,
-        detail: {
-          actor: "user",
-          reasonCode: patch.yoloUnisolatedCommands
-            ? "yolo_unisolated_commands_on"
-            : "yolo_unisolated_commands_off",
-        },
-      });
     // Whether and which commands may leave the sandbox is a security decision too.
     if (patch.strictSandbox !== undefined)
       ctx.audit.append({

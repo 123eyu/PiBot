@@ -1,3 +1,4 @@
+// Keep the conversation switch in sync with the brain and other windows.
 import type { ChatPeer } from "@pibot/client-core";
 import type { ConversationYolo } from "@pibot/protocol";
 import { useCallback, useEffect, useState } from "react";
@@ -40,13 +41,21 @@ export function useConversationYolo(peer: ChatPeer | null | undefined, conversat
     };
   }, [peer, conversationId]);
   const set = useCallback(
-    async (enabled: boolean) => {
+    async (enabled: boolean, signal: AbortSignal, acknowledged = false) => {
       if (!peer || !conversationId) return undefined;
-      const value = await peer.call("conversations.yolo.set", { conversationId, enabled });
-      setState(value);
+      const value =
+        enabled && window.pibot.platform === "win32"
+          ? await peer.call(
+              "conversations.yolo.enableOnWindows",
+              { conversationId, ...(acknowledged ? { acknowledged: true } : {}) },
+              { signal },
+            )
+          : await peer.call("conversations.yolo.set", { conversationId, enabled }, { signal });
+      if (!signal.aborted)
+        setState((current) => (current?.conversationId === conversationId ? value : current));
       return value;
     },
     [peer, conversationId],
   );
-  return { state, set };
+  return { state: state?.conversationId === conversationId ? state : null, set };
 }

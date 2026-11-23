@@ -1,3 +1,4 @@
+// Share persisted settings and desktop bootstrap contracts across processes.
 import { z } from "zod";
 import { AvatarImageSchema } from "../bots/app-profile.ts";
 import { IdSchema } from "../core/ids.ts";
@@ -49,11 +50,12 @@ export const SettingsSchema = z.strictObject({
   /** Prefer the user's connected browser over the isolated Bot browser. */
   browserExtensionPreference: z.enum(["user", "bot"]).optional(),
   /**
-   * Windows only: commands there have no sandbox, so YOLO auto-approves them
-   * only after the user explicitly turns this on. Ignored on other platforms, which never run
-   * commands unisolated.
+   * Consent to YOLO auto-approval of eligible Windows commands, which run without isolation.
+   * Both the active conversation's YOLO and this consent are required.
    */
   yoloUnisolatedCommands: z.boolean().optional(),
+  /** Recorded by the Windows consent flow; legacy consent has no reliable timestamp. */
+  yoloUnisolatedCommandsAt: z.iso.datetime().nullable().optional(),
   /**
    * When on, a command the sandbox blocked is never offered a run outside it; the
    * user only sees why it was blocked. macOS / Linux only.

@@ -273,3 +273,33 @@
     display: block;
   }
 }
+
+.consentBanner {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--warnBg);
+  color: var(--warn);
+}
+.consentCheck {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text);
+}
+.consentCheck input {
+  flex: none;
+  margin: 3px 0 0;
+  accent-color: var(--prim);
+}
+.consentLink {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}

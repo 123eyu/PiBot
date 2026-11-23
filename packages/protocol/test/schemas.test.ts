@@ -1,3 +1,4 @@
+// Keep the published RPC schemas covered by the existing contract fixtures.
 import { DEFAULT_EXECUTION_LIMITS } from "@pibot/protocol-base";
 import { describe, expect, it } from "vitest";
 import type { z } from "zod";
@@ -2989,6 +2990,12 @@ const methodCases = {
       version: 1,
       updatedAt: date,
     },
+  },
+  "conversations.yolo.enableOnWindows": {
+    params: { conversationId: id, acknowledged: true },
+    result: { conversationId: id, enabled: true, enabledAt: date, isolation: { available: false } },
+    badParams: { conversationId: id, acknowledged: false },
+    badResult: { conversationId: id, enabled: true, enabledAt: date },
   },
   "conversations.yolo.set": {
     params: { conversationId: id, enabled: true },

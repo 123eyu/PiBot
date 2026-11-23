@@ -1,3 +1,4 @@
+// Translate permission settings, approvals, and policy warnings.
 import { linuxIsolationRemedies } from "@pibot/execution/isolation-remedy";
 
 export const permissionsZh = {
@@ -100,12 +101,14 @@ export const permissionsZh = {
   "permissions.topicGrantScope": "话题 {topic} · 当前可写根：{roots}（随话题变更）",
   "permissions.topicGrantUnavailable": "工作范围不可用，执行前重新校验",
   "permissions.topicGrantNoRoots": "无可写根",
-  "permissions.yoloUnisolated": "YOLO 自动批准命令（无隔离）",
-  "permissions.yoloUnisolatedNote":
-    "Windows 上的命令没有系统隔离。关闭时，即使开了 YOLO，每条命令仍要你确认。",
-  "permissions.yoloUnisolatedConfirm":
-    "开了 YOLO 的对话会自动运行命令。这些命令能读写你的所有文件、访问网络，没有任何隔离。",
-  "permissions.yoloUnisolatedEnable": "确认开启",
+  "permissions.yoloUnisolated": "Windows 上 YOLO 自动运行命令",
+  "permissions.yoloWindowsConsentedAt":
+    "已同意（{date}）。开了 YOLO 的对话里普通命令直接运行，危险命令仍需确认。撤回后下次开启 YOLO 会再次说明。",
+  "permissions.yoloWindowsConsented":
+    "已同意。开了 YOLO 的对话里普通命令直接运行，危险命令仍需确认。撤回后下次开启 YOLO 会再次说明。",
+  "permissions.yoloWindowsNotConsented": "尚未同意。开启 YOLO 时可以确认。",
+  "permissions.yoloWindowsWithdraw": "撤回",
+  "permissions.yoloWindowsWithdrawFailed": "未能撤回同意，请重试。",
   "permissions.strictSandbox": "严格沙箱",
   "permissions.strictSandboxNote":
     "打开后，命令被沙箱拦截时只说明原因，不提供「在沙箱外运行一次」，下面的清单也不生效。",
@@ -118,7 +121,10 @@ export const permissionsZh = {
   "permissions.sandboxOutsideCommandsInvalid":
     "格式不对：每行一条，程序名加参数，* 只能放在最后，最多 32 条。",
   "permissions.unisolated": "未隔离",
-  "permissions.note.run_command.windows": "每条命令都要你确认后才运行",
+  "permissions.note.run_command.windows":
+    "Windows 没有命令沙箱。受支持的只读命令（如 dir、type）经权限检查后直接运行。",
+  "permissions.info.run_command.windows":
+    "设为「不允许」时命令不会运行。经权限检查的受支持只读命令可直接运行。普通命令逐次确认，除非这个对话开了 YOLO 且你同意无隔离执行。",
   "permissions.windowsAlwaysUnavailable":
     "Windows 命令没有系统隔离，不能设为总是允许；YOLO 自动批准需单独开启",
   "permissions.connectionsAndSending": "连接与发送",
@@ -579,12 +585,14 @@ export const permissionsEn: { [K in keyof typeof permissionsZh]: string } = {
     "Topic {topic} · Current writable roots: {roots} (follows topic changes)",
   "permissions.topicGrantUnavailable": "Working folders unavailable; rechecked before execution",
   "permissions.topicGrantNoRoots": "No writable roots",
-  "permissions.yoloUnisolated": "YOLO auto-approves commands (no isolation)",
-  "permissions.yoloUnisolatedNote":
-    "Commands on Windows run without system isolation. While this is off, every command still needs your confirmation, even with YOLO on.",
-  "permissions.yoloUnisolatedConfirm":
-    "Conversations with YOLO on will run commands automatically. These commands can read and write all your files and access the network, without any isolation.",
-  "permissions.yoloUnisolatedEnable": "Turn on",
+  "permissions.yoloUnisolated": "YOLO runs commands automatically on Windows",
+  "permissions.yoloWindowsConsentedAt":
+    "Consented on {date}. Ordinary commands run directly in conversations with YOLO on. Dangerous commands still ask. Withdraw to see the explanation next time you turn on YOLO.",
+  "permissions.yoloWindowsConsented":
+    "Consented. Ordinary commands run directly in conversations with YOLO on. Dangerous commands still ask. Withdraw to see the explanation next time you turn on YOLO.",
+  "permissions.yoloWindowsNotConsented": "Consent not given. You can confirm when turning on YOLO.",
+  "permissions.yoloWindowsWithdraw": "Withdraw",
+  "permissions.yoloWindowsWithdrawFailed": "Couldn't withdraw consent. Try again.",
   "permissions.strictSandbox": "Strict sandbox",
   "permissions.strictSandboxNote":
     "When on, a command the sandbox blocks only explains why; running it once outside the sandbox is not offered, and the list below is ignored.",
@@ -597,7 +605,10 @@ export const permissionsEn: { [K in keyof typeof permissionsZh]: string } = {
   "permissions.sandboxOutsideCommandsInvalid":
     "Invalid entry: one per line, a program and its arguments, * only at the end, at most 32 entries.",
   "permissions.unisolated": "Unisolated",
-  "permissions.note.run_command.windows": "Every command runs only after your confirmation",
+  "permissions.note.run_command.windows":
+    "Windows has no command sandbox. Supported read-only commands, such as dir and type, run directly when permissions allow.",
+  "permissions.info.run_command.windows":
+    "Don't allow blocks commands. Supported read-only commands run directly when permissions allow. Ordinary commands ask each time unless YOLO is on in the conversation and you consented to unisolated execution.",
   "permissions.windowsAlwaysUnavailable":
     "Windows commands have no system isolation and cannot be set to Always; YOLO auto-approval must be enabled separately",
   "permissions.connectionsAndSending": "Connections and sending",

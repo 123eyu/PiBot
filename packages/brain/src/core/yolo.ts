@@ -1,3 +1,4 @@
+// Own conversation YOLO, Windows consent, and the release of waiting approvals.
 import type { LocalToolCall } from "@pibot/agent";
 import { type PolicyResult, YOLO_REASON } from "@pibot/policy";
 import { type ConversationYolo, RpcError, RpcErrorCodes } from "@pibot/protocol-base";
@@ -6,6 +7,7 @@ import {
   ConversationsRepo,
   ConversationYoloRepo,
   GroupsRepo,
+  SettingsRepo,
   transaction,
 } from "@pibot/storage";
 import { ZodError } from "zod";
@@ -76,48 +78,110 @@ export class YoloService {
     return { ...this.state(conversationId), isolation: await this.isolation(conversationId) };
   }
 
-  async set(conversationId: string, enabled: boolean): Promise<ConversationYolo> {
+  set(conversationId: string, enabled: boolean): Promise<ConversationYolo> {
+    return this.change(conversationId, enabled);
+  }
+
+  async enableOnWindows(
+    conversationId: string,
+    acknowledged: boolean,
+    signal: AbortSignal,
+  ): Promise<ConversationYolo> {
+    this.requireWindows();
+    signal.throwIfAborted();
+    return this.change(conversationId, true, { acknowledged });
+  }
+
+  revokeWindowsConsent() {
+    this.requireWindows();
+    const { db, peer } = this.local.deps;
+    const settings = new SettingsRepo(db);
+    const current = settings.get();
+    if (current.yoloUnisolatedCommands !== true) return current;
+    const value = transaction(db, () => this.writeWindowsConsent(settings, false));
+    peer.emit("settings.changed", value);
+    return value;
+  }
+
+  private requireWindows() {
+    if (this.local.deps.platform !== "win32")
+      throw new RpcError(RpcErrorCodes.unsupported, "windows_yolo_unavailable");
+  }
+
+  private writeWindowsConsent(settings: SettingsRepo, consented: boolean) {
+    const botId = new BotsRepo(this.local.deps.db).getMain()?.id;
+    if (!botId) throw new RpcError(RpcErrorCodes.internal, "main_bot_unavailable");
+    const audit = this.local.approvals.audit.append({
+      botId,
+      kind: "yolo.changed",
+      summary: consented ? "YOLO unisolated commands on" : "YOLO unisolated commands off",
+      detail: {
+        actor: "user",
+        reasonCode: consented ? "yolo_unisolated_commands_on" : "yolo_unisolated_commands_off",
+      },
+    });
+    return settings.set({
+      yoloUnisolatedCommands: consented,
+      yoloUnisolatedCommandsAt: consented ? audit.at : null,
+    });
+  }
+
+  private async change(
+    conversationId: string,
+    enabled: boolean,
+    windows?: { acknowledged: boolean },
+  ): Promise<ConversationYolo> {
     const before = this.state(conversationId);
     const conversation = this.repo.switchable(conversationId);
-    if (!conversation) throw new RpcError(-32602, "yolo_unavailable");
-    const state =
-      before.enabled === enabled
-        ? before
-        : transaction(this.local.deps.db, () => {
-            const value = this.repo.set(conversationId, enabled);
+    if (!conversation) throw new RpcError(RpcErrorCodes.invalidParams, "yolo_unavailable");
+    const { db, peer } = this.local.deps;
+    const settings = new SettingsRepo(db);
+    const needsConsent = windows !== undefined && settings.get().yoloUnisolatedCommands !== true;
+    if (needsConsent && !windows?.acknowledged)
+      throw new RpcError(RpcErrorCodes.invalidParams, "windows_yolo_consent_required");
+    const committed =
+      needsConsent || before.enabled !== enabled
+        ? transaction(db, () => {
+            const updatedSettings = needsConsent
+              ? this.writeWindowsConsent(settings, true)
+              : undefined;
+            if (before.enabled === enabled) return { state: before, updatedSettings };
+            const state = this.repo.set(conversationId, enabled);
             this.audit(conversation, enabled);
-            return value;
-          });
-    if (state !== before) this.local.deps.peer.emit("conversations.yolo.changed", state);
-    // Recommended: cards already waiting in this conversation go through as allowed.
-    if (enabled) {
-      await this.releasePending(conversation.id, conversation.groupId ?? undefined);
-      for (const listener of [...(this.listeners.get(conversation.id) ?? [])]) listener();
-      for (const entry of [...this.runListeners.values()]) {
-        try {
-          const source = entry.context.executionTaskId
-            ? this.local.taskAuthority.source(entry.context)
-            : entry.context;
-          if (source.conversationId !== conversation.id || !runYolo(this.local, entry.context))
-            continue;
-          const actions = [...entry.actions];
-          entry.actions.clear();
-          for (const action of actions) {
-            try {
-              await action();
-            } catch {
-              // Each card is independent; one stale proposal must not strand other live waiters.
-              this.local.deps.logger.warn(
-                "YOLO pending business confirmation could not be applied",
-              );
-            }
+            return { state, updatedSettings };
+          })
+        : { state: before, updatedSettings: undefined };
+    const { state, updatedSettings } = committed;
+    if (updatedSettings) peer.emit("settings.changed", updatedSettings);
+    if (state !== before) peer.emit("conversations.yolo.changed", state);
+    if (enabled) await this.releaseOnEnable(conversation.id, conversation.groupId ?? undefined);
+    return { ...state, isolation: await this.isolation(conversationId) };
+  }
+
+  private async releaseOnEnable(conversationId: string, groupId?: string) {
+    await this.releasePending(conversationId, groupId);
+    for (const listener of [...(this.listeners.get(conversationId) ?? [])]) listener();
+    for (const entry of [...this.runListeners.values()]) {
+      try {
+        const source = entry.context.executionTaskId
+          ? this.local.taskAuthority.source(entry.context)
+          : entry.context;
+        if (source.conversationId !== conversationId || !runYolo(this.local, entry.context))
+          continue;
+        const actions = [...entry.actions];
+        entry.actions.clear();
+        for (const action of actions) {
+          try {
+            await action();
+          } catch {
+            // Each card is independent; one stale proposal must not strand other live waiters.
+            this.local.deps.logger.warn("YOLO pending business confirmation could not be applied");
           }
-        } catch {
-          this.local.deps.logger.warn("YOLO pending business confirmation could not be applied");
         }
+      } catch {
+        this.local.deps.logger.warn("YOLO pending business confirmation could not be applied");
       }
     }
-    return { ...state, isolation: await this.isolation(conversationId) };
   }
 
   /** Only live run waiters subscribe; their abort/settlement always removes the listener. */

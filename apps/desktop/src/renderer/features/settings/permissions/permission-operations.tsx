@@ -1,3 +1,4 @@
+// Keep global permission controls and their explanations consistent.
 import type { TranslationKey } from "@pibot/i18n";
 import type { Category, Level, PermissionLevels } from "@pibot/protocol";
 import { SettingsRow, useT } from "@pibot/renderer-kit";
@@ -60,7 +61,9 @@ export function LevelRow({
   const t = useT();
   const windowsCommand = category === "run_command" && window.pibot.platform === "win32";
   const short = info ? SHORT[category] : undefined;
-  const long = t(`permissions.note.${category}`);
+  const long = t(
+    windowsCommand ? "permissions.info.run_command.windows" : `permissions.note.${category}`,
+  );
   return (
     <SettingsRow
       icon={CATEGORY_LOOK[category][0]}

@@ -1,3 +1,4 @@
+// Persist application settings and shared workspace records in SQLite.
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
@@ -44,7 +45,12 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   sandboxAutoSystemServices: [],
 });
 /** Optional keys without a default: read back only once written. */
-const OPTIONAL_KEYS = ["userAvatar", "personalTodoView", "personalTodoStatuses"] as const;
+const OPTIONAL_KEYS = [
+  "userAvatar",
+  "personalTodoView",
+  "personalTodoStatuses",
+  "yoloUnisolatedCommandsAt",
+] as const;
 
 export class SettingsRepo {
   constructor(private readonly db: DatabaseSync) {}

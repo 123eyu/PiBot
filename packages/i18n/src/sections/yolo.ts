@@ -25,11 +25,20 @@ export const yoloZh = {
     "命令隔离当前不可用（{reason}）。YOLO 不提供隔离保护；命令是否能执行仍按执行设备的确认和权限规则判定。",
   "yolo.unisolatedUnknown": "原因未知",
   "yolo.skipsList.windows":
-    "读写工作位置内的文件、访问网站和提交表单、搜索服务的首次询问、操作电脑、对外发送、用唯一已保存账号登录。运行命令是否自动批准取决于「YOLO 自动批准命令（无隔离）」；危险命令仍要逐次确认，提权命令始终拒绝。",
-  "yolo.unisolatedEnabled":
-    "Windows 命令没有系统隔离。「YOLO 自动批准命令（无隔离）」已开启：普通命令会以你的身份自动运行，可读写你的文件、访问网络；危险命令仍需确认。",
-  "yolo.unisolatedDisabled":
-    "Windows 命令没有系统隔离。「YOLO 自动批准命令（无隔离）」尚未开启：即使这个对话开了 YOLO，每条命令仍要你确认。",
+    "普通命令、读写工作位置内的文件、访问网站和提交表单、搜索服务的首次询问、操作电脑、允许自动批准的对外发送、用唯一已保存账号登录。正在等待的审批会重新检查。",
+  "yolo.keepsList.windows":
+    "危险命令（如删除磁盘根目录或系统文件夹）、网络共享路径、规则判定无法安全分析的命令、写入受保护位置（如 .git、Pi Bot 数据和凭据目录）仍需逐次确认。提权命令（如 runas）始终拒绝。付费生成图片、设为「不允许」的权限和不能操作的应用仍遵循原有规则。",
+  "yolo.readOnly.windows":
+    "通过读取权限检查的受支持只读命令（如 dir、Get-ChildItem、type）无需开启 YOLO。",
+  "yolo.windowsDisclosureTitle": "Windows 没有命令沙箱。",
+  "yolo.windowsDisclosure":
+    "开启 YOLO 后，普通 Windows 命令会以你的身份直接运行，可以读写你能访问的文件和访问网络。危险命令仍需确认。",
+  "yolo.windowsAcknowledge":
+    "我知道 Windows 上的命令会直接运行。以后开启 YOLO 时只显示简短提醒，我可以在设置 › 权限撤回同意。",
+  "yolo.windowsReminder": "普通 Windows 命令会以你的身份直接运行，危险命令仍需确认。",
+  "yolo.windowsConsentSettings": "前往权限设置撤回",
+  "yolo.nothingRemembered.windows":
+    "关闭 YOLO 后恢复正常询问，开启期间不会留下「一直允许」。每个自动允许的操作都会写进操作记录。",
   "yolo.keepsSafetyUnisolated":
     "命令没有系统隔离保护。操作电脑时顶部提示、前台锁、移动鼠标暂停和全局停止快捷键都还在。",
   "yolo.audit.unisolatedOn": "开启了全局 YOLO 无隔离命令自动批准",
@@ -70,11 +79,21 @@ export const yoloEn = {
     "Command isolation is unavailable ({reason}). YOLO provides no isolation; commands remain subject to the execution device’s confirmation and permission rules.",
   "yolo.unisolatedUnknown": "reason unknown",
   "yolo.skipsList.windows":
-    "Reading and writing files in working folders, visiting sites and submitting forms, first-use search prompts, operating the computer, sending things out, and logging in with a single saved account. Command auto-approval depends on “YOLO auto-approves commands (no isolation)”. Dangerous commands still ask each time; privilege escalation is always refused.",
-  "yolo.unisolatedEnabled":
-    "Windows commands have no system isolation. “YOLO auto-approves commands (no isolation)” is on: ordinary commands run automatically as you and can read and write your files and access the network. Dangerous commands still need confirmation.",
-  "yolo.unisolatedDisabled":
-    "Windows commands have no system isolation. “YOLO auto-approves commands (no isolation)” is off: every command still needs your confirmation, even with YOLO on in this conversation.",
+    "Ordinary commands, reading and writing files in working folders, visiting sites and submitting forms, first-use search prompts, operating the computer, eligible outgoing actions, and signing in with a single saved account. Pending approvals are checked again.",
+  "yolo.keepsList.windows":
+    "Dangerous commands (such as deleting a drive root or system folder), network share paths, commands the policy flags as unparseable, and writes to protected locations (such as .git, Pi Bot data, and credential folders) still ask each time. Elevation (such as runas) is always refused. Paid images, permissions set to Don't allow, and blocked apps still follow their existing rules.",
+  "yolo.readOnly.windows":
+    "Supported read-only commands (such as dir, Get-ChildItem, and type) can run with YOLO off when their read permissions allow it.",
+  "yolo.windowsDisclosureTitle": "Windows has no command sandbox.",
+  "yolo.windowsDisclosure":
+    "With YOLO on, ordinary Windows commands run directly as you. They can read and write files you can access and use the network. Dangerous commands still ask.",
+  "yolo.windowsAcknowledge":
+    "I understand that Windows commands run directly. Next time I turn on YOLO, I’ll see a short reminder. I can withdraw consent in Settings › Permissions.",
+  "yolo.windowsReminder":
+    "Ordinary Windows commands run directly as you. Dangerous commands still ask.",
+  "yolo.windowsConsentSettings": "Withdraw in Permissions",
+  "yolo.nothingRemembered.windows":
+    "Turning off YOLO restores normal prompts. YOLO leaves no Always allow grants. Every automatically allowed action is logged.",
   "yolo.keepsSafetyUnisolated":
     "Commands have no system isolation. When operating the computer, the top indicator, foreground lock, pause on mouse movement and global stop shortcut remain in place.",
   "yolo.audit.unisolatedOn": "Turned on global YOLO auto-approval for unisolated commands",
