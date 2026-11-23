@@ -1,3 +1,4 @@
+// Chat events update the active topic and reconcile missing live rows with persisted history.
 import { chatReplyTo } from "@pibot/protocol";
 import { appendReplyDelta, preserveLiveReply } from "./reply-delta.ts";
 import type { ChatSession } from "./session.ts";
@@ -52,11 +53,13 @@ export function applyEvent(this: ChatSession, event: ChatEvent) {
     });
     return;
   }
-  if (
-    !this.matches(event.payload) ||
-    !this.state.messages.some((m) => m.id === messageId && m.runId === runId)
-  )
+  if (!this.matches(event.payload)) return;
+  if (!this.state.messages.some((m) => m.id === messageId && m.runId === runId)) {
+    // A split reply can finish before its row reaches this viewport. Its terminal event
+    // still gives us a chance to recover committed attachments from the current topic.
+    if (event.kind !== "delta") void this.refreshHistory();
     return;
+  }
   this.patch(
     {
       messages: this.state.messages.map((message) => {

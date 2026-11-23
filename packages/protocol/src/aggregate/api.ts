@@ -1,3 +1,4 @@
+// Product peers add capability contracts to the shared brain kernel API.
 import {
   BrowserDebugMethods,
   BrowserEvents,
@@ -233,12 +234,6 @@ export const Events = {
     messageId: IdSchema,
     text: z.string(),
     newReply: z.boolean().optional(),
-  }),
-  "chat.attachments": z.strictObject({
-    ...ChatRouteFields,
-    runId: IdSchema,
-    messageId: IdSchema,
-    attachments: z.array(AttachmentSchema).max(MAX_ATTACHMENTS),
   }),
   "chat.done": z.strictObject({
     ...ChatRouteFields,

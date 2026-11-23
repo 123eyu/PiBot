@@ -1,3 +1,4 @@
+// The brain kernel uses these wire contracts before product capabilities are composed.
 import { z } from "zod";
 import { ProxyAddressSchema } from "../app/network-proxy.ts";
 import { AcpEvents, AcpMethods } from "../execution/independent-background.ts";
@@ -76,6 +77,7 @@ import {
   KnowledgeDetectHostMethods,
   KnowledgeOpenHostMethods,
   MAX_ATTACHMENTS,
+  MAX_REPLY_ATTACHMENTS,
   MemoryEvents,
   MemoryMethods,
   MessageActionMethods,
@@ -166,7 +168,7 @@ export const KernelEvents = {
     ...ChatRouteFields,
     runId: IdSchema,
     messageId: IdSchema,
-    attachments: z.array(AttachmentSchema).max(10),
+    attachments: z.array(AttachmentSchema).max(MAX_REPLY_ATTACHMENTS),
   }),
   "chat.done": z.strictObject({
     ...ChatRouteFields,
