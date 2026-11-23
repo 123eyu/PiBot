@@ -1,7 +1,7 @@
 /**
  * Retain assignment names only; values never enter the output. A commented-out assignment
  * (`# NAME=`) stays a comment: templates ship optional keys that way, and dropping the line left
- * the saved example empty or unreadable (F10).
+ * the saved example empty or unreadable.
  */
 export function envExampleFilter() {
   let prefix = "",

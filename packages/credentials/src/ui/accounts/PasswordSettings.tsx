@@ -69,7 +69,7 @@ export function PasswordSettings({
   const names = new Map(bots.map((bot) => [bot.id, bot.name]));
   const canSave = status?.storage === true;
   const root = useRef<HTMLDivElement>(null);
-  // The pre-D130 "passwords" page link lands on this section. Wait a frame so the settings
+  // The older "passwords" page link lands on this section. Wait a frame so the settings
   // dialog's own initial focus has run and the page above has laid out.
   useEffect(() => {
     if (!focus) return;

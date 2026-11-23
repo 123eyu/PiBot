@@ -79,7 +79,7 @@ export class OfflineSnapshots {
   async usableModels(grants: readonly OfflineGrantRecord[], bots: readonly Bot[]) {
     const models: OfflineModel[] = [];
     for (const grant of grants) {
-      // F22 (phone 2026-11-14): the whole catalog of a router provider is hundreds of models,
+      // The whole catalog of a router provider is hundreds of models,
       // all marked delivered, so the phone's lists could not be shortened. Only the models the
       // Bots use (and a grant's own model) go to the phone; a model picked there offline is one
       // of these, and it becomes a Bot's model when the choice is written back on reconnect.

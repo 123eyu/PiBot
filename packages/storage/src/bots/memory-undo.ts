@@ -2,7 +2,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { IdSchema, type MemoryOwner, MemorySchema } from "@pibot/protocol-base";
 import { z } from "zod";
 
-// Only persisted pre-D63 snapshots may omit category; protocol results require it.
+// Only persisted older snapshots may omit category; protocol results require it.
 const legacyMemory = MemorySchema.extend({ category: MemorySchema.shape.category.default(null) });
 const snapshot = z.strictObject({
   before: legacyMemory.nullable(),

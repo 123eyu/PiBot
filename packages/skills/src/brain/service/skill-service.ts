@@ -117,7 +117,7 @@ export type SkillChange =
   | "builtin_kept";
 
 const invalid = (message: string) => new RpcError(-32602, message);
-/** F14: the detail report reads only documents SKILL.md names, bounded like the import preview. */
+/** The detail report reads only documents SKILL.md names, bounded like the import preview. */
 const MAX_DOCUMENTS = 8;
 const MAX_DOCUMENT_BYTES = 256 * 1024;
 
@@ -425,7 +425,7 @@ export class SkillService {
     };
   }
   /**
-   * F14: a skill's commands often live in the documents SKILL.md points at. Only the files the body
+   * A skill's commands often live in the documents SKILL.md points at. Only the files the body
    * names are read, and a read failure only makes the advisory report poorer.
    */
   private async referencedDocuments(

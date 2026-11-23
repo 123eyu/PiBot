@@ -9,9 +9,9 @@ export interface SkillCompatibilityInput {
   /** Keys of the original frontmatter, including extensions with list/map values. */
   frontmatter: Readonly<Record<string, unknown>>;
   body: string;
-  /** F14: values written in `allowed-tools`; names only, anything else is dropped. */
+  /** Values written in `allowed-tools`; names only, anything else is dropped. */
   allowedTools?: readonly string[];
-  /** F14: text of documents SKILL.md points at (references/*.md), scanned like the body. */
+  /** Text of documents SKILL.md points at (references/*.md), scanned like the body. */
   documents?: readonly string[];
   files: readonly { path: string }[];
   filesUnavailable?: boolean;
@@ -46,7 +46,7 @@ const SYSTEM_DIRECTORIES = new Set([
 ]);
 /** A tool name is only a tool when it is written as one; see `usesTool`. */
 const TOOL_VALUE = /^[A-Za-z][A-Za-z0-9_.:-]{0,63}$/;
-/** F14: words that make a subagent mention a suggestion; the skill still works without it. */
+/** Words that make a subagent mention a suggestion; the skill still works without it. */
 const OPTIONAL =
   /\boptional(?:ly)?\b|\bif\s+available\b|\bnice\s+to\s+have\b|\brecommended\b|\bpreferred\b|\bbonus\b|可选|可选地|如果需要|有的话|更好/i;
 const RUNTIMES = [
@@ -74,7 +74,7 @@ export function skillCompatibility(input: SkillCompatibilityInput): SkillCompati
     else add("partial", "ignored_field", { field });
   }
   for (const [tool, replacement] of Object.entries(SKILL_TOOL_MAPPING)) {
-    // Listing a tool in allowed-tools is the skill saying it uses it; prose is not (F14).
+    // Listing a tool in allowed-tools is the skill saying it uses it; prose is not.
     if ((input.allowedTools ?? []).includes(tool) || usesTool(input.body, tool))
       add("notice", "tool_mapping", { tool: tool as keyof typeof SKILL_TOOL_MAPPING, replacement });
   }
@@ -109,7 +109,7 @@ export function skillCompatibility(input: SkillCompatibilityInput): SkillCompati
 }
 
 /**
- * F14: prose like "Read this file" or "Edit the deck" is an English verb, not a tool dependency.
+ * Prose like "Read this file" or "Edit the deck" is an English verb, not a tool dependency.
  * Only a name written as one counts: in a code span (`Read`, `Read(...)`) or named as a tool
  * ("Read tool", "Read 工具").
  */
@@ -120,7 +120,7 @@ function usesTool(text: string, tool: string) {
   );
 }
 
-/** F14: values written in `allowed-tools`, kept only when they look like a tool name. */
+/** Values written in `allowed-tools`, kept only when they look like a tool name. */
 export function allowedToolValues(value: unknown): string[] {
   // A skill without allowed-tools must not show the literal string "undefined" as a tool.
   if (value === undefined || value === null || typeof value === "object") return [];
@@ -131,7 +131,7 @@ export function allowedToolValues(value: unknown): string[] {
   return [...new Set(names)].slice(0, 32);
 }
 
-/** F14: 「有 subagent 更好」 is an option, not a requirement; only an instruction to use one is.
+/** 「有 subagent 更好」 is an option, not a requirement; only an instruction to use one is.
  * A bare mention used to be reported as unavailable, which warned people off skills that work. */
 function wantsSubagent(text: string) {
   for (const match of text.matchAll(

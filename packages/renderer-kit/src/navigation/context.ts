@@ -74,7 +74,7 @@ export interface NavigationValue {
   closePage(name: View["name"]): void;
   consumeChatFocus(focus: MessageFocus): void;
   settingsOverlay: SettingsOverlay | undefined;
-  /** "passwords" is the pre-D130 page name, kept so older links land on the merged section. */
+  /** "passwords" is the older page name, kept so older links land on the merged section. */
   openSettings(section: SettingsSectionId | "passwords", target?: SettingsTarget): void;
   dialog: ShellDialog | undefined;
   /** `update` sees the open dialog, so a repeated request can keep its draft. */

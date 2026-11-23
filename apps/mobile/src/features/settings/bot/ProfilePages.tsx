@@ -220,7 +220,7 @@ export function ModelPage({ state }: Props) {
   const offlineEngine = useOfflineEngine();
   const offlineMode =
     offline.unreachable && !!bot && offline.manifest?.bots.some((row) => row.id === bot.id);
-  // F22: the models the Bots use, not a router provider's whole catalog.
+  // The models the Bots use, not a router provider's whole catalog.
   const offlineModels = offlineMode ? usedOfflineModels(offline.manifest) : [];
   const conflict = !!bot && offline.conflicts.includes(bot.id);
   useEffect(() => {

@@ -6,7 +6,7 @@ import { useColors } from "../../theme/use-theme.ts";
 import { Separator, Switch } from "../../ui/controls.tsx";
 import type { usePhoneData } from "./use-phone-data.ts";
 
-// F25 (phone 2026-11-14): each source says what it reads, not one shared sentence for both.
+// Each source says what it reads, not one shared sentence for both.
 const READ_ROWS = [
   {
     kind: "notifications",

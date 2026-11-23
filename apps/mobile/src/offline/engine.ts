@@ -130,7 +130,7 @@ function offlineModelFor(
 }
 
 /**
- * F22: the delivered models the Bots use. An older computer sends a router provider's whole
+ * The delivered models the Bots use. An older computer sends a router provider's whole
  * catalog marked delivered (hundreds of rows); a Bot can only answer with its own model offline.
  */
 export function usedOfflineModels(manifest: Pick<OfflineManifest, "models" | "bots"> | undefined) {

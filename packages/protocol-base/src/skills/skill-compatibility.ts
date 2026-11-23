@@ -68,7 +68,7 @@ export const SkillCompatibilityEntrySchema = z.strictObject({
       .optional(),
     runtime: z.enum(["python", "node", "bash", "powershell"]).optional(),
     /**
-     * F14: the values written in `allowed-tools`. Names only, and never free text: a skill cannot
+     * The values written in `allowed-tools`. Names only, and never free text: a skill cannot
      * smuggle a sentence (or a secret) into the report by putting it in that list.
      */
     tools: z

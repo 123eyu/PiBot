@@ -33,7 +33,7 @@ import {
 import type { SkillService } from "./skill-service.ts";
 
 const TEXT = new Set([".md", ".markdown", ".txt"]);
-/** F14: only documents SKILL.md itself points at, bounded so a preview stays cheap. */
+/** Only documents SKILL.md itself points at, bounded so a preview stays cheap. */
 const MAX_DOCUMENTS = 8;
 const MAX_DOCUMENT_BYTES = 256 * 1024;
 const PREVIEW_MS = 10 * 60 * 1000;
@@ -94,7 +94,7 @@ export async function readImportSource(
   return { document, kind, name: basename(path), pack, sourceFields };
 }
 /**
- * F14: a skill's own commands often live in the documents SKILL.md points at, so the report reads
+ * A skill's own commands often live in the documents SKILL.md points at, so the report reads
  * those too — but only the files the body names, capped, so a preview never reads the whole pack.
  */
 async function referencedDocuments(
@@ -202,7 +202,7 @@ export class SkillImports {
       work.dispose();
     }
     deadline.throwIfAborted();
-    // F14: values stay names only; prose in that list never reaches the report.
+    // Values stay names only; prose in that list never reaches the report.
     const allowedTools = allowedToolValues(
       parseSkillFile(source.pack.skillText).fields["allowed-tools"],
     );

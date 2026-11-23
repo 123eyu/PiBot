@@ -6,7 +6,7 @@ export const homeSelection: FolderSelection = { primary: "home", readonly: [] };
 
 /**
  * A DM topic's folders. The primary stays in `conversations.workplace_folder_id`
- * (`NULL`, the pre-D119 "follow the Bot", now reads as `home`). Additional associations live in
+ * (`NULL`, the older "follow the Bot", now reads as `home`). Additional associations live in
  * `topic_folders`; only explicit writable markers grant writes, so old references stay read-only.
  * Changes bump `workplace_revision`, invalidating run and approval snapshots.
  */

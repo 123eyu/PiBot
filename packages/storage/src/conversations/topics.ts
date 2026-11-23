@@ -134,7 +134,7 @@ export class TopicsRepo {
     });
   }
 
-  /** Sets the primary folder and keeps the other references (`null`, pre-D119 "inherit", is `home`). */
+  /** Sets the primary folder and keeps the other references (`null`, older "inherit", is `home`). */
   setWorkplace(botId: string, topicId: string, folderId: string | null) {
     return transaction(this.db, () => {
       const current = new TopicFoldersRepo(this.db).selection(topicId);

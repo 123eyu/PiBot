@@ -50,7 +50,7 @@ export function OfflineSettingsScreen() {
     };
   }, [engine, offline.computerId, offline.revision]);
   const manifest = offline.manifest;
-  // F22 (phone 2026-11-14): an older computer lists a router provider's whole catalog as
+  // An older computer lists a router provider's whole catalog as
   // delivered (hundreds of rows); only the models the Bots answer with matter here, by provider.
   const delivered = useMemo(() => {
     const groups = new Map<string, NonNullable<typeof manifest>["models"]>();

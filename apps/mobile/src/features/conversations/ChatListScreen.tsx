@@ -165,7 +165,7 @@ export function ChatListScreen() {
               }
             />
           ) : (
-            // F17: "sends when the computer is back" only when the phone cannot answer itself.
+            // "sends when the computer is back" only when the phone cannot answer itself.
             <OfflineBanner
               text={t(canReplyOffline ? "listOfflinePhone" : "listOffline")}
               onDetails={() => setOfflineDetails(true)}

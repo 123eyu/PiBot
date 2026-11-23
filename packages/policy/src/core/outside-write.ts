@@ -7,7 +7,7 @@ import type { EvaluationInput, PathContext, PolicyResult, ResolvedPath } from ".
 export { OUTSIDE_WRITE_REASON };
 /** Root, home itself, system folders, Pi Bot's data and credential stores. */
 export const PROTECTED_PATH_REASON = "protected_path";
-/** The pre-ADR-0054 hard refusal, kept for runners and callers that cannot show the card. */
+/** The earlier hard refusal, kept for runners and callers that cannot show the card. */
 export const OUTSIDE_WRITE_DENIED_REASON = "outside_workplace_write_denied";
 
 async function nearestExisting(path: string, context: PathContext) {
