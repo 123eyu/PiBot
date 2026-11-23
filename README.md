@@ -104,6 +104,19 @@ Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING
 in [AGENTS.md](AGENTS.md) first; report security problems as described in
 [SECURITY.md](SECURITY.md), not in public issues.
 
+## Contributors
+
+Thank you to everyone who has contributed to Pi Bot. See the
+[contribution activity](https://github.com/w01fb0ss/PiBot/graphs/contributors) on GitHub.
+
+<!-- CONTRIBUTORS:START -->
+- agooll
+- Ikko Eltociear Ashimine
+- JQuery
+- juemimgcd
+- leen.zhou
+<!-- CONTRIBUTORS:END -->
+
 ## Star History
 
 <a href="https://www.star-history.com/#w01fb0ss/PiBot&Date">
