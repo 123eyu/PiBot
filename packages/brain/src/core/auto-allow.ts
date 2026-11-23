@@ -4,6 +4,7 @@ import {
   EDITOR_SESSION_REASON,
   EDITOR_TERMINAL_READONLY_REASON,
   type PolicyResult,
+  WINDOWS_READ_ONLY,
 } from "@pibot/policy";
 import type { Grant } from "@pibot/protocol-base";
 import { BotsRepo } from "@pibot/storage";
@@ -21,6 +22,7 @@ import { toolPermissionCategory } from "./tool-category.ts";
  */
 const AUTO_ALLOW_REASONS = new Set([
   "readonly_command",
+  WINDOWS_READ_ONLY,
   "sandboxed_command",
   EDITOR_TERMINAL_READONLY_REASON,
   EDITOR_SESSION_REASON,

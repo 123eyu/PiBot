@@ -1,4 +1,5 @@
 import { canonicalPath, containsPath, pathApi } from "../paths/paths.ts";
+import { windowsProtectedPathNames } from "../paths/protected-paths.ts";
 import type { EvaluationInput, PathContext, Platform } from "./types.ts";
 
 export interface CommandPathScope {
@@ -64,4 +65,16 @@ export async function verifiedCommandPaths(
     }
   }
   return verified;
+}
+
+export function windowsProtectedCommandPath(path: string, roots: readonly string[]) {
+  return (
+    roots.some((root) => containsPath(root, path, "win32")) ||
+    windowsProtectedPathNames().some((name) =>
+      `\\${path.replaceAll("/", "\\").toLowerCase()}\\`.includes(
+        `\\${name.replaceAll("/", "\\").toLowerCase()}\\`,
+      ),
+    ) ||
+    /(?:^|[\\/])\.git(?:[\\/]|$)/i.test(path)
+  );
 }

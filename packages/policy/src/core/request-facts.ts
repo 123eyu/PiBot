@@ -18,12 +18,14 @@ import { isAiConfigPath } from "../paths/ai-config-paths.ts";
 import { canonicalPath, containsPath, expandHome, pathApi, resolvePath } from "../paths/paths.ts";
 import { privateNetworkOrigin } from "../targets/private-network.ts";
 import { website } from "../targets/web.ts";
+import { commandPathScope, isWritableCommandPath } from "./command-path-risk.ts";
 import {
-  commandPathScope,
-  isWritableCommandPath,
-  verifiedCommandPaths,
-} from "./command-path-risk.ts";
-import type { PolicyTrace } from "./explain.ts";
+  WINDOWS_ORDINARY_COMMAND,
+  WINDOWS_READ_ONLY,
+  WINDOWS_REQUIRES_APPROVAL,
+} from "./confirmation-reasons.ts";
+import { createPolicyTrace, type PolicyTrace } from "./explain.ts";
+import { finish } from "./finish.ts";
 import {
   prepareGitConfigurationFacts,
   selectedGitConfiguration,
@@ -37,7 +39,8 @@ import { prepareHostSshPolicy } from "./host-ssh-policy.ts";
 import { judgeOutsideWrites } from "./outside-write.ts";
 import { scriptPreauthScope } from "./script-consent.ts";
 import type { CommandAnalysis, EvaluationInput, PathContext, PolicyResult } from "./types.ts";
-import { scanWindowsCommand } from "./windows-command-scan.ts";
+import { proveWindowsReadOnly } from "./windows-command-approval.ts";
+import { prepareWindowsCommandScan } from "./windows-command-scan.ts";
 
 export interface RequestFacts {
   gitHook?: true;
@@ -203,18 +206,20 @@ export async function prepareRequestFacts(
     }
     context.signal.throwIfAborted();
     const scope = commandPathScope(input);
-    const scan = scanWindowsCommand(
-      request.command,
-      extra,
-      scope,
-      await verifiedCommandPaths(request.command, scope, context),
+    const cwd =
       request.cwd ??
-        input.cwd ??
-        (input.workplace.currentId === "home"
-          ? input.workplace.home
-          : input.workplace.folders.find((folder) => folder.id === input.workplace.currentId)
-              ?.path),
-    );
+      input.cwd ??
+      (input.workplace.currentId === "home"
+        ? input.workplace.home
+        : input.workplace.folders.find((folder) => folder.id === input.workplace.currentId)?.path);
+    const protectedRoots = [...(extra ?? []), ...(input.sensitiveReadRoots ?? [])];
+    const scan = await prepareWindowsCommandScan(request.command, {
+      protectedRoots,
+      scope,
+      cwd,
+      writePaths: request.writePaths,
+      context: runner && !extra?.length ? undefined : context,
+    });
     result.command = request.command;
     result.facts.push({ kind: "warning", value: "windows_unisolated" });
     if (scan.fragments.length) {
@@ -233,8 +238,39 @@ export async function prepareRequestFacts(
         result: deny(result, "runner_command_protection_unavailable", trace),
         incomplete: true,
       };
-    result.reason = "windows_requires_approval";
-    trace.step("boundary", "windows_requires_approval", "ask");
+    const readOnly = scan.fragments.length
+      ? undefined
+      : await proveWindowsReadOnly(
+          { ...input, request },
+          context,
+          cwd,
+          protectedRoots,
+          async (file) => {
+            const fileTrace = createPolicyTrace();
+            const fileInput = { ...input, request: file };
+            const facts = await prepareRequestFacts(fileInput, { ...context }, analyze, fileTrace);
+            finish(
+              fileInput,
+              { platform: "win32", userHome: context.protectionHome ?? context.home },
+              facts,
+              fileTrace,
+            );
+            return facts;
+          },
+        );
+    if (readOnly) {
+      result.reason = WINDOWS_READ_ONLY;
+      result.facts.push(...readOnly);
+      return { result, incomplete: false };
+    }
+    const ordinary =
+      !scan.needsConfirmation &&
+      !scan.fragments.length &&
+      !request.stdin &&
+      !request.outsideSandbox &&
+      !input.boundary?.location?.target.startsWith("acp:");
+    result.reason = ordinary ? WINDOWS_ORDINARY_COMMAND : WINDOWS_REQUIRES_APPROVAL;
+    if (ordinary) result.facts.push(...scan.facts);
     return { result, incomplete: true };
   }
   if (!("path" in request) && request.category !== "run_command")

@@ -6,8 +6,11 @@ import {
   explainPolicyResult,
   REVEAL_CONFIRMATION_REASON,
   secretWriteOutDenied,
+  WINDOWS_ORDINARY_COMMAND,
+  WINDOWS_READ_ONLY,
 } from "@pibot/policy";
 import { officeRenderOutputPath } from "@pibot/protocol-base";
+import { SettingsRepo } from "@pibot/storage";
 import { auditAutoAllow, isAutoAllowed } from "../../../core/auto-allow.ts";
 import type { PreparedTool } from "../../../core/local-types.ts";
 import { allowedByYolo, runYolo } from "../../../core/yolo.ts";
@@ -146,7 +149,9 @@ export async function executeStep(
   }
   if (
     fingerprint(checked) !== state.fingerprint ||
-    (allowedByYolo(state.prepared.result) && checked.result.decision !== "allow")
+    (allowedByYolo(state.prepared.result) && checked.result.decision !== "allow") ||
+    (state.prepared.result.reason === WINDOWS_READ_ONLY &&
+      checked.result.reason !== WINDOWS_READ_ONLY)
   ) {
     state.auditFacts = {
       ...state.auditFacts,
@@ -380,7 +385,10 @@ export function assertDispatchStep(this: LocalRunOperations, prepared: PreparedT
     !this.local.execution.allows(this.context, prepared.call.tool) ||
     authorizationSnapshot(this.local, this.context.botId, this.context) !==
       prepared.authorization ||
-    ((state.yolo || allowedByYolo(prepared.result)) && !runYolo(this.local, this.context))
+    ((state.yolo || allowedByYolo(prepared.result)) && !runYolo(this.local, this.context)) ||
+    (allowedByYolo(prepared.result) &&
+      prepared.result.explanation.some((step) => step.code === WINDOWS_ORDINARY_COMMAND) &&
+      new SettingsRepo(this.local.deps.db).get().yoloUnisolatedCommands !== true)
   )
     throw new ToolAuthorizationError("Tool authorization changed");
   if (

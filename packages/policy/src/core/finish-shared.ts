@@ -11,6 +11,7 @@ import {
   GIT_HOOK_CONFIRMATION_REASON,
   GIT_HOOKS_PATH_CONFIRMATION_REASON,
   OUTSIDE_WRITE_REASON,
+  WINDOWS_READ_ONLY,
 } from "./confirmation-reasons.ts";
 import { deny } from "./deny.ts";
 import type { PolicyTrace } from "./explain.ts";
@@ -329,6 +330,14 @@ export function finishShared(
   }
   const commandConsent = commandConfirmation(input, result);
   if (commandConsent) return confirmCommand(result, commandConsent, trace);
+  if (
+    result.reason === WINDOWS_READ_ONLY &&
+    category === "run_command" &&
+    options.platform === "win32"
+  ) {
+    result.decision = "allow";
+    return trace.result(result, "boundary");
+  }
   if (incomplete) {
     if (options.platform !== "win32") {
       result.facts.push({ kind: "warning", value: "incomplete_analysis" });

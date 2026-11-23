@@ -40,7 +40,12 @@ export { createCommandAnalyzer } from "./commands/commands.ts";
 export { DANGEROUS_RULES, dangerousReasons } from "./commands/dangerous.ts";
 export { isReadonlyCommand, READONLY_PROGRAMS } from "./commands/readonly-programs.ts";
 export { agentLaunchPolicy } from "./core/agent-launch.ts";
-export { PRIVATE_NETWORK_REASON } from "./core/confirmation-reasons.ts";
+export {
+  PRIVATE_NETWORK_REASON,
+  WINDOWS_ORDINARY_COMMAND,
+  WINDOWS_READ_ONLY,
+  WINDOWS_REQUIRES_APPROVAL,
+} from "./core/confirmation-reasons.ts";
 export {
   CONNECTION_CONFIRMATION_REASON,
   CONNECTION_READ_ONLY_REASON,
@@ -95,7 +100,7 @@ export {
 } from "./core/outside-write.ts";
 export { pinnedScriptFile, scriptPinnedScope } from "./core/script-consent.ts";
 export type * from "./core/types.ts";
-export { applyYolo, YOLO_REASON } from "./core/yolo.ts";
+export { applyWindowsCommandConsent, applyYolo, YOLO_REASON } from "./core/yolo.ts";
 export { createGrantScope, matchesGrant, siteCovers } from "./grants/grants.ts";
 export {
   matchesRoutinePreauth,

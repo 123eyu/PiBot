@@ -1,4 +1,7 @@
 import { win32 } from "node:path";
+import { powershellSegments } from "./powershell-segments.ts";
+
+type Piece = ReturnType<typeof powershellSegments>["pieces"][number];
 
 /**
  * Cmdlets that only read, format or forward objects already in the pipeline. Exempting them keeps
@@ -31,50 +34,6 @@ const dataHead = (token: string) => /^'(?:[^']|'')*'$/.test(token) || /^"[^"$`]*
  * `Sort-Object $s`, `Select-Object @a`).
  */
 const argumentRuns = /[()@$[\]`{]/;
-
-/** `afterPipeOrCall`: the token sits right after `|` or `&`, where PowerShell expects a program. */
-type Piece = { tokens: string[]; afterPipeOrCall: boolean };
-
-/** Split on unquoted separators while remembering which one, so call operators stay commands. */
-function segments(command: string) {
-  const pieces: Piece[] = [{ tokens: [], afterPipeOrCall: false }];
-  let word = "";
-  let quote = "";
-  const flush = () => {
-    if (word) pieces.at(-1)?.tokens.push(word);
-    word = "";
-  };
-  for (let i = 0; i < command.length && i < 32_768; i++) {
-    const char = command[i] ?? "";
-    if (quote) {
-      word += char;
-      if (char === quote) {
-        if (command[i + 1] === quote) word += command[++i];
-        else quote = "";
-      } else if (char === "`" && quote === '"' && command[i + 1]) word += command[++i];
-      continue;
-    }
-    if (char === "'" || char === '"') {
-      quote = char;
-      word += char;
-    } else if (char === ">") {
-      // `echo hi>notes.txt` attaches the redirect to the word; split it so the target is a path.
-      const prefix = /(?:\d+|\*)$/.exec(word)?.[0] ?? "";
-      word = word.slice(0, word.length - prefix.length);
-      flush();
-      pieces.at(-1)?.tokens.push(prefix + (command[i + 1] === ">" ? ">>" : ">"));
-      if (command[i + 1] === ">") i += 1;
-    } else if (/[;\r\n|&]/.test(char)) {
-      flush();
-      // `&` is the call operator and `|` puts the next token in command position; only `;` and a
-      // newline start a statement whose head may be a plain value.
-      pieces.push({ tokens: [], afterPipeOrCall: char === "&" || char === "|" });
-    } else if (/\s/.test(char)) flush();
-    else word += char;
-  }
-  flush();
-  return { pieces, unclosed: Boolean(quote), tooLong: command.length > 32_768 };
-}
 
 const literal = (raw: string | undefined) => {
   if (!raw) return undefined;
@@ -196,7 +155,7 @@ export function powershellDirectoryWrites(command: string, cwd: string) {
   let unknown = false;
   let changed = false;
   let unknownWrite = false;
-  const parsed = segments(command);
+  const parsed = powershellSegments(command);
   if (parsed.unclosed || parsed.tooLong) unknown = true;
   const tainted = parsed.pieces.some((piece) => !exempt(piece));
   for (const piece of parsed.pieces) {
@@ -242,6 +201,7 @@ export function powershellDirectoryWrites(command: string, cwd: string) {
       if (changed) unknownWrite = true;
     });
     for (const operand of operands) {
+      if (redirect >= 0 && /^\$null$/i.test(operand)) continue;
       const value = literal(operand);
       // A provider target (`HKCU:`, `Env:`, `Function:` …) is outside every folder model, so it is
       // an unknown location even without a directory switch.

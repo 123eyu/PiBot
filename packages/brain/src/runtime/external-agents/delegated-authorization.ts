@@ -1,5 +1,12 @@
 import type { LocalToolCall } from "@pibot/agent";
-import { applyYolo, explainPolicyResult, type PolicyResult } from "@pibot/policy";
+import {
+  applyWindowsCommandConsent,
+  applyYolo,
+  explainPolicyResult,
+  type PolicyResult,
+  WINDOWS_READ_ONLY,
+  WINDOWS_REQUIRES_APPROVAL,
+} from "@pibot/policy";
 import type { ApprovalFact } from "@pibot/protocol-base";
 import { SettingsRepo } from "@pibot/storage";
 import { auditAutoAllow } from "../../core/auto-allow.ts";
@@ -56,15 +63,27 @@ export async function authorizeDelegatedAction(
     const prepared = await prepareTool(local, { ...context, signal }, call, signal);
     if (!options.unisolated || call.tool !== "run_command" || prepared.result.decision === "deny")
       return prepared.result;
-    const bounded = explainPolicyResult(
-      { ...prepared.result, decision: "ask", reason: "windows_unisolated", canRemember: false },
-      "boundary",
-      "windows_unisolated",
-    );
-    return applyYolo(
-      bounded,
+    if (prepared.result.reason === WINDOWS_READ_ONLY) {
+      // The ACP agent owns the shell and its startup state. The native PowerShell proof
+      // does not describe that process.
+      return explainPolicyResult(
+        { ...prepared.result, decision: "ask", reason: WINDOWS_REQUIRES_APPROVAL },
+        "boundary",
+        WINDOWS_REQUIRES_APPROVAL,
+      );
+    }
+    const consent =
       runYolo(local, context) &&
-        new SettingsRepo(local.deps.db).get().yoloUnisolatedCommands === true,
+      new SettingsRepo(local.deps.db).get().yoloUnisolatedCommands === true;
+    if (local.deps.platform === "win32")
+      return applyWindowsCommandConsent(prepared.result, consent);
+    return applyYolo(
+      explainPolicyResult(
+        { ...prepared.result, decision: "ask", reason: "windows_unisolated", canRemember: false },
+        "boundary",
+        "windows_unisolated",
+      ),
+      consent,
       { unisolatedCommands: true },
     );
   };
@@ -74,6 +93,7 @@ export async function authorizeDelegatedAction(
     auditAutoAllow(local, context, call, result);
     return { allowed: true, reason: result.reason };
   }
+  let answeredByYolo = false;
   const status = await local.approvals.request(
     cardScope(context, options.cardContext, signal),
     call,
@@ -81,10 +101,23 @@ export async function authorizeDelegatedAction(
     { available: !options.unisolated },
     judge,
     undefined,
-    undefined,
+    {
+      requested() {},
+      resolved: (_approval, by) => {
+        answeredByYolo = by === "yolo";
+      },
+    },
     undefined,
     { title: options.title, facts: requestedFacts(call, result) },
   );
+  if (
+    status === "allowed" &&
+    options.unisolated &&
+    local.deps.platform === "win32" &&
+    answeredByYolo &&
+    (await judge()).reason !== "yolo"
+  )
+    return { allowed: false, reason: "changed" };
   return { allowed: status === "allowed", reason: status === "allowed" ? "approved" : status };
 }
 

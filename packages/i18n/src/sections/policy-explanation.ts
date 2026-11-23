@@ -112,6 +112,9 @@ export const policyExplanationZh = {
   "policy.reason.privilege_escalation_denied": "不能提升系统权限",
   "policy.reason.incomplete_analysis": "命令无法完整分析，需要逐次确认",
   "policy.reason.windows_requires_approval": "当前 Windows 命令需要逐次确认",
+  "policy.reason.windows_ordinary_command":
+    "普通 Windows 命令仍需确认，除非已开启 YOLO 并同意无隔离执行",
+  "policy.reason.windows_read_only": "已检查 Windows 命令的只读操作和读取范围",
   "policy.reason.command_home_unavailable": "无法确认目标终端的主目录，请使用绝对路径",
   "policy.reason.windows_unisolated": "命令没有系统隔离，需要单独确认",
   "policy.reason.outside_sandbox_once": "这条命令刚被沙箱拦截，要在沙箱外运行一次，需要你当场确认",
@@ -420,6 +423,10 @@ export const policyExplanationEn: Record<keyof typeof policyExplanationZh, strin
   "policy.reason.privilege_escalation_denied": "System privilege escalation is prohibited",
   "policy.reason.incomplete_analysis": "The command cannot be fully analyzed and needs approval",
   "policy.reason.windows_requires_approval": "This Windows command needs approval",
+  "policy.reason.windows_ordinary_command":
+    "This Windows command needs approval unless YOLO and consent to unisolated commands are both enabled",
+  "policy.reason.windows_read_only":
+    "Windows command checked for read-only operations and file access",
   "policy.reason.command_home_unavailable":
     "Target terminal home is unverified; use an absolute path",
   "policy.reason.windows_unisolated": "The command is not isolated and needs separate consent",

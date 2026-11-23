@@ -3,6 +3,7 @@ import { posix, win32 } from "node:path";
 import { SCRIPT_MAX_BYTES } from "../commands/scripts.ts";
 import { PolicyTargetError } from "../core/errors.ts";
 import type { FileSystem, PathContext, Platform, ResolvedPath } from "../core/types.ts";
+import { windowsReadEntries } from "./windows-read-tree.ts";
 
 /**
  * A name the kernel refuses as too long cannot be an existing file and no command can open it, so
@@ -108,7 +109,8 @@ export function decisionFileSystem(platform: Platform): FileSystem {
     },
   };
   // Keep Windows' component handling for drive/UNC aliases until its native path is verified.
-  if (platform !== process.platform || platform === "win32") return walk;
+  if (platform === "win32" && process.platform === "win32") return { ...walk, windowsReadEntries };
+  if (platform !== process.platform) return walk;
   return {
     ...walk,
     async canonicalize(path, signal) {
@@ -150,7 +152,7 @@ export function expandHome(value: string, home: string): string {
   if (value.startsWith("~")) throw new PolicyTargetError("path_resolution_failed");
   return value;
 }
-async function withAbort<T>(operation: () => Promise<T>, signal: AbortSignal): Promise<T> {
+export async function withAbort<T>(operation: () => Promise<T>, signal: AbortSignal): Promise<T> {
   signal.throwIfAborted();
   return new Promise((accept, reject) => {
     const abort = () => {

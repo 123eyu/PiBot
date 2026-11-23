@@ -233,7 +233,7 @@ export class ApprovalService {
     onAllowed?: () => void,
     lifecycle?: {
       requested(approval: Approval): void;
-      resolved(approval: Approval): void;
+      resolved(approval: Approval, by: ResolvedBy): void;
       resuming?(choice: unknown): void;
     },
     consent?: { available: boolean; allow(approval: Approval): void },
@@ -767,7 +767,7 @@ export class ApprovalService {
         const resolvedApproval = this.repo.get(approval.id);
         if (resolvedApproval) {
           try {
-            lifecycle?.resolved(resolvedApproval);
+            lifecycle?.resolved(resolvedApproval, by);
           } catch (error) {
             reject(error);
             throw error;

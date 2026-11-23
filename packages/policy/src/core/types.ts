@@ -159,6 +159,8 @@ export interface FileSystem {
    * directory cannot be listed or holds more. Local only, like readScript.
    */
   listNames?(directory: string, signal: AbortSignal): Promise<readonly string[] | undefined>;
+  /** Bounded local Windows traversal; unsupported or non-regular entries keep the card. */
+  windowsReadEntries?: typeof import("../paths/windows-read-tree.ts").windowsReadEntries;
 }
 export interface PathContext {
   platform: Platform;

@@ -34,8 +34,8 @@ const warnings: Record<string, [string, string]> = {
     "The operation cannot be fully determined; permission cannot be remembered",
   ],
   windows_unisolated: [
-    "Windows 命令没有系统隔离，每次都需审批",
-    "Windows commands have no system isolation and require approval every time",
+    "此命令将在 Windows 上以你的权限运行，没有系统隔离",
+    "This command runs on Windows with your permissions and without system isolation",
   ],
   outside_sandbox_login: [
     "这个程序要用你自己的登录或配置（如 aws、gh、kubectl、ssh 的凭据），在沙箱里跑不通，所以直接请你批准在沙箱外运行",

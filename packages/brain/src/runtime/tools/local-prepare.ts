@@ -799,12 +799,9 @@ async function prepareToolCurrent(
       }
       // Never weaken an existing hard deny (e.g. a never-level or invalid workspace).
       if (result.decision !== "deny") {
-        const automatic =
-          docker &&
-          result.risk !== "danger" &&
-          local.deps.platform === "win32" &&
-          (yolo || settings.levels.run_command === "always");
-        result.decision = reason ? "deny" : automatic ? "allow" : "ask";
+        // Explicit Docker selection does not make an opaque native Windows command safe
+        // for automatic release. Keep the Docker consent and its dedicated dispatch checks.
+        result.decision = reason ? "deny" : "ask";
         result.reason = reason ?? "docker_access";
         recordPolicyStep(result, "boundary", reason ?? "docker_access");
         result.canRemember = false;

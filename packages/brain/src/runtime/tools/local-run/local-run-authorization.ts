@@ -2,6 +2,7 @@ import type { LocalToolCall } from "@pibot/agent";
 import { ExecError, type ExecutionTarget, linuxIsolationRemedy } from "@pibot/execution";
 import {
   applyEditorTerminal,
+  applyWindowsCommandConsent,
   applyYolo,
   browserSecretPolicy,
   EDITOR_TERMINAL_UNISOLATED,
@@ -12,6 +13,8 @@ import {
   type PolicyResult,
   REVEAL_CONFIRMATION_REASON,
   recordPolicyStep,
+  WINDOWS_ORDINARY_COMMAND,
+  WINDOWS_READ_ONLY,
 } from "@pibot/policy";
 import { BrowserNetworkConsentText, RpcError } from "@pibot/protocol-base";
 import { BotsRepo, SettingsRepo } from "@pibot/storage";
@@ -79,26 +82,21 @@ export function applyExplicitUnisolatedTarget(
     (reason !== "windows_unisolated" && reason !== EDITOR_TERMINAL_UNISOLATED)
   )
     return;
+  const consent =
+    runYolo(this.local, this.context) &&
+    new SettingsRepo(this.local.deps.db).get().yoloUnisolatedCommands === true;
   const bounded =
     reason === EDITOR_TERMINAL_UNISOLATED
-      ? applyEditorTerminal(prepared.result, {
-          ...editorTerminalScope.call(this, prepared),
-          sessionShapes: this.local.approvals.editorSessionShapes(this.context),
-        })
-      : explainPolicyResult(
-          { ...prepared.result, decision: "ask", reason, canRemember: false },
-          "boundary",
-          reason,
-        );
-  prepared.result = browserSecretPolicy(
-    applyYolo(
-      bounded,
-      runYolo(this.local, this.context) &&
-        new SettingsRepo(this.local.deps.db).get().yoloUnisolatedCommands === true,
-      { unisolatedCommands: true },
-    ),
-    prepared.browserSecretUses?.length ?? 0,
-  );
+      ? applyYolo(
+          applyEditorTerminal(prepared.result, {
+            ...editorTerminalScope.call(this, prepared),
+            sessionShapes: this.local.approvals.editorSessionShapes(this.context),
+          }),
+          consent,
+          { unisolatedCommands: true },
+        )
+      : applyWindowsCommandConsent(prepared.result, consent);
+  prepared.result = browserSecretPolicy(bounded, prepared.browserSecretUses?.length ?? 0);
 }
 
 export async function authorizeStep(
@@ -335,7 +333,11 @@ export async function authorizeStep(
     // An explicitly unisolated execution target is an ask; YOLO approves it only when the
     // user has turned on "YOLO auto-approves commands (no isolation)".
     applyExplicitUnisolatedTarget.call(this, prepared, unisolatedReason);
-    if (allowedByYolo(prepared.result)) state.unisolatedApproved = true;
+    if (
+      allowedByYolo(prepared.result) ||
+      (prepared.result.decision === "allow" && prepared.result.reason === WINDOWS_READ_ONLY)
+    )
+      state.unisolatedApproved = true;
   }
   // Isolation inspection may yield while the user enables YOLO. Re-check immediately before
   // creating a card, otherwise the newly created card would miss releasePending().
@@ -450,6 +452,7 @@ export async function authorizeStep(
     const approvedFingerprint = fingerprint(original);
     let receipt: SearchConsentReceipt | undefined;
     let folderAdded = false;
+    let windowsYoloCard = false;
     const lifecycle = this.local.unattended?.approvalLifecycle(
       this.context,
       call,
@@ -521,7 +524,13 @@ export async function authorizeStep(
           lifecycle?.requested(approval);
           linkSandboxApproval(this.local, this.context, original, approval);
         },
-        resolved: (approval) => lifecycle?.resolved(approval),
+        resolved: (approval, by) => {
+          windowsYoloCard =
+            by === "yolo" &&
+            isolation.reason === "windows_unisolated" &&
+            original.result.explanation.some((step) => step.code === WINDOWS_ORDINARY_COMMAND);
+          lifecycle?.resolved(approval);
+        },
       },
       {
         available:
@@ -587,6 +596,7 @@ export async function authorizeStep(
       prepared.result = applyYolo(prepared.result, runYolo(this.local, this.context));
       if (
         prepared.result.decision === "deny" ||
+        (windowsYoloCard && !allowedByYolo(prepared.result)) ||
         !approvedUnchanged(prepared, original, approvedFingerprint)
       )
         return refuse("changed", blockedReason("changed"));

@@ -79,6 +79,8 @@ const reasonKeys: Record<string, TranslationKey> = {
   privilege_escalation_denied: "policy.reason.privilege_escalation_denied",
   incomplete_analysis: "policy.reason.incomplete_analysis",
   windows_requires_approval: "policy.reason.windows_requires_approval",
+  windows_ordinary_command: "policy.reason.windows_ordinary_command",
+  windows_read_only: "policy.reason.windows_read_only",
   windows_unisolated: "policy.reason.windows_unisolated",
   outside_sandbox_once: "policy.reason.outside_sandbox_once",
   outside_sandbox_strict: "policy.reason.outside_sandbox_strict",

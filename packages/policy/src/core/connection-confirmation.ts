@@ -5,7 +5,11 @@ import {
   type ConnectorTool,
   connectionConfirmation,
 } from "@pibot/protocol-base";
-import { PRIVATE_NETWORK_REASON } from "./confirmation-reasons.ts";
+import {
+  PRIVATE_NETWORK_REASON,
+  WINDOWS_ORDINARY_COMMAND,
+  WINDOWS_REQUIRES_APPROVAL,
+} from "./confirmation-reasons.ts";
 import { GIT_CONFIGURATION_CONFIRMATION_REASON } from "./git-configuration-policy.ts";
 import { GIT_ENTRY_CONFIRMATION_REASON } from "./git-entry-policy.ts";
 import { GIT_HOOK_CONFIRMATION_REASON } from "./git-hook-policy.ts";
@@ -48,7 +52,8 @@ export function mustAskNow(
     (result.risk === "danger" ||
       result.reason === "browser_sensitive_confirmation" ||
       result.reason === "browser_secret_confirmation" ||
-      result.reason === "windows_requires_approval" ||
+      result.reason === WINDOWS_REQUIRES_APPROVAL ||
+      result.reason === WINDOWS_ORDINARY_COMMAND ||
       result.reason === "windows_unisolated" ||
       result.reason === "command_network_confirmation" ||
       result.reason === "command_install_confirmation" ||

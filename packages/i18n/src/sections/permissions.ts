@@ -240,7 +240,7 @@ export const permissionsZh = {
   "facts.value.topic_writable_scope":
     "选择「以后允许」会覆盖本话题当前的所有可写文件夹，不适用于其他话题；移除文件夹后不再覆盖。",
   "facts.value.incomplete_analysis": "无法完全确定会做什么，不能记住授权",
-  "facts.value.windows_unisolated": "Windows 命令没有系统隔离，每次都需审批",
+  "facts.value.windows_unisolated": "此命令将在 Windows 上以你的权限运行，没有系统隔离",
   "facts.value.local_service": "只放行这一个端口或套接字；其他端口和外网仍被沙箱拦。",
   "facts.value.outside_sandbox_login":
     "这个程序要用你自己的登录或配置（如 aws、gh、kubectl、ssh 的凭据），在沙箱里跑不通，所以直接请你批准在沙箱外运行",
@@ -728,7 +728,7 @@ export const permissionsEn: { [K in keyof typeof permissionsZh]: string } = {
   "facts.value.incomplete_analysis":
     "The operation cannot be fully determined; permission cannot be remembered",
   "facts.value.windows_unisolated":
-    "Windows commands have no system isolation and require approval every time",
+    "This command runs on Windows with your permissions and without system isolation",
   "facts.value.local_service":
     "Only this port or socket is allowed; other ports and the internet remain blocked by the sandbox.",
   "facts.value.outside_sandbox_login":
