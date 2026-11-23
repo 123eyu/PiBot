@@ -30,7 +30,13 @@ async function warmSessionFile(path: string, signal?: AbortSignal) {
   combined.throwIfAborted();
   // pi still owns parsing and persistence. This read moves disk and antivirus work before the
   // synchronous SDK call, so the common cache-hit path does not wait on storage.
-  await readFile(path, { signal: combined });
+  try {
+    await readFile(path, { signal: combined });
+  } catch (error) {
+    // A lazily created session has no file until its first response; pi's open handles that
+    // case itself, so a missing file only means there is nothing to warm.
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
   combined.throwIfAborted();
 }
 
