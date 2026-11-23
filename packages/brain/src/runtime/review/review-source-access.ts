@@ -1,3 +1,4 @@
+import { realpath } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import {
   type SemanticFileCache,
@@ -7,7 +8,7 @@ import {
   verifySnapshotRoot,
 } from "@pibot/execution/semantic";
 import { containsPath } from "@pibot/policy";
-import { RpcError } from "@pibot/protocol-base";
+import { RpcError, type WorkspaceSnapshot } from "@pibot/protocol-base";
 import type { ToolRunContext } from "../../core/local-types.ts";
 import { runPermissionSources, runPermissions } from "../../core/run-permissions.ts";
 import type { LocalService } from "../../local-service.ts";
@@ -25,40 +26,49 @@ export async function reviewSourceAccess(
   const selected = context.worktreeReview;
   if (selected) await local.changes.verifyReceipt(selected, signal, true);
   const boundary = await createReadPathBoundary(local, source, signal, selected?.root.path);
+  const canonicalRoot = await realpath(root);
+  const canonicalBoundary = await canonicalizeBoundary(boundary.workplace.boundary);
   if (selected) {
-    if (root !== selected.root.path || boundary.workplace.cwd !== selected.source.path)
+    if (
+      canonicalRoot !== (await realpath(selected.root.path)) ||
+      !(await samePath(boundary.workplace.cwd, selected.source.path))
+    )
       throw new RpcError(-32602, "review_scope_invalid");
   }
   // This temporary read boundary belongs only to immutable snapshot capture/read. Ordinary tools
   // and the child task's execution workplace continue to use the original topic roots.
   const readBoundary = selected
     ? {
-        ...boundary.workplace.boundary,
+        ...canonicalBoundary,
         roots: [
           {
             id: selected.rootId,
-            path: root,
-            canonicalPath: root,
+            path: canonicalRoot,
+            canonicalPath: canonicalRoot,
             role: "readonly" as const,
             device: selected.root.device,
             inode: selected.root.inode,
           },
         ],
-        readRoots: [root],
+        readRoots: [canonicalRoot],
         writeRoots: [],
-        denyWriteRoots: [root],
+        denyWriteRoots: [canonicalRoot],
       }
-    : boundary.workplace.boundary;
+    : canonicalBoundary;
   const policy = await local.getPolicy(signal);
   const assertCurrent = (current: AbortSignal) => {
     local.tasks.guardSync(context);
     boundary.assertCurrent(current);
     if (selected) local.changes.assertReceipt(selected);
   };
-  if (!readBoundary.roots.some((r) => containsPath(r.canonicalPath, root, local.deps.platform)))
+  if (
+    !readBoundary.roots.some((r) =>
+      containsPath(r.canonicalPath, canonicalRoot, local.deps.platform),
+    )
+  )
     throw new RpcError(-32602, "project_unavailable");
   return {
-    root,
+    root: canonicalRoot,
     authorization: semanticHash(boundary.authorization),
     rootIdentities: readBoundary.roots,
     signal,
@@ -66,28 +76,81 @@ export async function reviewSourceAccess(
     assertCurrent,
     async authorize(path, kind, current) {
       assertCurrent(current);
-      if (!containsPath(root, path, local.deps.platform) || !boundary.permits(path)) return false;
+      let canonical: string;
+      try {
+        canonical = await realpath(path);
+      } catch (error) {
+        if (isMissingReadPath(error)) return false;
+        throw error;
+      }
+      if (!containsPath(root, canonical, local.deps.platform) || !boundary.permits(canonical))
+        return false;
       const result = await policy.evaluate({
         botId: context.botId,
-        request: { category: kind === "file" ? "read_file" : "list_dir", path },
+        request: { category: kind === "file" ? "read_file" : "list_dir", path: canonical },
         settings: local.tasks.settings(context, runPermissions(local, context)),
         permissionSources: runPermissionSources(local, context),
         grants: local.grants(context.botId, context),
         workplace: boundary.workplace.value,
         boundary: readBoundary,
-        cwd: root,
+        cwd: canonicalRoot,
         signal: current,
         realpath: async (value, check) => {
           check.throwIfAborted();
-          return resolve(value);
+          return realpath(value);
         },
       });
       assertCurrent(current);
       return (
         (options.directOnly ? result.decision === "allow" : result.decision !== "deny") &&
-        result.path?.path === path
+        result.path?.path === canonical
       );
     },
+  };
+}
+
+async function samePath(left: string, right: string) {
+  try {
+    return (await realpath(left)) === (await realpath(right));
+  } catch (error) {
+    if (!isMissingReadPath(error)) throw error;
+    // Both paths were already identity-checked, so lexical equality is a safe fallback.
+    return left === right;
+  }
+}
+
+function isMissingReadPath(error: unknown) {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    ["ENOENT", "ENOTDIR", "ELOOP", "EACCES"].includes(String(error.code))
+  );
+}
+
+async function canonicalizeBoundary(boundary: WorkspaceSnapshot): Promise<WorkspaceSnapshot> {
+  const paths = new Map<string, string>();
+  const canonical = async (path: string) => {
+    const existing = paths.get(path);
+    if (existing) return existing;
+    const value = await realpath(path);
+    paths.set(path, value);
+    return value;
+  };
+  const roots = await Promise.all(
+    boundary.roots.map(async (root) => ({
+      ...root,
+      path: await canonical(root.path),
+      canonicalPath: await canonical(root.canonicalPath),
+    })),
+  );
+  return {
+    ...boundary,
+    roots,
+    primaryPath: await canonical(boundary.primaryPath),
+    readonlySource: boundary.readonlySource ? await canonical(boundary.readonlySource) : undefined,
+    readRoots: await Promise.all(boundary.readRoots.map(canonical)),
+    writeRoots: await Promise.all(boundary.writeRoots.map(canonical)),
+    denyWriteRoots: await Promise.all(boundary.denyWriteRoots.map(canonical)),
   };
 }
 export async function assertFrozenAccess(snapshot: SemanticSnapshot, access: SourceAccess) {

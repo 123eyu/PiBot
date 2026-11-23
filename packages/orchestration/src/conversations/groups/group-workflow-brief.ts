@@ -75,6 +75,13 @@ export function stepInstructions(
 export function deferredManualConfirmation(record: HandoffRecord): boolean {
   const result = record.result;
   if (!result || result.userResolved || result.unavailable) return false;
+  if (
+    result.items.some(
+      (item) =>
+        item.check === "verdict" && item.status === "manual" && item.reason === "needs_human",
+    )
+  )
+    return false;
   const manual = new Set(
     record.spec.acceptance.filter((item) => item.check === "manual").map((item) => item.id),
   );
@@ -104,6 +111,13 @@ export function confirmationRequired(record: HandoffRecord): boolean {
   const result = record.result;
   if (result?.userResolved) return false;
   if (!result || result.unavailable || result.items.some((item) => item.status === "manual"))
+    return true;
+  if (
+    record.spec.acceptance.some((item) => item.check === "verdict") &&
+    result.items.some(
+      (item) => item.check === "verdict" && (item.status !== "pass" || !item.verdict),
+    )
+  )
     return true;
   const checked = new Set(result.items.map((item) => item.id));
   return (

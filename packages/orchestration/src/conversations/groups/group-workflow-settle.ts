@@ -60,6 +60,11 @@ export class GroupWorkflowSettlement {
             ...ledger,
             verdicts: { ...ledger.verdicts, [current.stepId]: report },
           });
+        } else if (definition.acceptance.some((item) => item.check === "verdict")) {
+          const ledger = progressOf(record);
+          const verdicts = { ...ledger.verdicts };
+          delete verdicts[current.stepId];
+          progress.save(record, { ...ledger, verdicts });
         }
         this.engine.block(record, definition, current, "verification_required");
       });
