@@ -3,6 +3,9 @@ name: README contributors
 on:
   push:
     branches: [main]
+  schedule:
+    # GitHub can serve cached contributor data for a few hours after a push.
+    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -27,6 +30,8 @@ jobs:
         with:
           node-version-file: .nvmrc
       - name: Refresh the English README
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

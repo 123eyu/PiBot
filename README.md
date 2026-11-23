@@ -110,11 +110,10 @@ Thank you to everyone who has contributed to Pi Bot. See the
 [contribution activity](https://github.com/w01fb0ss/PiBot/graphs/contributors) on GitHub.
 
 <!-- CONTRIBUTORS:START -->
-- agooll
-- Ikko Eltociear Ashimine
-- JQuery
-- juemimgcd
-- leen.zhou
+- [@w01fb0ss](https://github.com/w01fb0ss)
+- [@juemimgcd](https://github.com/juemimgcd)
+- [@eltociear](https://github.com/eltociear)
+- [@agooll](https://github.com/agooll)
 <!-- CONTRIBUTORS:END -->
 
 ## Star History
