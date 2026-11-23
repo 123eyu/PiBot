@@ -148,6 +148,7 @@ const toolProjects = [
   { dir: "tools/codex/", config: "tools/codex/tsconfig.json" },
   { dir: "tools/pibot-dev/", config: "tools/pibot-dev/tsconfig.json" },
   { dir: "tools/eval/", config: "tools/eval/tsconfig.json" },
+  { dir: "tools/ui-driver/", config: "tools/ui-driver/release/tsconfig.json" },
   { dir: "tools/fake-llm/", config: "tools/fake-llm/tsconfig.json" },
 ];
 // tools/codex and tools/eval belong to the private development repository; a public checkout
