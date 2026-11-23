@@ -112,11 +112,22 @@ export async function attachNamedOutputs(input: {
     ...touched.filter(named),
     ...touched.filter(unnamedNew),
   ]);
+  // One file can arrive under two spellings (Windows case, separators); it is attached once.
+  const same = (path: string) =>
+    local.deps.platform === "win32" ? resolve(path).toLowerCase() : resolve(path);
+  const declared = new Set(
+    (input.declared ?? []).map((path) => same(resolve(place?.cwd ?? "", path))),
+  );
+  const alreadySent = (path: string) => {
+    const key = same(path);
+    for (const item of sent) if (same(item) === key) return true;
+    return false;
+  };
   let overflow: AttachmentOverflow | undefined;
   for (const candidate of candidates) {
     signal.throwIfAborted();
     const path = resolve(place?.cwd ?? "", candidate);
-    if (sent.has(path)) continue;
+    if (alreadySent(path)) continue;
     const root = place?.boundary.writeRoots.find((entry) => {
       const part = relative(entry, path);
       return part && !part.startsWith(`..${sep}`) && part !== ".." && !isAbsolute(part);
@@ -145,7 +156,7 @@ export async function attachNamedOutputs(input: {
     }
     if (
       unnamedNew(candidate) &&
-      !(input.declared ?? []).includes(candidate) &&
+      !declared.has(same(path)) &&
       (recorded.get(path) === "modify" ||
         recorded.get(path) === "delete" ||
         (recorded.get(path) !== "add" &&

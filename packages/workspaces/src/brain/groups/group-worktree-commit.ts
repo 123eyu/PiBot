@@ -8,6 +8,7 @@ import {
   type ManagedGitAuthority,
   type ManagedGitRepository,
 } from "@pibot/execution";
+import { containsPath } from "@pibot/policy";
 import { RpcError } from "@pibot/workspaces-contract/full";
 import { parseStatus } from "../changes/git/changes-git.ts";
 
@@ -65,7 +66,11 @@ export async function commitGroupWorktree(
       authority.signal.throwIfAborted();
       if (sensitiveOutputPath(path)) throw new RpcError(-32602, "group_workspace_sensitive_output");
       const absolute = resolve(repository.root.path, path);
-      if (!absolute.startsWith(`${repository.root.path}/`))
+      // A native resolve() result: a `/` prefix test refused every Windows commit with changes.
+      if (
+        absolute === repository.root.path ||
+        !containsPath(repository.root.path, absolute, local.deps.platform)
+      )
         throw new RpcError(-32602, "group_workspace_sensitive_output");
       try {
         const info = await lstat(absolute);

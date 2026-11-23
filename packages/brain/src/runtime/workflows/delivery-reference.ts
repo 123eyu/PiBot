@@ -118,7 +118,12 @@ export async function resolveReference(
         resolve(folder, path),
         ...aliasPaths.map(({ target }) => target),
       ];
-      if (path.startsWith(`${basename(root)}/`)) candidates.push(resolve(dirname(root), path));
+      // A Windows reply spells the folder-name prefix with `\` as often as with `/`.
+      if (
+        path.startsWith(`${basename(root)}/`) ||
+        (sep === "\\" && path.startsWith(`${basename(root)}\\`))
+      )
+        candidates.push(resolve(dirname(root), path));
       for (const candidate of candidates) {
         if (excluded.has(resolve(candidate))) continue;
         try {

@@ -46,9 +46,14 @@ export async function checkpointParents(
       (part, index) =>
         !part ||
         part === ".." ||
-        // Deliverables under `.pibot/out` are user files; the rest of `.pibot` is Pi Bot's.
+        // Deliverables under `.pibot/out` are user files; the rest of `.pibot` is Pi Bot's. The
+        // exception folds case like the unsafe names do: Windows and macOS spell `.PiBot/Out` too.
         (unsafe.has(part.toLowerCase()) &&
-          !(part === ".pibot" && parts[index + 1] === "out" && index + 2 < parts.length)) ||
+          !(
+            part.toLowerCase() === ".pibot" &&
+            parts[index + 1]?.toLowerCase() === "out" &&
+            index + 2 < parts.length
+          )) ||
         /^\.env(?:\.|$)/i.test(part),
     ) ||
     /[\0\r\n]/.test(path)
