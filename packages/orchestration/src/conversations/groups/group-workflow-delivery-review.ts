@@ -225,7 +225,11 @@ export function supplementStep(before: GroupPlan, card: GroupPlanCard) {
 }
 
 export function reviewConclusion(review: DeliveryReview | undefined, zh: boolean) {
-  if (!review?.coverage || review.unavailable)
+  if (
+    !review?.coverage ||
+    review.unavailable ||
+    review.coverage.length !== review.requirements.length
+  )
     return [
       zh
         ? "没有逐条核对原始需求是否都已覆盖：统筹的总结里没有可用的逐条对照。"

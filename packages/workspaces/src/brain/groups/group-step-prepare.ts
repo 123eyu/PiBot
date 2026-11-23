@@ -77,8 +77,10 @@ export async function prepareStepWorktree(
     // Only the prepare limit is a setup failure; a stop or shutdown ends the step as before, and
     // so does an approval nobody answered in time (that is the person's decision, not a setup).
     const timedOut = signal.reason instanceof Error && signal.reason.name === "TimeoutError";
+    if (signal.aborted && timedOut && owner.stageOf(context.runId) === "authority")
+      throw new RpcError(-32602, "group_workspace_not_approved");
     if (
-      (signal.aborted && (!timedOut || owner.stageOf(context.runId) === "authority")) ||
+      (signal.aborted && !timedOut) ||
       (error instanceof RpcError && DECISIONS.has(error.message))
     )
       throw error;

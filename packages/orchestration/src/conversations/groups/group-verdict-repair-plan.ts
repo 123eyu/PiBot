@@ -9,6 +9,16 @@ import type { GroupWorkflowStepRecord } from "@pibot/storage";
 import type { WorkflowProgress } from "./group-workflow-progress.ts";
 import { implementationOwners, repairableVerdicts } from "./group-workflow-verdicts.ts";
 
+function withRoundSuffix(path: string, suffix: string) {
+  const slash = path.lastIndexOf("/");
+  const directory = slash === -1 ? "" : path.slice(0, slash + 1);
+  const name = slash === -1 ? path : path.slice(slash + 1);
+  const dot = name.lastIndexOf(".");
+  const stem = dot > 0 ? name.slice(0, dot) : name;
+  const extension = dot > 0 ? name.slice(dot) : "";
+  return `${directory}${stem}.${suffix}${extension}`;
+}
+
 type Step = GroupPlan["steps"][number];
 
 function upstream(
@@ -33,8 +43,11 @@ function upstream(
   }
 }
 
-function outputCopies(step: Step, prefix: string) {
-  return step.deliverables.map((item) => ({ ...item, path: `${prefix}/${item.path}` }));
+function outputCopies(step: Step, suffix: string) {
+  return step.deliverables.map((item) => ({
+    ...item,
+    path: withRoundSuffix(item.path, suffix),
+  }));
 }
 
 export function verdictRepairPlan(
@@ -65,7 +78,11 @@ export function verdictRepairPlan(
     const fixId = `${prefix}_fix`,
       recheckId = `${prefix}_check`;
     const implementation = upstream(original, before, author, owners);
-    const summary = { id: "summary", path: `${prefix}/changes.md`, kind: "md" as const };
+    const summary = {
+      id: "summary",
+      path: withRoundSuffix("changes.md", prefix),
+      kind: "md" as const,
+    };
     const facts: GroupVerification | undefined = progress.implementation;
     const task = [
       "修复原交付成果，不要修改核对结论冒充修复；按原合同交付修订成果。 / Repair the original artifacts and deliver their corrected versions under the original contract; never edit the verifier's verdict to fake a fix.",
@@ -73,7 +90,7 @@ export function verdictRepairPlan(
     ]
       .join("\n")
       .slice(0, 15000);
-    const outputs = implementation ? outputCopies(implementation, `${prefix}/fixed`) : [summary];
+    const outputs = implementation ? outputCopies(implementation, prefix) : [summary];
     steps.push({
       id: fixId,
       title: "修复不通过项 / Repair failed checks",
@@ -97,7 +114,7 @@ export function verdictRepairPlan(
         stepId: fixId,
         deliverableId: file.id,
       })),
-      deliverables: outputCopies(before, `${prefix}/recheck`),
+      deliverables: outputCopies(before, `${prefix}_recheck`),
       task: `复验原不通过项和修订成果，给出真实结论。 / Recheck the failed items and corrected artifacts; give an honest verdict.\n${before.task}`.slice(
         0,
         15000,

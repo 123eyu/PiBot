@@ -143,6 +143,9 @@ export function GroupPlanProgressView({
   const ownerIds = new Map(card.owners.map((entry) => [entry.stepId, entry.botId]));
   const owner = (stepId: string) => bots?.get(ownerIds.get(stepId) ?? "");
   const share = progress.total ? Math.round((progress.passed / progress.total) * 100) : 0;
+  const terminalStopped =
+    progress.status === "cancelled" ||
+    (progress.status === "failed" && progress.stoppedReason === "user_stopped");
   return (
     <div className={styles.modify} aria-live="polite">
       <div className={styles.head}>
@@ -168,7 +171,9 @@ export function GroupPlanProgressView({
                     : step.verdict?.verdict === "fail"
                       ? "failed"
                       : step.paused
-                        ? "stopped"
+                        ? terminalStopped
+                          ? "stopped"
+                          : "waiting"
                         : dots[step.status]
               }
               className={styles.dot}
@@ -193,7 +198,7 @@ export function GroupPlanProgressView({
                       count: step.verdict.failures.length,
                     })
                   : step.paused
-                    ? t("group.plan.step.paused")
+                    ? t(terminalStopped ? "group.plan.step.stopped" : "group.plan.step.paused")
                     : t(`group.plan.step.${step.status}`)}
               {step.status === "running" && step.attempt > 0
                 ? ` · ${t("group.plan.attempt", { n: step.attempt + 1 })}`

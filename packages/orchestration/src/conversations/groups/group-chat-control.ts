@@ -53,7 +53,7 @@ export function postProgramNotice(
   service: GroupService,
   group: Pick<Group, "id" | "conversationId" | "coordinatorBotId">,
   kind: ChatControl,
-  stepTitle?: string,
+  stepTitles?: readonly string[],
 ) {
   const zh = service.deps.chat.currentLanguage() === "zh";
   const text =
@@ -61,10 +61,10 @@ export function postProgramNotice(
       ? zh
         ? "已暂停：正在做的步骤已停下，进度保留。说「继续」或点「继续」恢复。"
         : 'Paused: the running step stopped and progress is kept. Say "continue" or tap Continue to resume.'
-      : stepTitle
+      : stepTitles?.length
         ? zh
-          ? `已继续，从「${stepTitle}」接着做。`
-          : `Resumed from "${stepTitle}".`
+          ? `已继续，从「${stepTitles.join("」「")}」接着做。`
+          : `Resumed from "${stepTitles.join('", "')}".`
         : zh
           ? "已继续。"
           : "Resumed.";
@@ -163,7 +163,12 @@ export async function resumeGroupNow(
   }
   between?.();
   const resumed = service.resumeAfterPause(updated, false);
-  const notice = postProgramNotice(service, group, "resume", resumed[0]?.title);
+  const notice = postProgramNotice(
+    service,
+    group,
+    "resume",
+    resumed.map((step) => step.title),
+  );
   log(service, event, group.id, 0, resumed.length);
   return { notice, resumed };
 }

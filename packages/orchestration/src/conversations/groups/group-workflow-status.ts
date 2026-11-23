@@ -33,10 +33,17 @@ export function workflowStatusText(
   const owner = (stepId: string) =>
     names.get(steps.find((step) => step.stepId === stepId)?.ownerBotId ?? "") ?? "";
   const done = steps.filter((step) => ["passed", "skipped"].includes(step.status));
-  const running = steps.filter((step) => step.status === "running");
+  const running = steps.filter(
+    (step) => step.status === "running" && workspaces.get(step.stepId) !== "shared",
+  );
   const held = new Set(Object.keys(progressOf(record).paused ?? {}));
   const paused = steps.filter((step) => step.status === "ready" && held.has(step.stepId));
-  const ready = steps.filter((step) => step.status === "ready" && !held.has(step.stepId));
+  const ready = steps.filter(
+    (step) =>
+      (step.status === "ready" ||
+        (step.status === "running" && workspaces.get(step.stepId) === "shared")) &&
+      !held.has(step.stepId),
+  );
   const blocked = steps.filter((step) => step.status === "blocked");
   const lines = [
     zh

@@ -448,7 +448,13 @@ export class GroupService implements CollaborationPort {
    */
   resumeAfterPause(group: Group, announce: boolean) {
     const resumed = this.workflows.pause.resume(group.id);
-    if (announce && resumed.length) postProgramNotice(this, group, "resume", resumed[0]?.title);
+    if (announce && resumed.length)
+      postProgramNotice(
+        this,
+        group,
+        "resume",
+        resumed.map((step) => step.title),
+      );
     return resumed;
   }
   private async updateNow(

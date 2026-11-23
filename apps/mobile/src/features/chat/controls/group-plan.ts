@@ -100,7 +100,10 @@ export interface PlanStepView {
   attempt: number;
 }
 type StepState = GroupPlanProgress["steps"][number];
-function stepLook(state: StepState | undefined): { mark: StepMark; label: MobileKey } {
+function stepLook(
+  state: StepState | undefined,
+  terminalStopped: boolean,
+): { mark: StepMark; label: MobileKey } {
   if (!state) return { mark: "waiting", label: "gpStepWaiting" };
   // Same order as the desktop progress dots: a resolved verdict wins over the raw state.
   if (state.verdictResolution?.kind === "repaired") return { mark: "done", label: "gpStepDone" };
@@ -108,7 +111,11 @@ function stepLook(state: StepState | undefined): { mark: StepMark; label: Mobile
     return { mark: "skipped", label: "gpStepSkipped" };
   if (state.status === "passed") return { mark: "done", label: "gpStepDone" };
   // Stopped by the group's pause: not a failure, and it runs again when the group continues.
-  if (state.paused) return { mark: "waiting", label: "gpStepPaused" };
+  if (state.paused)
+    return {
+      mark: "waiting",
+      label: terminalStopped ? "gpStepStopped" : "gpStepPaused",
+    };
   if (state.status === "blocked") return { mark: "attention", label: "gpStepNeedsYou" };
   if (state.status === "failed") return { mark: "failed", label: "gpStepFailed" };
   if (state.status === "running")
@@ -130,6 +137,9 @@ export function planView(state: GroupPlanState) {
   const ids = progress?.steps.length
     ? progress.steps.map((step) => step.stepId)
     : card.plan.steps.map((step) => step.id);
+  const terminalStopped =
+    progress?.status === "cancelled" ||
+    (progress?.status === "failed" && progress.stoppedReason === "user_stopped");
   const steps = ids.map((id): PlanStepView => {
     const step = defined.get(id);
     const fact = facts.get(id);
@@ -138,7 +148,7 @@ export function planView(state: GroupPlanState) {
       title: step?.title ?? id,
       task: step?.task === undefined ? undefined : visibleTaskText(step.task),
       botId: owners.get(id),
-      ...stepLook(fact),
+      ...stepLook(fact, terminalStopped),
       attempt: fact?.attempt ?? 0,
     };
   });

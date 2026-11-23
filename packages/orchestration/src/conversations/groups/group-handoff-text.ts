@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { join } from "node:path";
 import { citationFailureHint, deliveryCorrectionText } from "@pibot/brain/orchestration-kit";
 import type { DeliveryItem, HandoffSpec } from "@pibot/protocol-base";
 import type { HandoffRecord } from "@pibot/storage";
@@ -50,7 +50,7 @@ function acceptanceLine(item: HandoffSpec["acceptance"][number], spec: HandoffSp
 export function handoffBrief(spec: HandoffSpec, base: string | null, language: Language) {
   const zh = language === "zh";
   const lines = [zh ? "【交接要求】" : "[Hand-off]"];
-  const files = spec.files.map((path) => (base ? resolve(base, path) : path));
+  const files = spec.files.map((path) => (base ? join(base, path) : path));
   if (spec.files.length)
     lines.push(
       zh

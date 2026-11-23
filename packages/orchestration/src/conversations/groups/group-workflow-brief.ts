@@ -49,7 +49,7 @@ export function stepInstructions(
       `产物目录 / Output folder:\n${plan.folder}`,
       ownWorkspace
         ? "你在自己的独立工作区里写，上面的路径相对于你的工作文件夹；通过检查后由 Pi Bot 合并回群文件夹。 / You write in your own workspace; the paths above are relative to your working folder. Pi Bot merges your work into the group folder once it passes its checks."
-        : "",
+        : "你和其他成员在群文件夹里轮流写；上面的路径相对于群文件夹。 / You and the other members take turns writing in the group folder; the paths above are relative to that folder.",
       handoffBrief(spec, plan.folder, "zh"),
       `交付合同 / Delivery contract:\n${JSON.stringify({ deliverables: step.deliverables, acceptance: step.acceptance })}`,
       dependencyContext ? `依赖上下文 / Dependency context:\n${dependencyContext}` : "",
