@@ -4,7 +4,13 @@ import { lstat, open, realpath } from "node:fs/promises";
 import { basename } from "node:path";
 import { canonicalPath, ExecError, sameFile } from "@pibot/execution";
 import { containsPath } from "@pibot/policy";
-import { FILE_LIMIT, RpcError, RpcErrorCodes } from "@pibot/protocol-base";
+import {
+  type Attachment,
+  canPreviewSvg,
+  FILE_LIMIT,
+  RpcError,
+  RpcErrorCodes,
+} from "@pibot/protocol-base";
 import { AttachmentsRepo, MessagesRepo, RunsRepo, transaction } from "@pibot/storage";
 import { auditLeaf } from "../../core/audit-fields.ts";
 import type { PreparedTool, ToolRunContext } from "../../core/local-types.ts";
@@ -66,6 +72,21 @@ async function readSource(
   } finally {
     await file.close();
   }
+}
+
+function deliveryText(items: Attachment[]): string {
+  const lines: string[] = [];
+  if (items.some((item) => item.kind === "image"))
+    lines.push("Raster images are attached as inline pictures. / 位图已作为对话中的图片附上。");
+  if (items.some(canPreviewSvg))
+    lines.push(
+      "SVG files are attached. Desktop chat shows them inline when the preview loads. Phones and failed previews show file cards. Describe them as attached. / SVG 已附上。桌面端预览成功后会内联显示，手机端和预览失败时显示文件卡片。请说明 SVG 已附上。",
+    );
+  if (items.some((item) => item.kind === "file" && !canPreviewSvg(item)))
+    lines.push(
+      "Other files are attached as file cards the user can click to open or preview. Do not say those files are embedded. / 其他文件以文件卡片附上，可点击打开或预览。不要说这些文件已内联显示。",
+    );
+  return lines.join("\n");
 }
 
 export async function sendFiles(
@@ -147,7 +168,7 @@ export async function sendFiles(
     local.deps.logger.warn("Attachment notification deferred; history retains committed metadata");
   }
   return {
-    text: "Files attached to your reply. Images are visible to the user; do not say you cannot display them. / 文件已附到回复，图片可直接查看，不要再说无法显示图片。",
+    text: deliveryText(batch.items.map((item) => item.metadata)),
     summary: "send_file",
   };
 }

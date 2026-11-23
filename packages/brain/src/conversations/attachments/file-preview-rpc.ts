@@ -1,8 +1,10 @@
+// Resolve and read preview bytes under the same authority as their source message or run.
 import type { DatabaseSync } from "node:sqlite";
 import type { ExecutionTarget } from "@pibot/execution";
 import {
   type KernelMethodParams,
   type KernelMethodResults,
+  PREVIEW_TEXT_BYTES,
   previewKind,
   RpcError,
   RpcErrorCodes,
@@ -86,7 +88,7 @@ export function registerPreviewRpc(
       const fresh = await previewSource(deps, input, signal);
       if (fresh.path !== item.path || fresh.root !== item.root) fail("preview_changed");
       if (kind === "markdown" || kind === "code" || kind === "svg") {
-        if (read.bytes.length > 2_097_152) fail("preview_limit");
+        if (read.bytes.length > PREVIEW_TEXT_BYTES) fail("preview_limit");
         let text: string;
         try {
           text = new TextDecoder("utf-8", { fatal: true }).decode(read.bytes);

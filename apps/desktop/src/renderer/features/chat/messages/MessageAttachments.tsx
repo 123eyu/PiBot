@@ -1,4 +1,5 @@
-import { type Attachment, previewKind } from "@pibot/protocol";
+// Present persisted chat attachments through their format-specific preview paths.
+import { type Attachment, canPreviewSvg, previewKind } from "@pibot/protocol";
 import { RevealFileButton, useRpc, useT } from "@pibot/renderer-kit";
 import { Button, CloseButton } from "@pibot/ui";
 import {
@@ -17,6 +18,7 @@ import { OfficeAttachment } from "../../office/OfficeAttachment.tsx";
 import { FileCard } from "../composer/Attachments.tsx";
 import styles from "../composer/attachments.module.css";
 import { imageKey, imagePreviewCache } from "./image-preview-cache.ts";
+import { SvgAttachment } from "./SvgAttachment.tsx";
 
 const zeroVersion = () => 0;
 
@@ -271,6 +273,8 @@ export function MessageAttachments({
         >
           {attachment.kind === "image" ? (
             <ImagePreview attachment={attachment} messageId={messageId} />
+          ) : messageId && !readOnly && canPreviewSvg(attachment) ? (
+            <SvgAttachment attachment={attachment} messageId={messageId} />
           ) : previewKind(attachment.name) && messageId ? (
             <OfficeAttachment attachment={attachment} messageId={messageId} readOnly={readOnly} />
           ) : (

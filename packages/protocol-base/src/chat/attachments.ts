@@ -1,3 +1,4 @@
+// Keep stored attachment metadata separate from the formats accepted by image decoders.
 import { z } from "zod";
 
 export const IMAGE_LIMIT = 10 * 1024 * 1024;
@@ -66,6 +67,7 @@ export const TEXT_EXTENSIONS = new Set([
   "hs",
 ]);
 export const FILE_MIMES = [
+  "image/svg+xml",
   "text/plain",
   "text/markdown",
   "text/csv",
@@ -81,6 +83,7 @@ export const FILE_MIMES = [
 ] as const;
 export function fileMime(name: string): (typeof FILE_MIMES)[number] | undefined {
   const ext = name.split(".").at(-1)?.toLowerCase() ?? "";
+  if (ext === "svg") return "image/svg+xml";
   if (ext === "pdf") return "application/pdf";
   if (ext === "docx")
     return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";

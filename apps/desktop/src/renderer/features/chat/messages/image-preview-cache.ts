@@ -1,3 +1,4 @@
+// Share bounded image reads across the visible conversation without retaining full previews.
 import type { ChatPeer } from "@pibot/client-core";
 import { type ChatReadCache, chatReadCache } from "@pibot/client-core";
 import {
@@ -241,6 +242,38 @@ export class ImagePreviewCache {
         } finally {
           // A failed or cancelled read does not change the attachment, so it must not evict the
           // preview or bump the version (that re-ran the effects and retried without limit).
+          release();
+        }
+      },
+      signal,
+    );
+  }
+  async svgSource(attachment: Attachment, messageId: string, signal: AbortSignal) {
+    const identity = this.identity(attachment, messageId);
+    const version = identity.version;
+    const key = imageKey(attachment);
+    return this.reads.read(
+      `image-svg:${key}:${messageId}`,
+      async (queued) => {
+        const release = await this.slot(queued);
+        const read = AbortSignal.any([queued, AbortSignal.timeout(30_000)]);
+        try {
+          // The preview RPC checks the original message link and applies SVG byte limits.
+          const image = await this.reads.peer.call(
+            "preview.read",
+            { requestId: crypto.randomUUID(), messageId, attachmentId: attachment.id },
+            { signal: read, timeoutMs: 35_000 },
+          );
+          read.throwIfAborted();
+          if (
+            image.kind !== "svg" ||
+            this.disposed ||
+            identity !== this.identities.get(key) ||
+            version !== identity.version
+          )
+            throw new Error("SVG preview unavailable");
+          return `data:image/svg+xml;base64,${image.data}`;
+        } finally {
           release();
         }
       },

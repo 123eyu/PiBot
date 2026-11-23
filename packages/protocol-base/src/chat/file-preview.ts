@@ -1,5 +1,19 @@
+// Define the file formats and read limits shared by the preview clients and brain.
 import { z } from "zod";
 import { IdSchema } from "../core/ids.ts";
+import type { Attachment } from "./attachments.ts";
+
+export const PREVIEW_TEXT_BYTES = 2_097_152;
+
+/** Old SVGs were stored with a generic MIME. Keep them in the file preview path. */
+export function canPreviewSvg(attachment: Pick<Attachment, "kind" | "name" | "size">): boolean {
+  return (
+    attachment.kind === "file" &&
+    previewKind(attachment.name) === "svg" &&
+    attachment.size > 0 &&
+    attachment.size <= PREVIEW_TEXT_BYTES
+  );
+}
 
 export const PreviewKindSchema = z.enum([
   "docx",
@@ -98,7 +112,7 @@ export const PreviewFileSchema = z.strictObject({
   revision: z.string().regex(/^[a-f0-9]{64}$/),
   // Base64 is the original local file for visual formats; text has already been redacted.
   data: z.string().max(27_962_028),
-  text: z.string().max(2_097_152).optional(),
+  text: z.string().max(PREVIEW_TEXT_BYTES).optional(),
 });
 export const PreviewMethods = {
   "preview.read": {
