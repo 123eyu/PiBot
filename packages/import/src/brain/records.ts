@@ -1,7 +1,7 @@
 // Bound adapter output and page writes so the brain remains responsive during large imports.
 import { setImmediate as yieldToLoop } from "node:timers/promises";
 import type { BrainRedactor } from "@pibot/brain/kit";
-import type { ImportPreview, ImportStatus } from "@pibot/import-contract";
+import type { ExportDetails, ImportPreview, ImportStatus } from "@pibot/import-contract";
 import type { ImportStore } from "../store/index.ts";
 import {
   type ImportAdapter,
@@ -11,7 +11,10 @@ import {
   PreviewRecordSchema,
 } from "./adapter.ts";
 
-const PAGE_RECORDS = 32;
+const PREVIEW_RECORDS = 32;
+const PAGE_RECORDS = 4;
+const PAGE_TEXT_BYTES = 128 * 1024;
+const PAGE_WORK_MS = 18;
 const MAX_TOPICS = 20_000;
 const MAX_MESSAGES = 500_000;
 const MAX_TEXT_BYTES = 512 * 1024 * 1024;
@@ -37,15 +40,27 @@ class Summary {
 export async function summarize(adapter: ImportAdapter, input: ImportInput, signal: AbortSignal) {
   const summary = new Summary();
   let pending = 0;
+  let exportDetails: ExportDetails | undefined;
   for await (const record of adapter.preview(input, signal)) {
     signal.throwIfAborted();
     const parsed = PreviewRecordSchema.safeParse(record);
     if (!parsed.success) throw new ImportFailure("format");
-    summary.include(parsed.data);
-    if (++pending % PAGE_RECORDS === 0) await yieldToLoop(undefined, { signal });
+    if (parsed.data.kind === "exportSummary") {
+      const { kind: _kind, ...details } = parsed.data;
+      if (exportDetails) throw new ImportFailure("format");
+      exportDetails = details;
+    } else {
+      summary.include(parsed.data);
+    }
+    if (++pending % PREVIEW_RECORDS === 0) await yieldToLoop(undefined, { signal });
   }
   signal.throwIfAborted();
-  return { ...summary.counts, from: summary.from, through: summary.through };
+  return {
+    ...summary.counts,
+    from: summary.from,
+    through: summary.through,
+    ...(exportDetails ? { exportDetails } : {}),
+  };
 }
 
 type WriteOptions = {
@@ -66,6 +81,8 @@ export async function writeRecords(opts: WriteOptions) {
   const page: Array<() => void> = [];
   let conversationId: string | undefined;
   let bytes = 0;
+  let pageBytes = 0;
+  let pageStart = performance.now();
   function flush() {
     signal.throwIfAborted();
     if (!page.length) return;
@@ -78,6 +95,7 @@ export async function writeRecords(opts: WriteOptions) {
       summary.counts,
     );
     page.length = 0;
+    pageBytes = 0;
     progress(summary.counts);
   }
   for await (const record of adapter.read(input, signal)) {
@@ -85,10 +103,22 @@ export async function writeRecords(opts: WriteOptions) {
     const parsed = ImportRecordSchema.safeParse(record);
     if (!parsed.success) throw new ImportFailure("format");
     const item = parsed.data;
+    const size = Buffer.byteLength(item.kind === "topic" ? item.title : item.text);
+    if (
+      page.length &&
+      (page.length >= PAGE_RECORDS ||
+        pageBytes + size > PAGE_TEXT_BYTES ||
+        performance.now() - pageStart >= PAGE_WORK_MS)
+    ) {
+      flush();
+      await yieldToLoop(undefined, { signal });
+      pageStart = performance.now();
+    }
     summary.include(item);
     if (summary.counts.topics > preview.topics || summary.counts.messages > preview.messages)
       throw new ImportFailure("source_changed");
-    bytes += Buffer.byteLength(item.kind === "topic" ? item.title : item.text);
+    bytes += size;
+    pageBytes += size;
     if (bytes > MAX_TEXT_BYTES) throw new ImportFailure("limit");
     if (item.kind === "topic") {
       const title = redactImportText(opts.redactor, item.title).slice(0, 200);
@@ -102,9 +132,6 @@ export async function writeRecords(opts: WriteOptions) {
         store.addMessage(importId, botId, conversationId, { ...item, text });
       });
     }
-    if (page.length < PAGE_RECORDS) continue;
-    flush();
-    await yieldToLoop(undefined, { signal });
   }
   if (
     summary.counts.topics !== preview.topics ||

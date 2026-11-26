@@ -287,6 +287,8 @@ const common = {
     "Deleted {count} command logs under retention settings ({bytes} bytes)",
   "audit.runRetention.requested": "Requested cleanup of run records older than {days} days",
   "settings.saveError": "Couldn’t save settings. Please try again.",
+  "errors.import_format_chatgpt": "The ChatGPT export format was not recognized.",
+  "errors.import_format_claude": "The Claude export format was not recognized.",
   "errors.no_model":
     "No model is available. Configure a provider in Settings and choose a model for this Bot first.",
   "errors.subscription_unsupported":

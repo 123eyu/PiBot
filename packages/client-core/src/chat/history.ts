@@ -191,10 +191,18 @@ export async function readHistory(
         ? { hasMore }
         : {}),
     });
-  } catch {
+  } catch (error) {
     if (!this.lifetime.signal.aborted && version === this.historyVersion) {
       this.failedPage = false;
-      this.patch({ historyError: true, historyReady: false });
+      const missing =
+        error instanceof RpcError &&
+        error.code === RpcErrorCodes.invalidParams &&
+        error.message === "Unknown topic";
+      this.patch({
+        historyError: true,
+        historyReady: false,
+        ...(missing ? { messages: [], hasMore: false } : {}),
+      });
     }
   }
 }

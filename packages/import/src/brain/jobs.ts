@@ -11,6 +11,8 @@ import type {
 import { RpcError, RpcErrorCodes } from "@pibot/protocol-base";
 import type { ImportStore } from "../store/index.ts";
 import { adapters, ImportFailure, type ImportInput } from "./adapter.ts";
+import { ImportCleanup } from "./cleanup.ts";
+import { exportAdapter } from "./exports/index.ts";
 import { fixtureAdapter } from "./fixture.ts";
 import { summarize, writeRecords } from "./records.ts";
 import { selectedInput } from "./source.ts";
@@ -39,8 +41,13 @@ function failureReason(error: unknown): NonNullable<ImportStatus["reason"]> {
 }
 
 export class ImportJobs {
-  private readonly adapters = adapters(fixtureAdapter);
+  private readonly adapters = adapters(
+    fixtureAdapter,
+    exportAdapter("chatgpt"),
+    exportAdapter("claude"),
+  );
   private readonly closing = new AbortController();
+  private readonly cleanup: ImportCleanup;
   private selection?: Selection;
   private previewing?: Promise<ImportPreview | null>;
   private active?: Running;
@@ -48,15 +55,22 @@ export class ImportJobs {
   constructor(
     private readonly ctx: CapabilityContext,
     private readonly store: ImportStore,
-  ) {}
+  ) {
+    this.cleanup = new ImportCleanup(
+      store,
+      this.closing.signal,
+      (status) => this.publish(status),
+      () => this.ctx.logger.error("import_cleanup_failed"),
+    );
+  }
 
   idle() {
-    return !this.active && !this.previewing;
+    return !this.active && !this.previewing && this.cleanup.idle();
   }
 
   recover() {
-    for (let id = this.store.unfinished(); typeof id === "string"; id = this.store.unfinished())
-      this.store.finish({ ...this.status(id), state: "failed", reason: "interrupted" });
+    this.store.recover();
+    void this.cleanup.wake();
   }
 
   async detect(source: ImportSource, caller: AbortSignal) {
@@ -103,6 +117,8 @@ export class ImportJobs {
       signal.throwIfAborted();
       const reason = failureReason(error);
       if (reason === "internal") throw error;
+      if (reason === "format" && (source === "chatgpt" || source === "claude"))
+        throw new RpcError(RpcErrorCodes.invalidParams, `import_format_${source}`);
       throw new RpcError(RpcErrorCodes.invalidParams, `import_${reason}`);
     }
   }
@@ -148,11 +164,20 @@ export class ImportJobs {
   }
 
   undo(importId: string) {
+    this.closing.signal.throwIfAborted();
     const status = this.status(importId);
     if (status.state === "undone") return status;
+    if (status.state === "undoing") {
+      void this.cleanup.wake();
+      return status;
+    }
     if (status.state !== "completed")
       throw new RpcError(RpcErrorCodes.invalidParams, "import_not_completed");
-    return this.publish(this.store.finish({ ...status, state: "undone" }));
+    const pending = this.store.beginUndo(importId);
+    this.changedTopics(importId);
+    this.publish(pending);
+    void this.cleanup.wake();
+    return pending;
   }
 
   async stop() {
@@ -160,7 +185,7 @@ export class ImportJobs {
     this.selection = undefined;
     // A picker rejection after shutdown is expected; the RPC caller owns that error.
     await this.previewing?.catch(() => undefined);
-    await this.active?.done;
+    await Promise.all([this.active?.done, this.cleanup.wait()]);
   }
 
   private async run(selection: Selection, botId: string, cancel: AbortSignal) {
@@ -202,7 +227,26 @@ export class ImportJobs {
       reason = state === "cancelled" ? null : deadline.aborted ? "timeout" : failureReason(error);
       if (reason === "internal") this.ctx.logger.error("import_job_failed");
     }
-    return this.publish(this.store.finish({ ...this.status(preview.importId), state, reason }));
+    const id = preview.importId;
+    if (state !== "completed") {
+      this.store.discard(id, state, reason);
+      await this.cleanup.wake();
+      return this.status(id);
+    }
+    const result = this.store.complete(id);
+    this.changedTopics(id);
+    return this.publish(result);
+  }
+
+  private changedTopics(importId: string) {
+    const botId = this.store.target(importId);
+    if (typeof botId !== "string") return;
+    try {
+      this.ctx.peer.emit("sidebar.changed", { conversationKey: `dm:${botId}` });
+    } catch {
+      // The committed state is authoritative even if the peer disconnected.
+      this.ctx.logger.warn("import_topics_not_delivered");
+    }
   }
 
   private publish(status: ImportStatus) {

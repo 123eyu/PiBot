@@ -6,7 +6,7 @@ import { lstat, open, realpath } from "node:fs/promises";
 import type { CapabilityContext } from "@pibot/brain/kit";
 import { sensitiveReadBoundary } from "@pibot/execution";
 import { nodeFileSystem, protectedPaths } from "@pibot/policy";
-import { ImportFailure, type ImportInput } from "./adapter.ts";
+import { ImportFailure, type ImportFile, type ImportInput } from "./adapter.ts";
 
 type HostPaths = Pick<
   CapabilityContext["local"]["deps"],
@@ -56,16 +56,27 @@ export async function selectedInput(
   const selected = await lstat(path, { bigint: true });
   if (!selected.isFile() || selected.nlink !== 1n) throw new ImportFailure("source_changed");
   if (selected.size > MAX_FILE_BYTES) throw new ImportFailure("limit");
-  return (readSignal) => readSelected(deps, path, resolved, selected, readSignal);
+  const file = (readSignal: AbortSignal) =>
+    openSelected(deps, path, resolved, selected, readSignal);
+  return Object.assign(
+    async function* (readSignal: AbortSignal) {
+      for await (const selectedFile of file(readSignal)) {
+        for (let offset = 0; offset < selectedFile.size; offset += CHUNK_BYTES) {
+          yield await selectedFile.read(offset, Math.min(CHUNK_BYTES, selectedFile.size - offset));
+        }
+      }
+    },
+    { file },
+  );
 }
 
-async function* readSelected(
+async function* openSelected(
   deps: HostPaths,
   path: string,
   resolved: string,
   selected: BigIntStats,
   signal: AbortSignal,
-) {
+): AsyncGenerator<ImportFile> {
   const current = await realpath(path);
   await authorize(deps, path, current, signal);
   if (current !== resolved || !sameFile(selected, await lstat(path, { bigint: true })))
@@ -78,16 +89,23 @@ async function* readSelected(
   try {
     if (!sameFile(selected, await file.stat({ bigint: true })))
       throw new ImportFailure("source_changed");
-    let remaining = Number(selected.size);
-    while (remaining > 0) {
-      signal.throwIfAborted();
-      const chunk = Buffer.allocUnsafe(Math.min(remaining, CHUNK_BYTES));
-      const { bytesRead } = await file.read(chunk);
-      if (!bytesRead) throw new ImportFailure("source_changed");
-      remaining -= bytesRead;
-      signal.throwIfAborted();
-      yield chunk.subarray(0, bytesRead);
-    }
+    const size = Number(selected.size);
+    yield {
+      size,
+      async read(position, length) {
+        if (position < 0 || length < 0 || position + length > size)
+          throw new ImportFailure("format");
+        const buffer = Buffer.allocUnsafe(length);
+        for (let offset = 0; offset < length; ) {
+          signal.throwIfAborted();
+          const { bytesRead } = await file.read(buffer, offset, length - offset, position + offset);
+          if (!bytesRead) throw new ImportFailure("source_changed");
+          offset += bytesRead;
+        }
+        signal.throwIfAborted();
+        return buffer;
+      },
+    };
     if (
       !sameFile(selected, await file.stat({ bigint: true })) ||
       current !== (await realpath(path)) ||

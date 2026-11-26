@@ -267,6 +267,8 @@ const common = {
   "audit.commandLogs.deleted": "已按保留设置删除 {count} 个命令日志（{bytes} 字节）",
   "audit.runRetention.requested": "请求清理 {days} 天前的运行记录",
   "settings.saveError": "设置保存失败，请重试。",
+  "errors.import_format_chatgpt": "无法识别 ChatGPT 导出文件的格式。",
+  "errors.import_format_claude": "无法识别 Claude 导出文件的格式。",
   "errors.no_model": "还没有可用的模型。请先在设置里配置厂商并为这个 Bot 选择模型。",
   "errors.subscription_unsupported": "订阅登录暂不支持，请改用 API Key。",
   "errors.claude_subscription_unsupported": "Claude 订阅登录已停止支持，请改用 API Key。",

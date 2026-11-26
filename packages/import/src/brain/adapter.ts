@@ -1,5 +1,5 @@
 // Adapters yield bounded records rather than exposing provider-specific objects to storage.
-import type { ImportSource } from "@pibot/import-contract";
+import { ExportDetailsSchema, type ImportSource } from "@pibot/import-contract";
 import { z } from "zod";
 
 const time = z.iso.datetime({ offset: true }).transform((value) => new Date(value).toISOString());
@@ -21,13 +21,23 @@ export const ImportRecordSchema = z.discriminatedUnion("kind", [
 ]);
 export type ImportRecord = z.input<typeof ImportRecordSchema>;
 
+const exportSummary = ExportDetailsSchema.extend({ kind: z.literal("exportSummary") });
 export const PreviewRecordSchema = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("topic"), createdAt: time, updatedAt: time }),
   z.strictObject({ kind: z.literal("message"), createdAt: time }),
+  exportSummary,
 ]);
 export type PreviewRecord = z.input<typeof PreviewRecordSchema>;
 
-export type ImportInput = (signal: AbortSignal) => AsyncIterable<Buffer>;
+export interface ImportFile {
+  size: number;
+  read(offset: number, length: number): Promise<Buffer>;
+}
+
+export interface ImportInput {
+  (signal: AbortSignal): AsyncIterable<Buffer>;
+  file?(signal: AbortSignal): AsyncIterable<ImportFile>;
+}
 
 export interface ImportAdapter {
   detect(signal: AbortSignal): AsyncIterable<boolean>;
@@ -42,7 +52,11 @@ export class ImportFailure extends Error {
   }
 }
 
-export function adapters(fixture: ImportAdapter): Record<ImportSource, ImportAdapter> {
+export function adapters(
+  fixture: ImportAdapter,
+  chatgpt: ImportAdapter,
+  claude: ImportAdapter,
+): Record<ImportSource, ImportAdapter> {
   const unsupported: ImportAdapter = {
     async *detect(signal) {
       signal.throwIfAborted();
@@ -57,8 +71,8 @@ export function adapters(fixture: ImportAdapter): Record<ImportSource, ImportAda
   };
   return {
     fixture,
-    chatgpt: unsupported,
-    claude: unsupported,
+    chatgpt,
+    claude,
     "claude-code": unsupported,
     codex: unsupported,
     cursor: unsupported,

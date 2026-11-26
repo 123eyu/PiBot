@@ -10,8 +10,9 @@ export function importCapability(): BrainCapability {
     id: "import",
     register(ctx) {
       const jobs = new ImportJobs(ctx, new ImportStore(ctx.db, ctx.redactor));
-      if (!ctx.host.pickFile) return { start: () => jobs.recover() };
+      const lifecycle = { start: () => jobs.recover(), stop: () => jobs.stop() };
       ctx.sleep.participate({ idle: () => jobs.idle() });
+      if (!ctx.host.pickFile) return lifecycle;
       const handle = ctx.rpc.handle;
       const desktop = (source?: "acp") => {
         if (source === "acp") throw new RpcError(RpcErrorCodes.unsupported, "import_desktop_only");
@@ -40,7 +41,7 @@ export function importCapability(): BrainCapability {
         desktop(request.source);
         return jobs.undo(importId);
       });
-      return { start: () => jobs.recover(), stop: () => jobs.stop() };
+      return lifecycle;
     },
   };
 }

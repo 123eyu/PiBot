@@ -17,18 +17,29 @@ const count = z.number().int().nonnegative().safe();
 export const ImportCountsSchema = z.strictObject({ topics: count, messages: count });
 export type ImportCounts = z.infer<typeof ImportCountsSchema>;
 
+export const ExportDetailsSchema = z.strictObject({
+  memories: count,
+  customInstructions: count,
+  projects: count,
+  skippedAttachments: count,
+  skippedFiles: count,
+});
+export type ExportDetails = z.infer<typeof ExportDetailsSchema>;
+
 const preview = ImportCountsSchema.extend({
   importId: IdSchema,
   source: ImportSourceSchema,
   from: z.iso.datetime().nullable(),
   through: z.iso.datetime().nullable(),
+  exportDetails: ExportDetailsSchema.optional(),
 });
 export type ImportPreview = z.infer<typeof preview>;
 
 export const ImportStatusSchema = ImportCountsSchema.extend({
   importId: IdSchema,
   source: ImportSourceSchema,
-  state: z.enum(["running", "completed", "cancelled", "failed", "undone"]),
+  state: z.enum(["running", "completed", "cancelled", "failed", "undoing", "undone"]),
+  removed: ImportCountsSchema.optional(),
   reason: z
     .enum(["source_changed", "format", "timeout", "target", "limit", "interrupted", "internal"])
     .nullable(),

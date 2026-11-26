@@ -463,7 +463,7 @@ const methodCases = {
   "import.cancel": { params: { importId: id }, result: importStatus, badParams: {}, badResult: {} },
   "import.undo": {
     params: { importId: id },
-    result: { ...importStatus, state: "undone" },
+    result: { ...importStatus, state: "undoing", removed: { topics: 0, messages: 0 } },
     badParams: {},
     badResult: {},
   },
