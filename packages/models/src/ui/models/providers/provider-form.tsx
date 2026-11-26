@@ -29,9 +29,12 @@ export function ProviderForm({
   onDirtyChange,
   compact = false,
   saved,
+  addModelIds,
 }: {
   provider: Provider;
   testModelId?: string;
+  /** Offered model ids to preselect in a custom provider's list (unsaved until the user saves). */
+  addModelIds?: string[];
   task: Task;
   refresh(): Promise<void>;
   onDirtyChange?(dirty: boolean): void;
@@ -209,6 +212,7 @@ export function ProviderForm({
         <CustomProviderForm
           provider={provider}
           testModelId={testModelId}
+          addModelIds={addModelIds}
           task={task}
           refresh={refresh}
           onDirtyChange={onDirtyChange}

@@ -1,5 +1,6 @@
 // Defines shared provider and model RPC contracts.
 import {
+  AddedModelIdSchema,
   AgentErrorCodeSchema,
   ApiSchema,
   CloudConfigSchema,
@@ -114,6 +115,15 @@ export const ModelProviderMethods = {
     result: ok,
   },
   "providers.importFromEnv": { params: providerId, result: ok },
+  /** A model id for a built-in API-key provider that its pinned catalog does not list yet. */
+  "providers.addModel": {
+    params: z.strictObject({ providerId: name, modelId: AddedModelIdSchema }),
+    result: ok,
+  },
+  "providers.removeModel": {
+    params: z.strictObject({ providerId: name, modelId: AddedModelIdSchema }),
+    result: ok,
+  },
   "providers.remove": {
     params: providerId.extend({ auth: z.enum(["apiKey", "cloud"]).optional() }),
     result: ok,

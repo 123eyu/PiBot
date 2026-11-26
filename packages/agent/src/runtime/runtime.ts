@@ -39,6 +39,7 @@ import type {
 } from "../core/types.ts";
 import { CheckpointCache } from "../extensions/checkpoint-result.ts";
 import { imageProvider } from "../images/image-catalog.ts";
+import { withAddedModels } from "../models/added-models.ts";
 import { listProviderCatalog } from "../models/catalog.ts";
 import { identifyProvider } from "../models/client-identity.ts";
 import { createCustomModelResolver } from "../models/custom-models.ts";
@@ -164,6 +165,7 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
     const key = JSON.stringify([
       snapshot?.updatedAt,
       custom,
+      deps.addedModels?.() ?? {},
       catalog.map((provider) => [
         deps.auth?.mode(provider.id) ?? null,
         deps.hasApiKey(provider.id),
@@ -191,6 +193,7 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
     });
     const pi = await sdk();
     const custom = configs();
+    const added = deps.addedModels?.() ?? {};
     const runtime = await pi.ModelRuntime.create({
       credentials: deps.auth ? oauthStore(deps.auth) : literalCredentials(),
       modelsPath: null,
@@ -198,8 +201,17 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
       refreshOnCreate: false,
     });
     const registerNativeProvider = (provider: Provider, config?: CustomProviderConfig) => {
+      const catalogued = withOpenRouterCatalog(provider, snapshot);
       const images = identifyProvider(
-        imageProvider(openaiGoogle(withOpenRouterCatalog(provider, snapshot)), config),
+        imageProvider(
+          openaiGoogle(
+            builtinIds.has(provider.id)
+              ? withAddedModels(catalogued, added[provider.id], customModels.resolve)
+              : catalogued,
+          ),
+          config,
+          { fetchImageUrl: deps.fetchImageUrl },
+        ),
       );
       runtime.registerNativeProvider(deps.network?.wrap(images) ?? images);
     };

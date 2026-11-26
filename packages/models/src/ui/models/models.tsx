@@ -19,8 +19,10 @@ import type { ReactNode } from "react";
 import { useCallback, useId, useLayoutEffect, useRef, useState } from "react";
 import { providerIdentity, requirePeer } from "../setup/operations.ts";
 import modelStyles from "./models.module.css";
+import { AddedModels } from "./providers/AddedModels.tsx";
 import { MagpieDiscovery } from "./providers/magpie.tsx";
 import { useMagpieDetection } from "./providers/magpie-detection.ts";
+import { useNewModels } from "./providers/new-models.ts";
 import { ProviderCatalog } from "./providers/ProviderCatalog.tsx";
 import { ProviderModels } from "./providers/ProviderModels.tsx";
 import { ProviderRegion } from "./providers/ProviderRegion.tsx";
@@ -47,6 +49,8 @@ export function ModelsSettings({
   const { peer } = useRpc();
   const magpieDetection = useMagpieDetection(active);
   const [selection, setSelection] = useState<string>();
+  // Ids the user chose to add from a provider's new-models hint; the form preselects, never saves.
+  const [adding, setAdding] = useState<{ identity: string; ids: string[] }>();
   const task = useTask(selection);
   const modelTask = useTask();
   const auxiliaryTask = useTask();
@@ -67,6 +71,7 @@ export function ModelsSettings({
   const defaultPickerId = useId();
   const auxiliaryPickerId = useId();
   const health = useModelHealth(providers, models, allModels);
+  const newModels = useNewModels(providers, active && !loading);
   const root = useRef<HTMLDivElement>(null);
   const detail = useRef<HTMLElement>(null);
   const listPosition = useRef(0);
@@ -135,10 +140,11 @@ export function ModelsSettings({
   const magpieDetected = magpieDetection.result?.running === true;
   // Discovery gates new entry points, not a configuration draft the user already opened.
   const chosen = catalog.find((provider) => providerIdentity(provider) === selection);
-  function selectProvider(provider: Provider, button: HTMLElement) {
+  function selectProvider(provider: Provider, button: HTMLElement, ids?: string[]) {
     selectedButton.current = button;
     listPosition.current =
       root.current?.closest<HTMLElement>("[data-settings-scroll]")?.scrollTop ?? 0;
+    setAdding(ids ? { identity: providerIdentity(provider), ids } : undefined);
     setSelection(providerIdentity(provider));
   }
 
@@ -218,6 +224,8 @@ export function ModelsSettings({
             selection={selection}
             disabled={task.busy || modelTask.busy || auxiliaryTask.busy}
             onSelect={selectProvider}
+            newModels={newModels}
+            onAddModels={(provider, ids, button) => selectProvider(provider, button, ids)}
           />
           {searchSettings}
         </div>
@@ -251,6 +259,7 @@ export function ModelsSettings({
             task={task}
             refresh={refresh}
             onDirtyChange={dirtyChanged}
+            addModelIds={adding?.identity === providerIdentity(chosen) ? adding.ids : undefined}
           />
           <ProviderModels
             key={providerIdentity(chosen)}
@@ -258,6 +267,15 @@ export function ModelsSettings({
             models={allModels}
             testModelId={testModelId}
           />
+          {chosen.auth === "apiKey" && chosen.available && chosen.configured && (
+            <AddedModels
+              key={`added-${providerIdentity(chosen)}`}
+              provider={chosen}
+              models={allModels}
+              task={task}
+              refresh={refresh}
+            />
+          )}
           {chosen.id === "openrouter" && <ModelCatalogRefresh />}
         </section>
       )}

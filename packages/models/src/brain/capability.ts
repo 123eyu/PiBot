@@ -87,6 +87,7 @@ export function providersCapability(): BrainCapability {
         hasApiKey: (id) => providers.secrets.has(providerScope(id), "apiKey"),
         getApiKey: (id) => providers.secrets.get(providerScope(id), "apiKey"),
         customProviders: providers.configs,
+        addedModels: providers.addedModels,
         auth: auth.ports,
         settings: modelSettings,
         credentials: (id) => providers.requireCredentials(id),

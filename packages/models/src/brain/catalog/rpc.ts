@@ -97,6 +97,25 @@ export function registerModelProviderRpc(
     changed();
     return { ok: true };
   });
+  handle("providers.addModel", async ({ providerId, modelId }) => {
+    // The pinned catalog already offers it: a duplicate entry would hide which one a Bot uses.
+    const listed = (await agent.listModels()).some(
+      (model) => model.provider === providerId && model.id === modelId && !model.addedByUser,
+    );
+    if (listed) throw new RpcError(-32602, "model_already_listed");
+    const changedList = await providers.serialize(async () =>
+      providers.changeAddedModel(providerId, modelId, true),
+    );
+    if (changedList) changed();
+    return { ok: true };
+  });
+  handle("providers.removeModel", async ({ providerId, modelId }) => {
+    const changedList = await providers.serialize(async () =>
+      providers.changeAddedModel(providerId, modelId, false),
+    );
+    if (changedList) changed();
+    return { ok: true };
+  });
   handle("providers.importFromEnv", async ({ providerId }) => {
     await providers.serialize(async () => {
       providers.assertWritable(providerId);

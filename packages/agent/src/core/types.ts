@@ -707,13 +707,27 @@ export type AuxiliaryPurpose =
   | "workflow"
   | "web_page";
 
+/**
+ * Downloads an image link an image service returned instead of bytes. The link is supplier
+ * output: the host refuses private, loopback and metadata destinations (also after DNS) and
+ * redirects, bounds size and time, and sends no credentials.
+ */
+export type ImageUrlFetch = (input: {
+  url: string;
+  signal: AbortSignal;
+}) => Promise<{ data: Uint8Array }>;
+
 export interface AgentRuntimeDeps {
   network?: AgentNetwork;
+  /** Without it, an image service's link results fail with `image_url_unavailable`. */
+  fetchImageUrl?: ImageUrlFetch;
   auth?: AgentAuthPorts;
   dataDir: string;
   hasApiKey(providerId: string): boolean;
   getApiKey(providerId: string): Promise<string | undefined>;
   customProviders(): CustomProviderConfig[];
+  /** Model ids the user added to built-in providers by hand, keyed by provider id. */
+  addedModels?(): Readonly<Record<string, readonly string[]>>;
   auxiliaryModel?(): { provider: string; id: string } | null | undefined;
   auxiliaryModelFallback?(purpose: AuxiliaryPurpose, code: AgentErrorCode): void;
   /** A failed background compile-cache warm-up, as a fixed reason code. */

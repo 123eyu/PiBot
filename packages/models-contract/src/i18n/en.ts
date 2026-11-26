@@ -182,6 +182,24 @@ export const providersEn: { [K in keyof typeof providersZh]: string } = {
   "setup.modelRemove": "Remove model",
   "setup.preview": "Hi, I’m Pi",
   "setup.modelSaved": "Default model updated",
+  "models.addModel.title": "Add a model by id",
+  "models.addModel.note":
+    "For a model this provider offers that is not listed yet. It uses this provider's key and address only.",
+  "models.addModel.placeholder": "e.g. gpt-6.3-sol",
+  "models.addModel.add": "Add",
+  "models.addModel.remove": "Remove",
+  "models.addModel.invalid":
+    "A model id uses letters, digits and . _ - : / @ + only, up to 200 characters.",
+  "models.addModel.exists": "{id} is already in this provider's list.",
+  "models.addModel.works": "Added {id}. A test request succeeded.",
+  "models.addModel.rejected":
+    "{provider} does not recognize {id}. Check the spelling, or whether your account can use this model. You can remove it below.",
+  "models.addModel.untested":
+    "Added {id}, but the test request did not complete. Try Test connection again later.",
+  "models.addedByUser": "Added by you",
+  "models.newModels": "{count} new models",
+  "models.newModels.one": "1 new model",
+  "models.newModels.add": "Add",
   "models.configured": "Configured providers",
   "models.noConfigured":
     "No providers configured yet. Add an API key or connect a local model to start chatting.",

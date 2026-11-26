@@ -8,6 +8,8 @@ import {
   listProviderCatalog,
 } from "@pibot/agent";
 import {
+  ADDED_MODELS_LIMIT,
+  AddedModelIdSchema,
   CHATGPT_PLAN_PROVIDERS,
   type CustomProvider,
   type CustomProviderInfo,
@@ -19,9 +21,11 @@ import {
 } from "@pibot/models-contract/full";
 import { assertSafeSecretValue, keyHint, type Redactor, type SecretCipher } from "@pibot/secrets";
 import { type SecretStore, transaction } from "@pibot/storage";
+import { z } from "zod";
 import { ProvidersRepo } from "../../store/index.ts";
 
 export const providerScope = (id: string) => `provider:${id}`;
+const AddedModelsSchema = z.array(AddedModelIdSchema).max(ADDED_MODELS_LIMIT);
 
 function validMagpieConfig(config: Omit<CustomProvider, "apiKey">): boolean {
   return (
@@ -153,6 +157,37 @@ export class ProviderStore {
 
   async settled() {
     await this.tail;
+  }
+
+  /** Hand-added model ids per built-in provider; a malformed stored list is ignored, not trusted. */
+  addedModels = (): Record<string, string[]> => {
+    const result: Record<string, string[]> = {};
+    for (const row of this.repo.list()) {
+      if (row.kind !== "builtin") continue;
+      const parsed = AddedModelsSchema.safeParse(row.config.addedModels);
+      if (parsed.success && parsed.data.length) result[row.id] = parsed.data;
+    }
+    return result;
+  };
+
+  /** Only built-in API-key providers: their key and endpoint stay pi's catalog entry. */
+  changeAddedModel(id: string, modelId: string, add: boolean): boolean {
+    if (this.custom.has(id) || !this.catalog.some((p) => p.id === id && p.auth === "apiKey"))
+      throw new RpcError(-32602, "added_model_unsupported");
+    const config = { ...this.repo.get(id)?.config };
+    const current = AddedModelsSchema.safeParse(config.addedModels);
+    const list = current.success ? current.data : [];
+    const next = add
+      ? list.includes(modelId)
+        ? list
+        : [...list, modelId]
+      : list.filter((entry) => entry !== modelId);
+    if (next.length > ADDED_MODELS_LIMIT) throw new RpcError(-32602, "added_models_limit");
+    if (next === list || next.length === list.length) return false;
+    if (next.length) config.addedModels = next;
+    else delete config.addedModels;
+    this.repo.upsert({ id, kind: "builtin", config });
+    return true;
   }
 
   assertWritable(id: string) {

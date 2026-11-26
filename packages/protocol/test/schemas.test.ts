@@ -2556,6 +2556,18 @@ const methodCases = {
     badParams: { providerId: 1 },
     badResult: { ok: "true" },
   },
+  "providers.addModel": {
+    params: { providerId: "openai", modelId: "gpt-6.2-sol" },
+    result: { ok: true },
+    badParams: { providerId: "openai", modelId: "gpt 6" },
+    badResult: { ok: false },
+  },
+  "providers.removeModel": {
+    params: { providerId: "openai", modelId: "gpt-6.2-sol" },
+    result: { ok: true },
+    badParams: { providerId: "openai", modelId: "" },
+    badResult: { ok: false },
+  },
   "providers.remove": {
     params: { providerId: "openai" },
     result: { ok: true },

@@ -1,6 +1,7 @@
 // Displays searchable provider tiles and configured providers.
 import { MAGPIE_PROVIDER, type Provider, providerFamily } from "@pibot/models-contract/full";
 import { setupStyles as styles, useT } from "@pibot/renderer-kit";
+import { Button } from "@pibot/ui";
 import { useState } from "react";
 import { providerIdentity } from "../../setup/operations.ts";
 import modelStyles from "../models.module.css";
@@ -21,6 +22,8 @@ export function ProviderCatalog({
   onSelect,
   initialGroup = "common",
   magpieDetected = false,
+  newModels,
+  onAddModels,
 }: {
   providers: Provider[];
   selection?: string;
@@ -28,6 +31,9 @@ export function ProviderCatalog({
   onSelect(provider: Provider, button: HTMLElement): void;
   initialGroup?: (typeof groups)[number];
   magpieDetected?: boolean;
+  /** Model ids a saved custom provider offers beyond its saved list. */
+  newModels?: ReadonlyMap<string, string[]>;
+  onAddModels?(provider: Provider, ids: string[], button: HTMLElement): void;
 }) {
   const t = useT();
   const [group, setGroup] = useState(initialGroup);
@@ -107,7 +113,30 @@ export function ProviderCatalog({
         </h2>
         {configured.length ? (
           <div className={modelStyles.configuredProviders}>
-            {configured.map((provider) => renderProvider(provider, true))}
+            {configured.map((provider) => {
+              const fresh = newModels?.get(provider.id);
+              if (!fresh?.length || !onAddModels) return renderProvider(provider, true);
+              return (
+                <div key={providerIdentity(provider)} className={modelStyles.tileWithHint}>
+                  {renderProvider(provider, true)}
+                  <p className={modelStyles.newModels}>
+                    <span>
+                      {t(fresh.length === 1 ? "models.newModels.one" : "models.newModels", {
+                        count: fresh.length,
+                      })}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      disabled={disabled}
+                      aria-label={`${t("models.newModels.add")} · ${provider.name}`}
+                      onClick={(event) => onAddModels(provider, fresh, event.currentTarget)}
+                    >
+                      {t("models.newModels.add")}
+                    </Button>
+                  </p>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p className={styles.note}>{t("models.noConfigured")}</p>

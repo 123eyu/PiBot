@@ -630,9 +630,24 @@ export async function startBrain(opts: {
     const sdk = createAgentRuntime({
       dataDir,
       network: agentNetwork,
+      // An image service's result link: the user chose the service, not each CDN host it links,
+      // so the Bot's website list does not apply; address, redirect and size rules still do.
+      fetchImageUrl: async ({ url, signal }) => ({
+        data: (
+          await fetchImage({
+            url,
+            signal,
+            proxy: network.proxy(),
+            allowDomain: () => true,
+            redirects: 3,
+            binary: true,
+          })
+        ).data,
+      }),
       hasApiKey: (id) => models().hasApiKey(id),
       getApiKey: (id) => models().getApiKey(id),
       customProviders: () => models().customProviders(),
+      addedModels: () => models().addedModels?.() ?? {},
       onCustomModelLimit: (providerId, modelId, limits) =>
         models().updateCustomModelLimits?.(providerId, modelId, limits),
       auxiliaryModel: () => settings.get().auxiliaryModel,
