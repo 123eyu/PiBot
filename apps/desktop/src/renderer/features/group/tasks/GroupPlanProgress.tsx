@@ -146,6 +146,11 @@ export function GroupPlanProgressView({
   const terminalStopped =
     progress.status === "cancelled" ||
     (progress.status === "failed" && progress.stoppedReason === "user_stopped");
+  // The user's stop marks the step it interrupted as blocked; on a stopped plan that step, like
+  // every other unfinished one, reads 「已停止」 rather than asking the user to act.
+  const stoppedHere = (step: Progress["steps"][number]) =>
+    terminalStopped &&
+    (step.paused || ["running", "blocked", "ready", "waiting"].includes(step.status));
   return (
     <div className={styles.modify} aria-live="polite">
       <div className={styles.head}>
@@ -170,11 +175,11 @@ export function GroupPlanProgressView({
                     ? dots.skipped
                     : step.verdict?.verdict === "fail"
                       ? "failed"
-                      : step.paused
-                        ? terminalStopped
-                          ? "stopped"
-                          : "waiting"
-                        : dots[step.status]
+                      : stoppedHere(step)
+                        ? "stopped"
+                        : step.paused
+                          ? "waiting"
+                          : dots[step.status]
               }
               className={styles.dot}
             />
@@ -197,9 +202,11 @@ export function GroupPlanProgressView({
                   ? t(`group.plan.verdict.${step.verdict.verdict}`, {
                       count: step.verdict.failures.length,
                     })
-                  : step.paused
-                    ? t(terminalStopped ? "group.plan.step.stopped" : "group.plan.step.paused")
-                    : t(`group.plan.step.${step.status}`)}
+                  : stoppedHere(step)
+                    ? t("group.plan.step.stopped")
+                    : step.paused
+                      ? t("group.plan.step.paused")
+                      : t(`group.plan.step.${step.status}`)}
               {step.status === "running" && step.attempt > 0
                 ? ` · ${t("group.plan.attempt", { n: step.attempt + 1 })}`
                 : ""}

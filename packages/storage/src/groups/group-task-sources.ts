@@ -148,6 +148,8 @@ export class GroupTaskSourcesRepo {
       );
     const ids = [...new Set(params.messageIds ?? [])];
     // A member can close its task before the owning run and program checks settle.
+    // A continued or retried plan step gets a new task and cancels the one it replaces; the
+    // replaced task is not another piece of work (a 2-step plan read "2 / 3").
     const batches = ids.length
       ? this.db
           .prepare(`SELECT s.batch_message_id AS messageId,COUNT(*) AS count,
@@ -157,6 +159,11 @@ export class GroupTaskSourcesRepo {
         SELECT 1 FROM group_workflow_steps step WHERE step.task_id=t.id AND step.status NOT IN ('passed','skipped')
       )) AS done FROM group_tasks t JOIN group_task_sources s ON s.task_id=t.id
       WHERE t.group_id=? AND t.quiet_at IS NULL AND s.batch_message_id IN (${ids.map(() => "?").join(",")})
+        AND NOT (t.status='cancelled' AND EXISTS (
+          SELECT 1 FROM group_task_handoffs h JOIN group_workflow_steps replaced
+            ON replaced.workflow_run_id=json_extract(h.spec,'$.workflowStep.workflowRunId')
+            AND replaced.step_id=json_extract(h.spec,'$.workflowStep.stepId')
+          WHERE h.task_id=t.id AND replaced.task_id IS NOT NULL AND replaced.task_id<>t.id))
       GROUP BY s.batch_message_id`)
           .all(params.groupId, ...ids)
       : [];
