@@ -1,3 +1,4 @@
+// Keeps sidebar ordering and read state consistent with durable conversation activity.
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
@@ -101,8 +102,21 @@ export class SidebarRepo {
   }
   list(page: Page = {}, includeHidden = false): SidebarEntry[] {
     const { before, limit = 50 } = PageSchema.parse(page);
+    // Each topic can use the end of messages_conversation_created. Aggregating the join would
+    // visit old messages too, even though only one timestamp per topic can affect the order.
     const base = `WITH activity AS (
-      SELECT e.*,COALESCE((SELECT MAX(m.created_at) FROM conversations c JOIN messages m ON m.conversation_id=c.id WHERE c.internal_task_id IS NULL AND ${visibleImportedRows("c.import_id")} AND ((c.kind='dm' AND c.bot_id=e.bot_id) OR c.group_id=e.chat_group_id)),(SELECT created_at FROM bots WHERE id=e.bot_id),(SELECT created_at FROM groups WHERE id=e.chat_group_id),'') AS activityAt
+      SELECT e.*, COALESCE(
+        (SELECT MAX((
+          SELECT m.created_at FROM messages m WHERE m.conversation_id=c.id
+          ORDER BY m.created_at DESC LIMIT 1
+        )) FROM conversations c
+        WHERE c.internal_task_id IS NULL
+          AND ${visibleImportedRows("c.import_id")}
+          AND ((c.kind='dm' AND c.bot_id=e.bot_id) OR c.group_id=e.chat_group_id)),
+        (SELECT created_at FROM bots WHERE id=e.bot_id),
+        (SELECT created_at FROM groups WHERE id=e.chat_group_id),
+        ''
+      ) AS activityAt
       FROM sidebar_entries e WHERE (chat_group_id IS NULL OR EXISTS(SELECT 1 FROM groups g WHERE g.id=e.chat_group_id AND g.archived_at IS NULL)) AND (? OR hidden_at IS NULL) AND (bot_id IS NULL OR EXISTS(SELECT 1 FROM bots b WHERE b.id=e.bot_id AND b.archived_at IS NULL))
     ), ranked AS (SELECT *,ROW_NUMBER() OVER(ORDER BY (pinned_at IS NOT NULL) DESC,pinned_at DESC,activityAt DESC,conversation_key DESC) AS rank FROM activity)`;
     const cursor = before

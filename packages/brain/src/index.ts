@@ -1039,11 +1039,9 @@ export async function startBrain(opts: {
     logger.info("Brain ready");
     timing.report(logger);
     maintenance = deferredMaintenance(logger);
-    maintenance.start(capabilityHandles, () =>
-      (sdk.preloadSdk?.() ?? Promise.resolve()).catch(() =>
-        logger.warn(JSON.stringify({ module: "startup", event: "pi_sdk_preload_failed" })),
-      ),
-    );
+    // A speculative SDK import blocks unrelated navigation while evaluating its module graph.
+    // The agent still loads it on demand for model operations.
+    maintenance.start(capabilityHandles);
     progress?.stop();
     return createBrainController(startup);
   } catch (error) {

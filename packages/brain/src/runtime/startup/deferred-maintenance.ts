@@ -7,7 +7,7 @@ export function deferredMaintenance(logger: Logger) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let work: Promise<void> | undefined;
   return {
-    start(handles: readonly CapabilityHandle[], preload?: () => Promise<void>) {
+    start(handles: readonly CapabilityHandle[]) {
       // First-screen RPCs follow ready by about 0.3 s; let them finish before CPU-heavy imports.
       timer = setTimeout(() => {
         timer = undefined;
@@ -15,14 +15,12 @@ export function deferredMaintenance(logger: Logger) {
         const jobs = handles.flatMap((handle) =>
           handle.afterReady ? [(signal: AbortSignal) => handle.afterReady?.(signal)] : [],
         );
-        if (preload) jobs.push(preload);
         work = Promise.all(
           jobs.map(async (run, index) => {
             if (controller.signal.aborted) return;
             const start = performance.now();
             try {
-              // Cooperative deadline for capability hooks. Native import ignores AbortSignal;
-              // its module evaluation cannot be force-cancelled and stop must await it below.
+              // A deadline bounds cooperative hooks; shutdown still waits for them to drain.
               await run(AbortSignal.any([controller.signal, AbortSignal.timeout(25_000)]));
             } catch {
               if (!controller.signal.aborted)
@@ -52,7 +50,7 @@ export function deferredMaintenance(logger: Logger) {
     async stop() {
       controller.abort();
       clearTimeout(timer);
-      // Clearing the timer prevents new work; an in-flight native import must finish draining.
+      // Clearing the timer prevents new work while in-flight capability hooks drain.
       await work;
     },
   };
