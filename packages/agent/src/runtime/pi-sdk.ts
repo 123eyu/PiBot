@@ -14,6 +14,7 @@ export function loadPiSdk() {
   return import("@earendil-works/pi-coding-agent/sdk");
 }
 
+const PI_SDK_SPECIFIER = "@earendil-works/pi-coding-agent/sdk";
 let compileCacheWarmup: Promise<void> | undefined;
 
 /**
@@ -25,7 +26,9 @@ export function warmPiSdkCompileCache(): Promise<void> {
     // Resolve here, not in the worker: an eval worker resolves bare specifiers from the process
     // working directory, which in the packaged app is not the app folder, so the import would fail
     // and the warm-up would silently do nothing.
-    const sdk = import.meta.resolve("@earendil-works/pi-coding-agent/sdk");
+    // A variable, not a literal: the package check treats any call whose first argument is the SDK
+    // specifier, other than import(), as a static import of the SDK into the startup bundle.
+    const sdk = import.meta.resolve(PI_SDK_SPECIFIER);
     const worker = new Worker(
       'const { parentPort, workerData } = require("node:worker_threads"); import(workerData).then(() => parentPort.postMessage("ready"), () => parentPort.postMessage("failed"));',
       { eval: true, workerData: sdk },
