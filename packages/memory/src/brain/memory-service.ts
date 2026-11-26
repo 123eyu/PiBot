@@ -1,3 +1,6 @@
+import { createHash, randomUUID } from "node:crypto";
+import { lstatSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import type { BrainRedactor, MemoryPromptRequest, RegisterRpc } from "@pibot/brain/kit";
 import { requireGroupMember } from "@pibot/brain/kit";
@@ -88,6 +91,46 @@ export class MemoryService {
     const bot = this.bots.get(botId);
     if (!bot || bot.archivedAt) throw new RpcError(-32602, "Unknown active Bot");
     return bot;
+  }
+
+  projectForConversation(conversationId: string) {
+    const row = this.db
+      .prepare(
+        "SELECT f.path FROM conversations c JOIN working_folders f ON f.id=c.workplace_folder_id WHERE (c.id=? OR EXISTS (SELECT 1 FROM messages m WHERE m.id=? AND m.conversation_id=c.id)) AND c.workplace_folder_id IS NOT NULL",
+      )
+      .get(conversationId, conversationId);
+    if (!row) return undefined;
+    return new MemoryProjectsRepo(this.db).ensure(String(row.path));
+  }
+
+  projectProposal(conversationId: string, text: string) {
+    const project = this.projectForConversation(conversationId);
+    if (!project) return undefined;
+    const path = join(project.path, "AGENTS.md");
+    let before = "";
+    try {
+      before = readFileSync(path, "utf8");
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+    }
+    const hash = before ? createHash("sha256").update(before).digest("hex") : "";
+    const open = "<!-- pibot:notes -->";
+    const close = "<!-- /pibot:notes -->";
+    const section = `${open}\n## Pi Bot 记下的项目背景\n\n${text}\n${close}`;
+    const start = before.indexOf(open);
+    const end = before.indexOf(close);
+    const content =
+      start >= 0 && end > start
+        ? `${before.slice(0, start)}${section}${before.slice(end + close.length)}`
+        : `${before}${before && !before.endsWith("\n") ? "\n" : ""}${section}\n`;
+    const old = start >= 0 && end > start ? before.slice(start, end + close.length) : "";
+    const diff = [
+      "--- AGENTS.md",
+      "+++ AGENTS.md",
+      ...(old ? old.split("\n").map((line) => `-${line}`) : []),
+      ...section.split("\n").map((line) => `+${line}`),
+    ].join("\n");
+    return { path, content, diff, hash, name: basename(dirname(path)) };
   }
 
   /** Project ids come from the run's canonical folder; only writes create the project row. */
@@ -384,6 +427,7 @@ export class MemoryService {
     projectId?: string,
     /** Organization must never apply directly, whatever the Bot's memory mode is. */
     alwaysPropose = false,
+    projectMeta?: { path: string; diff: string; hash: string },
   ) {
     const bot = this.active(botId);
     const scope = this.toolScope(botId, input, groupId, projectId);
@@ -424,7 +468,15 @@ export class MemoryService {
                 // "not mentioned", so the clear travels as an empty string.
                 why: noteValue(input.args.why, before?.why),
                 how: noteValue(input.args.how, before?.how),
+                ...(projectMeta
+                  ? {
+                      projectPath: projectMeta.path,
+                      projectDiff: projectMeta.diff,
+                      projectExpectedHash: projectMeta.hash,
+                    }
+                  : {}),
               },
+          "expiresAt" in input.args ? (input.args.expiresAt ?? null) : null,
         );
         this.audit(
           owner,
@@ -579,6 +631,49 @@ export class MemoryService {
   resolve(proposalId: string, accept: boolean) {
     const proposal = this.repo.proposal(proposalId);
     if (!proposal) throw new RpcError(-32602, "Unknown proposal");
+    if (
+      accept &&
+      proposal.projectPath &&
+      proposal.projectDiff &&
+      proposal.projectExpectedHash !== null
+    ) {
+      // The user's confirm on this card is the approval for the write. The file is small and
+      // resolve() is synchronous for every proposal kind, so the sync API keeps one code path.
+      if (basename(proposal.projectPath) !== "AGENTS.md")
+        throw new RpcError(-32011, "memory_project_target_invalid");
+      let current = "";
+      try {
+        // A symlinked AGENTS.md could point outside the project folder; refuse rather than follow.
+        if (lstatSync(proposal.projectPath).isSymbolicLink())
+          throw new RpcError(-32011, "memory_project_target_invalid");
+        current = readFileSync(proposal.projectPath, "utf8");
+      } catch (error) {
+        if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
+      }
+      const hash = current ? createHash("sha256").update(current).digest("hex") : "";
+      if (hash !== proposal.projectExpectedHash)
+        throw new RpcError(-32011, "memory_project_file_changed");
+      const section = proposal.projectDiff
+        .split("\n")
+        .filter((line) => line.startsWith("+"))
+        .map((line) => line.slice(1))
+        .join("\n");
+      const marker = "<!-- pibot:notes -->";
+      const close = "<!-- /pibot:notes -->";
+      const next = current.includes(marker)
+        ? current.replace(new RegExp(`${marker}[\\s\\S]*?${close}`), section)
+        : `${current}${current && !current.endsWith("\n") ? "\n" : ""}${section}\n`;
+      const temp = `${proposal.projectPath}.${randomUUID()}.tmp`;
+      writeFileSync(temp, next, { mode: 0o600 });
+      renameSync(temp, proposal.projectPath);
+      this.audit(
+        { scope: "project", ownerId: proposal.ownerId ?? proposal.botId },
+        proposal.botId,
+        "memory.project_written",
+        undefined,
+        proposalId,
+      );
+    }
     if (proposal.scope === "group") requireGroupMember({ db: this.db }, proposal.ownerId as string);
     if (proposal.scope !== "user") this.active(proposal.botId);
     const owner: MemoryOwner = {
@@ -734,6 +829,7 @@ export class MemoryService {
     messageId: string,
     candidate: ExtractionCandidate,
     groupId: string | null,
+    projectId?: string,
   ) {
     const bot = this.active(botId);
     if (candidate.scope === "group" && !groupId) throw new TypeError("candidate_scope_denied");
@@ -748,6 +844,8 @@ export class MemoryService {
     }
     const automatic = bot.memoryMode === "auto" && (!groupId || candidate.scope !== "user");
     const input = candidateInput(candidate);
+    const projectMeta =
+      candidate.scope === "project" ? this.projectProposal(messageId, candidate.text) : undefined;
     return groupId && candidate.scope === "group"
       ? this.group.groupExecute(
           { botId, messageId, groupId },
@@ -761,7 +859,20 @@ export class MemoryService {
               }
             : undefined,
         )
-      : this.execute(botId, messageId, input, automatic, undefined, groupId ?? undefined);
+      : this.execute(
+          botId,
+          messageId,
+          input,
+          automatic,
+          undefined,
+          groupId ?? undefined,
+          undefined,
+          projectId,
+          false,
+          projectMeta
+            ? { path: projectMeta.path, diff: projectMeta.diff, hash: projectMeta.hash }
+            : undefined,
+        );
   }
 
   /** The notes one owner would be organized over, plus the ids a reply may refer to. */

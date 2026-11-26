@@ -21,7 +21,7 @@ import {
 } from "./memory-search.ts";
 
 const columns =
-  "id,scope,owner_id AS ownerId,bot_id AS botId,text,category,why,how,source_message_id AS sourceMessageId,sources_json,created_at AS createdAt,updated_at AS updatedAt,archived_at AS archivedAt,last_used_at AS lastUsedAt,use_count AS useCount";
+  "id,scope,owner_id AS ownerId,bot_id AS botId,text,category,kind,why,how,source_message_id AS sourceMessageId,sources_json,created_at AS createdAt,updated_at AS updatedAt,confirmed_at AS confirmedAt,expires_at AS expiresAt,archived_at AS archivedAt,last_used_at AS lastUsedAt,use_count AS useCount";
 // A proposal knows only the message it was read from; its topic is joined here so review screens
 // can name and reopen it without a second round trip.
 const sourceColumns = ["id", "group_id", "title"]
@@ -37,10 +37,16 @@ const sourceColumns = ["id", "group_id", "title"]
   )
   .join(",");
 const proposalColumns =
-  "id,scope,owner_id AS ownerId,bot_id AS botId,text,category,message_id AS messageId,CASE WHEN action='remove' AND move_target_bot_id IS NOT NULL THEN 'move' ELSE action END AS action,memory_id AS memoryId,resolved_memory_id AS resolvedMemoryId,status,created_at AS createdAt,move_target_bot_id AS moveTargetBotId,(SELECT b.name FROM bots b WHERE b.id=move_target_bot_id) AS moveTargetBotName,move_target_memory_id AS moveTargetMemoryId,move_target_text AS moveTargetText,move_target_why AS moveTargetWhy,move_target_how AS moveTargetHow," +
+  "id,scope,owner_id AS ownerId,bot_id AS botId,text,category,message_id AS messageId,CASE WHEN action='remove' AND move_target_bot_id IS NOT NULL THEN 'move' ELSE action END AS action,memory_id AS memoryId,resolved_memory_id AS resolvedMemoryId,status,created_at AS createdAt,expires_at AS expiresAt,project_path AS projectPath,project_diff AS projectDiff,project_expected_hash AS projectExpectedHash,move_target_bot_id AS moveTargetBotId,(SELECT b.name FROM bots WHERE id=move_target_bot_id) AS moveTargetBotName,move_target_memory_id AS moveTargetMemoryId,move_target_text AS moveTargetText,move_target_why AS moveTargetWhy,move_target_how AS moveTargetHow," +
   sourceColumns;
 /** Optional prose stored next to a note; undefined leaves the stored value untouched. */
-export type MemoryNote = { why?: string | null; how?: string | null };
+export type MemoryNote = {
+  why?: string | null;
+  how?: string | null;
+  projectPath?: string | null;
+  projectDiff?: string | null;
+  projectExpectedHash?: string | null;
+};
 function memory(row: Record<string, unknown>): Memory {
   const { sources_json, ...value } = row;
   return MemorySchema.parse({ ...value, sources: JSON.parse(String(sources_json)) });
@@ -121,9 +127,10 @@ export class MemoriesRepo {
     sourceMessageId: string | null = null,
     category: Memory["category"] = null,
     note: MemoryNote = {},
+    expiresAt: string | null = null,
   ): Memory {
     this.source(botId, sourceMessageId);
-    return this.addAccepted(botId, text, sourceMessageId, category, note);
+    return this.addAccepted(botId, text, sourceMessageId, category, note, expiresAt);
   }
   similar(botId: string, text: string) {
     const id = similarMemoryId(this.db, this.target(botId), this.redact(text));
@@ -135,6 +142,7 @@ export class MemoriesRepo {
     sourceMessageId: string | null,
     category: Memory["category"],
     note: MemoryNote = {},
+    expiresAt: string | null = null,
   ): Memory {
     return transaction(this.db, () => {
       const duplicate = this.similar(botId, text);
@@ -147,11 +155,14 @@ export class MemoriesRepo {
         botId,
         text: this.redact(text),
         category,
+        kind:
+          category === "about_you" ? "preference" : category === "how_to" ? "method" : "decision",
         ...this.notes(note),
         sourceMessageId,
         sources: [{ botId, messageId: sourceMessageId }],
         createdAt: now,
         updatedAt: now,
+        expiresAt,
       });
       this.insert(value);
       return value;
@@ -159,7 +170,7 @@ export class MemoriesRepo {
   }
   // The extra fields are model- or user-written prose like the note itself, so they pass the
   // same redaction before they are stored or echoed back.
-  private notes(note: MemoryNote): { why?: string | null; how?: string | null } {
+  private notes(note: MemoryNote): MemoryNote {
     // Undefined means "the caller did not mention it", so the key must be absent: merging
     // `why: undefined` over an existing note would delete what the user wrote.
     return {
@@ -173,7 +184,7 @@ export class MemoriesRepo {
     if (!m.archivedAt) makeMemoryRoom(this.db, o, m.botId, m.id, text, this.redact);
     this.db
       .prepare(
-        "INSERT INTO scoped_memories(id,scope,owner_id,bot_id,text,category,why,how,source_message_id,sources_json,created_at,updated_at,normalized_text,archived_at,last_used_at,use_count) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO scoped_memories(id,scope,owner_id,bot_id,text,category,kind,why,how,source_message_id,sources_json,created_at,updated_at,confirmed_at,expires_at,normalized_text,archived_at,last_used_at,use_count) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       )
       .run(
         m.id,
@@ -182,12 +193,15 @@ export class MemoriesRepo {
         m.botId,
         text,
         m.category,
+        m.kind ?? null,
         m.why ?? null,
         m.how ?? null,
         m.sourceMessageId,
         JSON.stringify(m.sources ?? [{ botId: m.botId, messageId: m.sourceMessageId }]),
         m.createdAt,
         m.updatedAt,
+        m.confirmedAt ?? m.updatedAt,
+        m.expiresAt ?? null,
         normalizeMemory(text),
         m.archivedAt ?? null,
         m.lastUsedAt ?? null,
@@ -202,6 +216,7 @@ export class MemoriesRepo {
       category?: Memory["category"];
       why?: string | null;
       how?: string | null;
+      expiresAt?: string | null;
     },
   ): Memory | undefined {
     return transaction(this.db, () => {
@@ -220,14 +235,17 @@ export class MemoriesRepo {
         makeMemoryRoom(this.db, o, botId, m.id, m.text, this.redact);
       this.db
         .prepare(
-          "UPDATE scoped_memories SET text=?,category=?,why=?,how=?,updated_at=?,normalized_text=? WHERE scope=? AND owner_id=? AND id=?",
+          "UPDATE scoped_memories SET text=?,category=?,kind=?,why=?,how=?,updated_at=?,confirmed_at=?,expires_at=?,normalized_text=? WHERE scope=? AND owner_id=? AND id=?",
         )
         .run(
           m.text,
           m.category,
+          m.kind ?? null,
           m.why ?? null,
           m.how ?? null,
           m.updatedAt,
+          m.confirmedAt ?? m.updatedAt,
+          m.expiresAt ?? null,
           normalizeMemory(m.text),
           o.scope,
           o.ownerId,
@@ -341,6 +359,7 @@ export class MemoriesRepo {
     },
     category: Memory["category"] = null,
     note: MemoryNote = {},
+    expiresAt: string | null = null,
   ): MemoryProposal {
     return transaction(this.db, () => {
       this.source(botId, messageId);
@@ -366,11 +385,15 @@ export class MemoriesRepo {
         resolvedMemoryId: null,
         status: "pending",
         createdAt: new Date().toISOString(),
+        expiresAt,
+        projectPath: note.projectPath ?? null,
+        projectDiff: note.projectDiff ?? null,
+        projectExpectedHash: note.projectExpectedHash ?? null,
       });
       const notes = this.notes(note);
       this.db
         .prepare(
-          "INSERT INTO scoped_memory_proposals(id,scope,owner_id,bot_id,text,category,why,how,message_id,action,memory_id,status,created_at,before_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,'pending',?,?)",
+          "INSERT INTO scoped_memory_proposals(id,scope,owner_id,bot_id,text,category,why,how,message_id,action,memory_id,status,created_at,expires_at,project_path,project_diff,project_expected_hash,before_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,'pending',?,?,?,?,?)",
         )
         .run(
           p.id,
@@ -385,6 +408,10 @@ export class MemoriesRepo {
           p.action,
           p.memoryId,
           p.createdAt,
+          p.expiresAt ?? null,
+          notes.projectPath ?? null,
+          notes.projectDiff ?? null,
+          notes.projectExpectedHash ?? null,
           o.scope === "group" || o.scope === "user" ? JSON.stringify(before ?? null) : null,
         );
       return p;

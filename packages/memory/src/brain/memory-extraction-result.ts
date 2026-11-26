@@ -11,6 +11,8 @@ import { looksLikeWorkFact } from "./memory-work-facts.ts";
  * assistant and keeps the model's choice; updates keep their target note's scope.
  */
 function scopedCandidate(candidate: ExtractionCandidate, mainBot: boolean): ExtractionCandidate {
+  if (candidate.kind === "project")
+    return { ...candidate, scope: "bot", kind: "method", category: "work" };
   if (mainBot || candidate.scope !== "user" || candidate.action !== "add") return candidate;
   if (!looksLikeWorkFact(candidate.text)) return candidate;
   return {
@@ -43,8 +45,13 @@ export function applyExtractionCandidates(
   };
   if (parsed.dropped) counts.reasons.candidate_invalid = parsed.dropped;
   const mainBot = memory.active(row.botId).isMain;
+  const project = memory.projectForConversation(row.conversationId);
   for (const raw of parsed.candidates) {
-    const candidate = row.groupId ? raw : scopedCandidate(raw, mainBot);
+    const candidate = row.groupId
+      ? raw
+      : raw.kind === "project" && project
+        ? { ...raw, scope: "project" as const }
+        : scopedCandidate(raw, mainBot);
     if (candidate !== raw)
       counts.reasons.candidate_rescoped_bot = (counts.reasons.candidate_rescoped_bot ?? 0) + 1;
     try {
@@ -62,6 +69,7 @@ export function applyExtractionCandidates(
           ? { ...candidate, text: keepIdentifiers(candidate.text, source) }
           : candidate,
         row.groupId,
+        project?.id,
       );
       const code = value.memory ? "candidate_applied" : "candidate_proposed";
       if (value.memory) {

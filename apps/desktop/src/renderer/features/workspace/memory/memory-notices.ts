@@ -5,6 +5,10 @@ import { checkedProfile } from "../profile/profile.ts";
 import type { MemoryNoticeStorage } from "./memory-notice-storage.ts";
 
 export function memoryError(error: unknown): TranslationKey {
+  if (error instanceof RpcError && error.message === "memory_project_file_changed")
+    return "memorySettings.projectFileChanged";
+  if (error instanceof RpcError && error.message === "memory_project_target_invalid")
+    return "memorySettings.projectTargetInvalid";
   if (error instanceof RpcError && error.message === "memory_move_copy_required")
     return "memorySettings.moveCopyRequired";
   if (error instanceof RpcError && error.message === "memory_move_restore_required")

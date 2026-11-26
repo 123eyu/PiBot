@@ -20,6 +20,7 @@ const scopeFields = {
   ownerId: z.union([IdSchema, z.literal("user")]).optional(),
 };
 export const MemoryCategorySchema = z.enum(["about_you", "work", "how_to"]);
+export const MemoryKindSchema = z.enum(["preference", "method", "project", "decision"]);
 // Optional context around a note. Bound by characters, not bytes, so 300 Chinese
 // characters fit as well as 300 Latin ones; NULL/absent means the note has none.
 export const MemoryNoteSchema = z
@@ -38,12 +39,15 @@ export const MemorySchema = z.strictObject({
     .max(16000)
     .refine((v) => !v.includes("\0") && Array.from(v).length <= 8000, "Invalid memory text"),
   category: MemoryCategorySchema.nullable(),
+  kind: MemoryKindSchema.nullable().optional(),
   why: MemoryNoteSchema.nullable().optional(),
   how: MemoryNoteSchema.nullable().optional(),
   sourceMessageId: IdSchema.nullable(),
   sources: z.array(z.strictObject({ botId: IdSchema, messageId: IdSchema.nullable() })).optional(),
   createdAt: time,
   updatedAt: time,
+  confirmedAt: time.nullable().optional(),
+  expiresAt: time.nullable().optional(),
   archivedAt: time.nullable().optional(),
   lastUsedAt: time.nullable().optional(),
   useCount: z.number().int().nonnegative().optional(),
@@ -89,6 +93,14 @@ export const MemoryProposalSchema = z.strictObject({
   moveTargetText: MemorySchema.shape.text.nullable().optional(),
   moveTargetWhy: MemoryNoteSchema.nullable().optional(),
   moveTargetHow: MemoryNoteSchema.nullable().optional(),
+  expiresAt: time.nullable().optional(),
+  projectPath: z.string().max(4096).nullable().optional(),
+  projectDiff: z.string().max(16000).nullable().optional(),
+  projectExpectedHash: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/)
+    .nullable()
+    .optional(),
 });
 export type Memory = z.infer<typeof MemorySchema>;
 export type MemoryProposal = z.infer<typeof MemoryProposalSchema>;

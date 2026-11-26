@@ -20,6 +20,9 @@ export const memorySettingsZh = {
   "memorySettings.sort.limited":
     "已达到本次整理的时间、内容或用量上限，剩余记忆未处理。已生成的提议仍可确认。",
   "memorySettings.sort.failed": "整理未完成，请检查模型和连接后重试。已生成的提议仍可确认。",
+  "memorySettings.projectFileChanged": "AGENTS.md 在提议之后被改过，没有写入。请重新整理后再确认。",
+  "memorySettings.projectTargetInvalid":
+    "项目里的 AGENTS.md 不是普通文件（可能是链接），没有写入。",
   "memorySettings.moveCopyRequired":
     "请先确认 Bot 中的新增或改写提议，再删除「关于你」中的副本。副本已修改或归档时请先核对。",
   "memorySettings.moveRestoreRequired":
@@ -141,6 +144,10 @@ export const memorySettingsEn = {
     "This run reached its time, content or usage limit. Remaining memories were not processed; created proposals are still available.",
   "memorySettings.sort.failed":
     "Sorting could not finish. Check the model and connection, then retry. Created proposals are still available.",
+  "memorySettings.projectFileChanged":
+    "AGENTS.md changed after this proposal was made, so nothing was written. Sort again, then confirm.",
+  "memorySettings.projectTargetInvalid":
+    "The project's AGENTS.md is not a regular file (it may be a link), so nothing was written.",
   "memorySettings.moveCopyRequired":
     "Confirm the Bot add or rewrite first, then delete the About you copy. Check the Bot copy if it was changed or archived.",
   "memorySettings.moveRestoreRequired":

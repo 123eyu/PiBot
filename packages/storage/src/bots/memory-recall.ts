@@ -6,7 +6,8 @@ export const MEMORY_RECALL_LIMIT = 32;
 export const MEMORY_SHORT_SCAN_LIMIT = 512;
 // Maintainers 2026-11-11: active user notes are no longer all resident (only a fixed token budget is),
 // so they are recall candidates like other scopes; the caller passes what it already injected.
-const eligible = "(archived_at IS NOT NULL OR scope='user' OR category='work' OR category IS NULL)";
+const eligible =
+  "(archived_at IS NOT NULL OR (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP) AND (scope='user' OR category='work' OR category IS NULL))";
 const notIn = (ids: readonly string[]) =>
   ids.length ? ` AND id NOT IN (${ids.map(() => "?").join(",")})` : "";
 const sample = (tokens: string[], limit: number) =>
