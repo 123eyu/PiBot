@@ -73,7 +73,7 @@ class PibotAndroidModule : Module() {
           digest.update(buffer, 0, count)
         }
       }
-      digest.joinToString("") { byte -> "%02x".format(byte) }
+      digest.digest().joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }.runOnQueue(Queues.DEFAULT)
     AsyncFunction("installApk") { uri: String ->
       val ctx = context

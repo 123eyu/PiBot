@@ -18,6 +18,7 @@ export * from "./browser/google-compat.ts";
 export * from "./browser/host.ts";
 export * from "./browser/host-view.ts";
 export * from "./browser/network.ts";
+export * from "./browser/private-network.ts";
 export * from "./chat/additions.ts";
 export * from "./chat/attachments.ts";
 export * from "./chat/background-restart.ts";

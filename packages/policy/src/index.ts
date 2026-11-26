@@ -119,6 +119,7 @@ export { browserSecretPolicy } from "./secrets/browser-secret-policy.ts";
 export { type SecretUsePolicyInput, secretUsePolicy } from "./secrets/secret-use.ts";
 export { secretWriteOutDenied } from "./secrets/secret-write-out.ts";
 export {
+  browserPrivateNetworkHost,
   privateCommandHosts,
   privateNetworkHost,
   privateNetworkOrigin,
