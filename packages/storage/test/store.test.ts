@@ -198,6 +198,8 @@ describe("database and migrations", () => {
       "memory_organizations",
       "memory_projects",
       "memory_proposals",
+      "memory_recall_metrics",
+      "memory_recall_observations",
       "memory_revisions",
       "memory_scope_moves",
       "message_attachment_links",
@@ -268,8 +270,8 @@ describe("database and migrations", () => {
       "worktree_allocations",
     ]);
     const versions = db.prepare("SELECT * FROM schema_migrations").all();
-    expect(versions).toHaveLength(176);
-    expect(versions.at(-1)?.version).toBe(178);
+    expect(versions).toHaveLength(177);
+    expect(versions.at(-1)?.version).toBe(179);
     expect(versions[0]?.version).toBe(1);
     expect(String(versions[0]?.applied_at)).toMatch(/Z$/);
     const bot = new BotsRepo(db).ensureMainBot();

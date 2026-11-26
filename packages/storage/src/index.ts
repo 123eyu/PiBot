@@ -8,6 +8,7 @@ export * from "./bots/memory-management.ts";
 export * from "./bots/memory-organization.ts";
 export { MemoryProjectsRepo } from "./bots/memory-projects.ts";
 export * from "./bots/memory-recall.ts";
+export * from "./bots/memory-recall-metrics.ts";
 export * from "./bots/memory-scope-moves.ts";
 export { SimilarMemoryError, sameMemoryRevision } from "./bots/memory-search.ts";
 export * from "./bots/memory-undo.ts";

@@ -154,6 +154,8 @@ export type {
   GroupMemoryPort,
   MemoryPort,
   MemoryPromptRequest,
+  MemoryRecallObservation,
+  MemoryRecallRequest,
   PersonalMemoryPort,
 } from "./runtime/memory/port.ts";
 export { memoryProjectPath } from "./runtime/memory/project.ts";

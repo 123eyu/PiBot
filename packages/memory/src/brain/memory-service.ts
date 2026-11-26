@@ -2,7 +2,13 @@ import { createHash, randomUUID } from "node:crypto";
 import { lstatSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import type { BrainRedactor, MemoryPromptRequest, RegisterRpc } from "@pibot/brain/kit";
+import type {
+  BrainRedactor,
+  MemoryPromptRequest,
+  MemoryRecallObservation,
+  MemoryRecallRequest,
+  RegisterRpc,
+} from "@pibot/brain/kit";
 import { requireGroupMember } from "@pibot/brain/kit";
 import { type MemoryWriteFacts, memoryWritePolicy, mustAskNow } from "@pibot/policy";
 import {
@@ -18,11 +24,13 @@ import {
 import {
   AuditRepo,
   BotsRepo,
+  GroupsRepo,
   isScopeMove,
   MEMORY_SEARCH_LIMIT,
   MemoriesRepo,
   MemoryProjectsRepo,
   MemoryUndoRepo,
+  memoryRecallSnapshot,
   memoryStatus,
   SidebarRepo,
   SimilarMemoryError,
@@ -46,6 +54,7 @@ import { type MemoryToolInput, noteValue, parseMemoryInput } from "./memory-inpu
 import { type OrganizationProposal, organizationCatalog } from "./memory-organization.ts";
 import { organizationInputs } from "./memory-organization-inputs.ts";
 import { createMemoryReads } from "./memory-reads.ts";
+import { MemoryRecallMetrics } from "./memory-recall-metrics.ts";
 import { undoableMemory } from "./memory-reversal.ts";
 import {
   assertScopeMoveDestination,
@@ -60,6 +69,7 @@ export class MemoryService {
   private readonly bots: BotsRepo;
   private readonly group: ReturnType<typeof createGroupMemoryOperations>;
   private readonly usage: MemoryUsage;
+  private readonly recall: MemoryRecallMetrics;
   private readonly reads: ReturnType<typeof createMemoryReads>;
 
   constructor(
@@ -74,6 +84,21 @@ export class MemoryService {
     this.undo = new MemoryUndoRepo(db);
     this.bots = new BotsRepo(db);
     this.usage = new MemoryUsage(db, usageError);
+    this.recall = new MemoryRecallMetrics(db, usageError, (botId, note) => {
+      const bot = this.bots.get(botId);
+      if (!bot || bot.archivedAt) return false;
+      if (note.scope === "group") {
+        const group = new GroupsRepo(db).get(note.ownerId);
+        return (
+          !!group && !group.archivedAt && group.members.some((member) => member.botId === botId)
+        );
+      }
+      return note.scope === "user"
+        ? note.ownerId === "user"
+        : note.scope === "bot"
+          ? note.ownerId === botId
+          : !!new MemoryProjectsRepo(db).byId(note.ownerId);
+    });
     this.reads = createMemoryReads({
       repoFor: (owner) => this.repoFor(owner),
       recordUsage: (ids) => this.usage.record(ids),
@@ -173,6 +198,24 @@ export class MemoryService {
       undefined,
       (ids) => this.usage.record(ids),
       request,
+      (notes) => {
+        if (request?.runId)
+          this.recall.inject(request.runId, botId, notes, request.runSignal ?? request.signal);
+      },
+    );
+  }
+  observeRecall(runId: string, observation: MemoryRecallObservation) {
+    this.recall.observe(runId, observation);
+  }
+  finishRecall(runId: string) {
+    this.recall.finish(runId);
+  }
+  recallSnapshot(botId: string, request: MemoryRecallRequest) {
+    return memoryRecallSnapshot(
+      this.db,
+      this.visibleOwners(botId, request.groupId, request.project),
+      request.ids,
+      request.signal,
     );
   }
   sharedUser(botId: string, signal: AbortSignal) {
@@ -221,6 +264,7 @@ export class MemoryService {
     }
   }
   stop() {
+    this.recall.stop();
     this.usage.stop();
   }
   flushUsage() {
@@ -792,6 +836,10 @@ export class MemoryService {
       groupId,
       (ids) => this.usage.record(ids),
       request,
+      (notes) => {
+        if (request?.runId)
+          this.recall.inject(request.runId, member, notes, request.runSignal ?? request.signal);
+      },
     );
   }
   groupSave(...args: Parameters<ReturnType<typeof createGroupMemoryOperations>["groupSave"]>) {

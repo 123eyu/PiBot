@@ -54,7 +54,7 @@ export const memorySettingsZh = {
   "memorySettings.archivedCount": "已归档 {count}",
 
   "memorySettings.title": "记忆",
-  "memorySettings.unusedSummary": "很久没用到：{count} 条",
+  "memorySettings.unusedSummary": "90 天内未推测到使用：{count} 条",
   "memorySettings.aboutYouLead": "所有 Bot 都会参考这些；只存在这台电脑上，随时可以改。",
   "memorySettings.lead": "管理这台设备上的记忆。记忆是参考资料，不会授予权限。",
   "memorySettings.scope": "记忆归属",
@@ -81,7 +81,10 @@ export const memorySettingsZh = {
   "memorySettings.pending": "待确认的记忆",
   "memorySettings.summary": "当前 {active} 条 · 归档 {archived} 条 · 很久没用到 {unused} 条",
   "memorySettings.organize": "需要整理：一些记忆已归档，仍可按需召回。",
-  "memorySettings.unused": "很久没用到（90 天）",
+  "memorySettings.unused": "90 天内未推测到使用",
+  "memorySettings.recallUsed": "推测最近用到：{date} · {used}/{injected} 轮",
+  "memorySettings.recallUnused": "已注入 {injected} 轮，尚未推测到使用",
+  "memorySettings.recallUnavailable": "使用度量尚无数据",
   "memorySettings.used": "最近使用：{date} · 合并使用批次 {count}",
   "memorySettings.neverUsed": "尚无使用记录",
   "memorySettings.created": "创建于 {date}",
@@ -180,7 +183,7 @@ export const memorySettingsEn = {
   "memorySettings.archivedCount": "Archived {count}",
 
   "memorySettings.title": "Memory",
-  "memorySettings.unusedSummary": "Unused for a long time: {count}",
+  "memorySettings.unusedSummary": "No inferred use in 90 days: {count}",
   "memorySettings.aboutYouLead":
     "All Bots refer to these memories. Stored on this computer; edit them any time.",
   "memorySettings.lead":
@@ -212,7 +215,10 @@ export const memorySettingsEn = {
     "{active} active · {archived} archived · {unused} unused for a long time",
   "memorySettings.organize":
     "Needs organization: some memories are archived and can still be recalled when relevant.",
-  "memorySettings.unused": "Unused for a long time (90 days)",
+  "memorySettings.unused": "No inferred use in 90 days",
+  "memorySettings.recallUsed": "Last inferred use: {date} · {used}/{injected} runs",
+  "memorySettings.recallUnused": "Injected in {injected} runs; no inferred use yet",
+  "memorySettings.recallUnavailable": "Usage measurements unavailable",
   "memorySettings.used": "Last used: {date} · {count} merged usage batches",
   "memorySettings.neverUsed": "No usage recorded yet",
   "memorySettings.created": "Created {date}",

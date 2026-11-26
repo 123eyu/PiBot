@@ -7,8 +7,10 @@ export function memoryStatus(db: DatabaseSync, owner: MemoryOwner) {
   const row = db
     .prepare(`SELECT COUNT(*) FILTER(WHERE archived_at IS NULL) AS active,
     COUNT(*) FILTER(WHERE archived_at IS NOT NULL) AS archived,
-    COUNT(*) FILTER(WHERE COALESCE(last_used_at,created_at)<?) AS unused
-    FROM scoped_memories WHERE scope=? AND owner_id=?`)
+    COUNT(*) FILTER(WHERE r.measured_since IS NOT NULL
+      AND COALESCE(r.last_used_at,r.measured_since)<?) AS unused
+    FROM scoped_memories m LEFT JOIN memory_recall_metrics r ON r.memory_id=m.id
+    WHERE scope=? AND owner_id=?`)
     .get(new Date(Date.now() - 90 * 86400_000).toISOString(), owner.scope, owner.ownerId);
   // Only quota archiving (makeMemoryRoom) asks for organizing; a memory the user archived
   // themselves is already organized. The quota audit is written after `archived_at` is set, so a

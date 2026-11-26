@@ -89,6 +89,7 @@ import { resolveWorkflowFolder, type WorkflowFolder } from "../workflows/workflo
 import { workflowPipeline } from "../workflows/workflow-pipeline.ts";
 import type { WorkflowRun } from "../workflows/workflow-prepare.ts";
 import { workflowSkillText, workflowSystemBlock } from "../workflows/workflow-text.ts";
+import { chatMemoryRecall } from "./chat-memory-recall.ts";
 import { routineTopicReference } from "./routine-topic-reference.ts";
 import { abortRun } from "./run-queue-shared.ts";
 import { runStateFacts } from "./run-state-facts.ts";
@@ -396,6 +397,16 @@ export async function generateRun(
   let workplace: string | undefined;
   // Ids of memory notes injected into this run's prompts, listed on its receipt.
   const usedMemoryIds = new Set<string>();
+  const recall = chatMemoryRecall(deps.local?.memory, run.runId, run.signal, () =>
+    deps.logger.warn(
+      JSON.stringify({
+        module: "memory",
+        event: "recall_measurement_failed",
+        runId: run.runId,
+        botId: run.botId,
+      }),
+    ),
+  );
   const backgroundRequests = new Set<string>();
   let loggedCatalog: string | undefined;
   let stalledCompaction = false;
@@ -637,7 +648,7 @@ export async function generateRun(
         : childTier
           ? { modelTier: childTier }
           : {}),
-      ...(tools ? { localTools: tools.ports } : {}),
+      ...(tools ? { localTools: recall.tools(tools.ports) } : {}),
       // Only this Bot's enabled skills, read fresh for every run (no disk discovery).
       ...(tools && local
         ? {
@@ -865,12 +876,16 @@ export async function generateRun(
                   memory: resourceGroupId
                     ? local.groupMemory.prompt(resourceGroupId, bot.id, {
                         query: memoryQuery,
+                        runId: run.runId,
+                        runSignal: run.signal,
                         signal,
                         project: memoryProjectPath(toolContext),
                         onUsed: rememberUsed,
                       })
                     : local.memory.prompt(bot.id, {
                         query: memoryQuery,
+                        runId: run.runId,
+                        runSignal: run.signal,
                         signal,
                         project: memoryProjectPath(toolContext),
                         onUsed: rememberUsed,
@@ -946,12 +961,16 @@ export async function generateRun(
                         memory: resourceGroupId
                           ? local.groupMemory.prompt(resourceGroupId, bot.id, {
                               query: memoryQuery,
+                              runId: run.runId,
+                              runSignal: run.signal,
                               signal,
                               project: memoryProjectPath(toolContext),
                               onUsed: rememberUsed,
                             })
                           : local.memory.prompt(bot.id, {
                               query: memoryQuery,
+                              runId: run.runId,
+                              runSignal: run.signal,
                               signal,
                               project: memoryProjectPath(toolContext),
                               onUsed: rememberUsed,
@@ -1056,6 +1075,8 @@ export async function generateRun(
         return;
       }
       if (run.aborted || run.signal.aborted) return;
+      if (event.type === "delta") recall.observe({ kind: "reply", text: event.text });
+      if (event.type === "replyStart") recall.observe({ kind: "replyEnd" });
       replies.event(event);
     };
     type PromptValue = Awaited<ReturnType<BotSession["prompt"]>>;
@@ -1611,6 +1632,7 @@ export async function generateRun(
       `Chat ${run.runId} ${code}${status ? ` status=${status}` : ""}${budgetReason ? ` budget=${budgetReason}` : ""} model=${bot.modelProvider ?? "?"}/${bot.modelId ?? "?"}`,
     );
   } finally {
+    recall.finish();
     deps.local?.background.continuation.releaseProjection(run.runId);
     clearInterval(timer);
     replies.interruptAdditions();

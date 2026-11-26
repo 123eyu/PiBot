@@ -28,6 +28,20 @@ export const MemoryNoteSchema = z
   .trim()
   .max(1200)
   .refine((v) => !v.includes("\0") && Array.from(v).length <= 300, "Invalid memory note");
+/** Local heuristic observations; no historical injection counters are backfilled as uses. */
+export const MemoryRecallMetricsSchema = z.strictObject({
+  injectedCount: z.number().int().nonnegative(),
+  usedCount: z.number().int().nonnegative(),
+  measuredSince: time,
+  lastUsedAt: time.nullable(),
+});
+export interface MemoryRecallSnapshot {
+  memoryId: string;
+  injectedCount: number | null;
+  usedCount: number | null;
+  lastUsedAt: string | null;
+  measuredSince: string | null;
+}
 export const MemorySchema = z.strictObject({
   ...scopeFields,
   id: IdSchema,
@@ -202,6 +216,7 @@ export const MemoryMethods = {
             id: IdSchema,
             botName: z.string().max(1000).nullable(),
             edits: z.number().int().nonnegative(),
+            recallMetrics: MemoryRecallMetricsSchema.optional(),
           }),
         )
         .max(50)
