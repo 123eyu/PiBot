@@ -300,6 +300,8 @@ async function parallelWriters(
   const { workspaces } = await until(
     "parallel workspaces cleaned",
     async () => {
+      // Cleanup can still request an approval after the plan reaches passed.
+      await approve(f);
       const workspaces = dbRead(f, (db) =>
         db
           .prepare(
@@ -944,6 +946,9 @@ async function scenario(root: string, kind: Kind) {
         .prepare(
           "SELECT json_extract(usage,'$.groupPlan.status') AS status FROM messages WHERE json_type(usage,'$.groupPlan')='object'",
         )
+        .all(),
+      workspaces: db
+        .prepare("SELECT state, COUNT(*) AS count FROM group_member_workspaces GROUP BY state")
         .all(),
       blocks: db
         .prepare(
