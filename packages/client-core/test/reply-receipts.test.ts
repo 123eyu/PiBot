@@ -1,7 +1,7 @@
 import { attachmentContinuationOf, type Message, MessageSchema } from "@pibot/protocol";
 import { describe, expect, it } from "vitest";
-import { nextReply } from "./next-reply.ts";
-import { replyReceiptPositions } from "./reply-receipts.ts";
+import { nextReply } from "../src/chat/next-reply.ts";
+import { replyReceiptPositions } from "../src/chat/reply-receipts.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const at = "2026-01-01T00:00:00.000Z";
