@@ -8,17 +8,15 @@ import { z } from "zod";
 import { pibotAndroid } from "../../../modules/pibot-android/index.ts";
 
 const FeedSchema = z.object({
-  android: z.object({
-    version: z.string().min(1),
-    versionCode: z.number().int().nonnegative(),
-    url: z.string().url(),
-    sha256: z.string().regex(/^[a-f0-9]{64}$/i),
-    size: z.number().int().positive(),
-  }),
+  version: z.string().min(1),
+  versionCode: z.number().int().nonnegative(),
+  url: z.string().url(),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/i),
+  size: z.number().int().positive(),
 });
 
-export type AndroidUpdate = z.infer<typeof FeedSchema>["android"] & { productionFeed: boolean };
-const FEED_URL = "https://pibot.space/updates/stable.json";
+export type AndroidUpdate = z.infer<typeof FeedSchema> & { productionFeed: boolean };
+const FEED_URL = "https://pibot.space/updates/android.json";
 const TIMEOUT_MS = 20_000;
 const CACHE_NAME = "pibot-android-update.apk";
 
@@ -55,9 +53,9 @@ export async function fetchAndroidUpdate(signal?: AbortSignal): Promise<AndroidU
   });
   if (!response.ok) throw new Error("update_feed_unavailable");
   const result = FeedSchema.parse(await response.json());
-  if (productionFeed) assertOfficialUrl(result.android.url);
-  else assertDevelopmentUrl(result.android.url);
-  return { ...result.android, productionFeed };
+  if (productionFeed) assertOfficialUrl(result.url);
+  else assertDevelopmentUrl(result.url);
+  return { ...result, productionFeed };
 }
 
 export function isNewerUpdate(update: AndroidUpdate) {
