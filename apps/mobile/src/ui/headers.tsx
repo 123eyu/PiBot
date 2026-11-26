@@ -2,8 +2,15 @@ import { PHONE_COMPAT_LEVEL, PIBOT_WEBSITE_URL } from "@pibot/protocol";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { pibotAndroid } from "../../modules/pibot-android/index.ts";
+import {
+  downloadAndroidUpdate,
+  fetchAndroidUpdate,
+  installAndroidUpdate,
+  isNewerUpdate,
+} from "../features/updates/android-update.ts";
 import { compatNotice } from "../runtime/compat.ts";
 import { useLinkState, useMobileSelector, useText } from "../runtime/context.tsx";
 import { usePageTint } from "../theme/page-tint.tsx";
@@ -202,9 +209,23 @@ function CompatBanner() {
   const notice = compatNotice(PHONE_COMPAT_LEVEL, about);
   if (!notice) return null;
   const version = about?.version ?? "";
-  const download = () =>
-    // No browser or a refused hand-off: show the address to copy instead.
-    void Linking.openURL(PIBOT_WEBSITE_URL).catch(() => showLink(PIBOT_WEBSITE_URL));
+  const download = () => {
+    if (Platform.OS !== "android") {
+      void Linking.openURL(PIBOT_WEBSITE_URL).catch(() => showLink(PIBOT_WEBSITE_URL));
+      return;
+    }
+    void fetchAndroidUpdate()
+      .then((update) => {
+        if (!isNewerUpdate(update)) throw new Error("update_not_newer");
+        return downloadAndroidUpdate(update, () => undefined);
+      })
+      .then(installAndroidUpdate)
+      .then((result) => {
+        if (result === "unknown_sources") return pibotAndroid?.openInstallSettings();
+        return undefined;
+      })
+      .catch(() => Linking.openURL(PIBOT_WEBSITE_URL).catch(() => showLink(PIBOT_WEBSITE_URL)));
+  };
   return (
     <View style={{ marginHorizontal: space.page, marginBottom: 10 }}>
       {notice === "update_phone" ? (

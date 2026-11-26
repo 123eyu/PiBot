@@ -1,0 +1,99 @@
+/** Android update feed, download, integrity check, and native installer bridge. */
+
+import Constants from "expo-constants";
+import { File, Paths } from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
+import { Platform } from "react-native";
+import { z } from "zod";
+import { pibotAndroid } from "../../../modules/pibot-android/index.ts";
+
+const FeedSchema = z.object({
+  android: z.object({
+    version: z.string().min(1),
+    versionCode: z.number().int().nonnegative(),
+    url: z.string().url(),
+    sha256: z.string().regex(/^[a-f0-9]{64}$/i),
+    size: z.number().int().positive(),
+  }),
+});
+
+export type AndroidUpdate = z.infer<typeof FeedSchema>["android"] & { productionFeed: boolean };
+const FEED_URL = "https://pibot.space/updates/stable.json";
+const TIMEOUT_MS = 20_000;
+const CACHE_NAME = "pibot-android-update.apk";
+
+function feedUrl() {
+  const override = process.env.EXPO_PUBLIC_UPDATE_FEED_URL;
+  return __DEV__ && override ? override : FEED_URL;
+}
+
+function assertOfficialUrl(value: string) {
+  const parsed = new URL(value);
+  if (parsed.protocol !== "https:" || parsed.hostname !== "pibot.space")
+    throw new Error("update_url_rejected");
+}
+
+function assertDevelopmentUrl(value: string) {
+  const parsed = new URL(value);
+  if (!__DEV__ || !["http:", "https:"].includes(parsed.protocol))
+    throw new Error("update_url_rejected");
+  if (!/(^localhost$|^127\.0\.0\.1$|^192\.168\.)/.test(parsed.hostname))
+    throw new Error("update_url_rejected");
+}
+
+export async function fetchAndroidUpdate(signal?: AbortSignal): Promise<AndroidUpdate> {
+  if (Platform.OS !== "android") throw new Error("unsupported_platform");
+  const timeout = AbortSignal.timeout(TIMEOUT_MS);
+  const combined = AbortSignal.any(signal ? [signal, timeout] : [timeout]);
+  const source = feedUrl();
+  const productionFeed = source === FEED_URL;
+  if (productionFeed) assertOfficialUrl(source);
+  else assertDevelopmentUrl(source);
+  const response = await fetch(source, {
+    signal: combined,
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error("update_feed_unavailable");
+  const result = FeedSchema.parse(await response.json());
+  if (productionFeed) assertOfficialUrl(result.android.url);
+  else assertDevelopmentUrl(result.android.url);
+  return { ...result.android, productionFeed };
+}
+
+export function isNewerUpdate(update: AndroidUpdate) {
+  const installed = Constants.expoConfig?.android?.versionCode ?? 0;
+  return update.versionCode > installed;
+}
+
+export async function downloadAndroidUpdate(
+  update: AndroidUpdate,
+  onProgress: (fraction: number) => void,
+  signal?: AbortSignal,
+) {
+  if (update.productionFeed) assertOfficialUrl(update.url);
+  else assertDevelopmentUrl(update.url);
+  const destination = new File(Paths.cache, CACHE_NAME);
+  destination.delete();
+  const task = FileSystem.createDownloadResumable(update.url, destination.uri, {}, (progress) =>
+    onProgress(progress.totalBytesWritten / Math.max(progress.totalBytesExpectedToWrite, 1)),
+  );
+  const abort = () => void task.cancelAsync();
+  signal?.addEventListener("abort", abort, { once: true });
+  try {
+    await task.downloadAsync();
+    const size = destination.size;
+    const hash = await pibotAndroid?.sha256File(destination.uri);
+    if (size !== update.size || hash !== update.sha256) throw new Error("update_integrity_failed");
+    return destination.uri;
+  } catch (error) {
+    destination.delete();
+    throw error;
+  } finally {
+    signal?.removeEventListener("abort", abort);
+  }
+}
+
+export async function installAndroidUpdate(uri: string) {
+  if (Platform.OS !== "android" || !pibotAndroid) throw new Error("unsupported_platform");
+  return pibotAndroid.installApk(uri);
+}
