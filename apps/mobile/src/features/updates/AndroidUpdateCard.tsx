@@ -44,7 +44,7 @@ export function useAndroidUpdate() {
     downloadedBytes: 0,
     totalBytes: 0,
   });
-  const controller = useRef<AbortController>();
+  const controller = useRef<AbortController | undefined>(undefined);
 
   const check = useCallback(async () => {
     if (Platform.OS !== "android") return;

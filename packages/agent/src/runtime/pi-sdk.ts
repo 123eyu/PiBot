@@ -22,9 +22,13 @@ let compileCacheWarmup: Promise<void> | undefined;
  */
 export function warmPiSdkCompileCache(): Promise<void> {
   compileCacheWarmup ??= new Promise<void>((resolve, reject) => {
+    // Resolve here, not in the worker: an eval worker resolves bare specifiers from the process
+    // working directory, which in the packaged app is not the app folder, so the import would fail
+    // and the warm-up would silently do nothing.
+    const sdk = import.meta.resolve("@earendil-works/pi-coding-agent/sdk");
     const worker = new Worker(
-      'import { parentPort } from "node:worker_threads"; import("@earendil-works/pi-coding-agent/sdk").then(() => parentPort?.postMessage("ready"), () => parentPort?.postMessage("failed"));',
-      { eval: true, type: "module" },
+      'const { parentPort, workerData } = require("node:worker_threads"); import(workerData).then(() => parentPort.postMessage("ready"), () => parentPort.postMessage("failed"));',
+      { eval: true, workerData: sdk },
     );
     const timeout = setTimeout(() => {
       void worker.terminate();
@@ -40,7 +44,9 @@ export function warmPiSdkCompileCache(): Promise<void> {
     worker.once("message", (message: unknown) => {
       finish(message === "ready" ? undefined : new Error("pi_sdk_compile_cache_failed"));
     });
-    worker.once("error", (error) => finish(error));
+    worker.once("error", (error: unknown) =>
+      finish(error instanceof Error ? error : new Error("pi_sdk_compile_cache_worker_error")),
+    );
     worker.once("exit", (code) => {
       if (code !== 0) finish(new Error("pi_sdk_compile_cache_worker_exit"));
     });
