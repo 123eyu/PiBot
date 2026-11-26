@@ -10,7 +10,12 @@ import { externalAgentsEn } from "@pibot/external-agents-contract/i18n";
 import { mediaEn } from "@pibot/images-contract/i18n";
 import { providersEn } from "@pibot/models-contract/i18n";
 import { officeEn } from "@pibot/office-contract/i18n";
-import { connectionsEn, connectorsEn, knowledgeEn } from "@pibot/plugins-contract/i18n";
+import {
+  connectionDrawerEn,
+  connectionsEn,
+  connectorsEn,
+  knowledgeEn,
+} from "@pibot/plugins-contract/i18n";
 import { remoteEn } from "@pibot/remote-contract/i18n";
 import { routineProposalsEn, routinesEn } from "@pibot/routines-contract/i18n";
 import { skillsEn, teachEn, workflowsEn } from "@pibot/skills-contract/i18n";
@@ -364,6 +369,7 @@ export const enSections = {
   connectorsEn,
   knowledgeEn,
   connectionsEn,
+  connectionDrawerEn,
   browserDebugEn,
   executionEn,
   personalTodosEn,

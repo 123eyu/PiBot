@@ -10,7 +10,12 @@ import { externalAgentsZh } from "@pibot/external-agents-contract/i18n";
 import { mediaZh } from "@pibot/images-contract/i18n";
 import { providersZh } from "@pibot/models-contract/i18n";
 import { officeZh } from "@pibot/office-contract/i18n";
-import { connectionsZh, connectorsZh, knowledgeZh } from "@pibot/plugins-contract/i18n";
+import {
+  connectionDrawerZh,
+  connectionsZh,
+  connectorsZh,
+  knowledgeZh,
+} from "@pibot/plugins-contract/i18n";
 import { remoteZh } from "@pibot/remote-contract/i18n";
 import { routineProposalsZh, routinesZh } from "@pibot/routines-contract/i18n";
 import { skillsZh, teachZh, workflowsZh } from "@pibot/skills-contract/i18n";
@@ -331,6 +336,7 @@ export const zhSections = {
   connectorsZh,
   knowledgeZh,
   connectionsZh,
+  connectionDrawerZh,
   browserDebugZh,
   executionZh,
   personalTodosZh,
