@@ -2,7 +2,7 @@ import type { Logger } from "@pibot/observability";
 import type { CapabilityHandle } from "../../core/capability.ts";
 
 /** Diagnostics never gate readiness; their owners must still drain before capability disposal. */
-export function deferredMaintenance(logger: Logger) {
+export function deferredMaintenance(logger: Logger, warmSdk?: () => Promise<void>) {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let work: Promise<void> | undefined;
@@ -15,6 +15,30 @@ export function deferredMaintenance(logger: Logger) {
         const jobs = handles.flatMap((handle) =>
           handle.afterReady ? [(signal: AbortSignal) => handle.afterReady?.(signal)] : [],
         );
+        // The SDK's compile cache is filled on a worker thread while the app is idle, so the
+        // first model operation reads compiled code instead of compiling on this thread.
+        if (warmSdk)
+          jobs.push(async (signal) => {
+            try {
+              // Shutdown and the job deadline do not wait for the worker; it ends with the process.
+              await Promise.race([
+                warmSdk(),
+                new Promise<void>((resolve) => {
+                  if (signal.aborted) resolve();
+                  else signal.addEventListener("abort", () => resolve(), { once: true });
+                }),
+              ]);
+            } catch (error) {
+              logger.warn(
+                JSON.stringify({
+                  module: "agent",
+                  event: "pi_sdk_warmup_failed",
+                  code:
+                    error instanceof Error ? error.message : "pi_sdk_compile_cache_worker_error",
+                }),
+              );
+            }
+          });
         work = Promise.all(
           jobs.map(async (run, index) => {
             if (controller.signal.aborted) return;

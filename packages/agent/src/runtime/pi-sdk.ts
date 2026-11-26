@@ -1,3 +1,4 @@
+import { getCompileCacheDir } from "node:module";
 import { Worker } from "node:worker_threads";
 
 /**
@@ -23,6 +24,14 @@ let compileCacheWarmup: Promise<void> | undefined;
  */
 export function warmPiSdkCompileCache(): Promise<void> {
   compileCacheWarmup ??= new Promise<void>((resolve, reject) => {
+    // `enableCompileCache()` in the brain's main thread does not reach worker threads (checked on
+    // Node 26: a worker importing the SDK wrote no cache entries), so the worker enables the same
+    // directory itself and flushes before it reports. Without a cache there is nothing to warm.
+    const cacheDir = getCompileCacheDir();
+    if (!cacheDir) {
+      resolve();
+      return;
+    }
     // Resolve here, not in the worker: an eval worker resolves bare specifiers from the process
     // working directory, which in the packaged app is not the app folder, so the import would fail
     // and the warm-up would silently do nothing.
@@ -30,8 +39,9 @@ export function warmPiSdkCompileCache(): Promise<void> {
     // specifier, other than import(), as a static import of the SDK into the startup bundle.
     const sdk = import.meta.resolve(PI_SDK_SPECIFIER);
     const worker = new Worker(
-      'const { parentPort, workerData } = require("node:worker_threads"); import(workerData).then(() => parentPort.postMessage("ready"), () => parentPort.postMessage("failed"));',
-      { eval: true, workerData: sdk },
+      'const { parentPort, workerData } = require("node:worker_threads"); const m = require("node:module"); m.enableCompileCache(workerData.cacheDir); import(workerData.sdk).then(() => { m.flushCompileCache(); parentPort.postMessage("ready"); }, () => parentPort.postMessage("failed"));',
+      // The worker needs nothing else: no credentials, paths beyond the cache, or runtime state.
+      { eval: true, workerData: { sdk, cacheDir } },
     );
     const timeout = setTimeout(() => {
       void worker.terminate();
@@ -58,4 +68,18 @@ export function warmPiSdkCompileCache(): Promise<void> {
     throw error;
   });
   return compileCacheWarmup;
+}
+
+const WARMUP_CODES = new Set([
+  "pi_sdk_compile_cache_timeout",
+  "pi_sdk_compile_cache_failed",
+  "pi_sdk_compile_cache_worker_error",
+  "pi_sdk_compile_cache_worker_exit",
+]);
+
+/** A fixed reason code for logs; worker errors can carry paths and are never logged as text. */
+export function sdkWarmupCode(error: unknown) {
+  return error instanceof Error && WARMUP_CODES.has(error.message)
+    ? error.message
+    : "pi_sdk_compile_cache_worker_error";
 }

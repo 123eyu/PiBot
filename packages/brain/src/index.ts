@@ -629,6 +629,8 @@ export async function startBrain(opts: {
         logger.warn(
           JSON.stringify({ module: "agent", event: "auxiliary_model_fallback", purpose, code }),
         ),
+      sdkWarmupFailed: (code) =>
+        logger.warn(JSON.stringify({ module: "agent", event: "pi_sdk_warmup_failed", code })),
       get auth() {
         return models().auth;
       },
@@ -1043,7 +1045,7 @@ export async function startBrain(opts: {
     activeRuns.refresh();
     logger.info("Brain ready");
     timing.report(logger);
-    maintenance = deferredMaintenance(logger);
+    maintenance = deferredMaintenance(logger, sdk.preloadSdk);
     // A speculative SDK import blocks unrelated navigation while evaluating its module graph.
     // The agent still loads it on demand for model operations.
     maintenance.start(capabilityHandles);

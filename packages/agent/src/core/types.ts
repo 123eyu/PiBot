@@ -711,6 +711,8 @@ export interface AgentRuntimeDeps {
   customProviders(): CustomProviderConfig[];
   auxiliaryModel?(): { provider: string; id: string } | null | undefined;
   auxiliaryModelFallback?(purpose: AuxiliaryPurpose, code: AgentErrorCode): void;
+  /** A failed background compile-cache warm-up, as a fixed reason code. */
+  sdkWarmupFailed?(code: string): void;
   /** Persist a provider-advertised limit; never overrides a user-specified model field. */
   onCustomModelLimit?(
     providerId: string,

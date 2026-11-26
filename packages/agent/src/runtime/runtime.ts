@@ -46,7 +46,7 @@ import { createModelCatalogCache } from "../models/model-catalog-cache.ts";
 import { type CatalogSnapshot, withOpenRouterCatalog } from "../models/openrouter-catalog.ts";
 import { createAuxiliaryModelSelector } from "./auxiliary-model.ts";
 import { CacheDiagnosticsMemory } from "./cache-diagnostic.ts";
-import { loadPiSdk, warmPiSdkCompileCache } from "./pi-sdk.ts";
+import { loadPiSdk, sdkWarmupCode, warmPiSdkCompileCache } from "./pi-sdk.ts";
 import { createAuxiliaryOperations } from "./runtime-parts/runtime-auxiliary.ts";
 import { createCompactionOperations } from "./runtime-parts/runtime-compaction.ts";
 import { createImagesOperations } from "./runtime-parts/runtime-images.ts";
@@ -184,8 +184,10 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
   async function createRuntime(snapshot?: CatalogSnapshot) {
     let settleAuth = async () => {};
     sanitizeBrainEnv(process.env, dataDir);
-    await warmPiSdkCompileCache().catch(() => {
-      // Compile-cache warmup is an optimization. The main-thread import remains the source of truth.
+    await warmPiSdkCompileCache().catch((error: unknown) => {
+      // Compile-cache warmup is an optimization. The main-thread import remains the source of
+      // truth, but a warm-up that never works must be visible in the log.
+      deps.sdkWarmupFailed?.(sdkWarmupCode(error));
     });
     const pi = await sdk();
     const custom = configs();
@@ -410,7 +412,11 @@ export function createAgentRuntime(deps: AgentRuntimeDeps): AgentRuntime {
     deferSdk: context.deferSdk,
     preloadSdk: async () => {
       sanitizeBrainEnv(process.env, context.dataDir);
-      await warmPiSdkCompileCache();
+      try {
+        await warmPiSdkCompileCache();
+      } catch (error) {
+        throw new Error(sdkWarmupCode(error));
+      }
     },
     listImageModels: images.listImageModels,
     generateImage: images.generateImage,
