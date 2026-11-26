@@ -45,6 +45,8 @@ Pi Bot's own servers are reached only over HTTPS or WSS. STUN is a small UDP que
 - **Default:** on, in the installed app.
 - **To stop it:** there is no setting for automatic checks. They only ever read version information; if you want none at all, block `pibot.space` in your firewall and update by downloading new versions yourself.
 
+**Android phone app (from 0.0.4).** The app sends a plain HTTPS GET to `https://pibot.space/updates/android.json` without account, device or installation identifiers. The server can see your IP address. Automatic checks are on by default and run at app startup, at most once a day. You can also check on demand from **Devices**. Offline mode skips these checks. The app downloads the APK from `pibot.space` only when you choose to download and install the update.
+
 ### Role library
 
 - **Receiver:** `roles.pibot.space`.
@@ -191,4 +193,4 @@ The Gmail plugin has two sign-in methods:
 
 ## Using Pi Bot fully offline
 
-Choose a local model, set **Visit websites** to **Never** and turn off **Commands run by bots can access the network**; conversations and files then stay on this computer. Update checks and anything you start yourself (role library, skill imports, plugins) still connect as described above. See [Privacy and security](../../guide/en/13-privacy-and-security.md#fully-offline-use).
+Choose a local model, set **Visit websites** to **Never** and turn off **Commands run by bots can access the network**; conversations and files then stay on this computer. Desktop update checks and anything you start yourself (role library, skill imports, plugins) still connect as described above. See [Privacy and security](../../guide/en/13-privacy-and-security.md#fully-offline-use).
