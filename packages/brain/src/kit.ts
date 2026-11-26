@@ -12,6 +12,7 @@ export {
   sameFile,
 } from "@pibot/execution/file-identity";
 export {
+  attachmentDirectory,
   checkedImage,
   invalidAttachment,
   storedAttachmentFile,

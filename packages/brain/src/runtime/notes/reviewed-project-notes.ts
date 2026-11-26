@@ -21,7 +21,8 @@ export async function writeReviewedProjectNotes(
     device: string;
     inode: string;
     content: string;
-    expectedHash: string;
+    /** `null` creates AGENTS.md and refuses if it appeared since the review. */
+    expectedHash: string | null;
     diff: string;
     assertSource?(signal: AbortSignal): Promise<void>;
     assertCurrent?(): void;

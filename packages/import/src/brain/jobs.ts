@@ -1,7 +1,8 @@
 // A single job owner keeps preview authorizations, progress, and cancellation consistent.
 import { randomUUID } from "node:crypto";
+import { realpath, rm } from "node:fs/promises";
 import { join } from "node:path";
-import type { CapabilityContext } from "@pibot/brain/kit";
+import { type CapabilityContext, storedAttachmentFile } from "@pibot/brain/kit";
 import type { ImportPreview, ImportSource, ImportStatus } from "@pibot/import-contract";
 import type { ImportParams } from "@pibot/import-contract/full";
 import { RpcError, RpcErrorCodes } from "@pibot/protocol-base";
@@ -11,14 +12,19 @@ import { adapters } from "./adapter.ts";
 import { ImportCleanup } from "./cleanup.ts";
 import { exportAdapter } from "./exports/index.ts";
 import { fixtureAdapter } from "./fixture.ts";
-import { configRootFor, isLocalSource, supportsLocalSources } from "./local/locations.ts";
+import {
+  configRootFor,
+  isLocalSource,
+  noteSummary,
+  supportsLocalSources,
+} from "./local/locations.ts";
 import { readProjectNote } from "./local/text.ts";
-import { selectReview } from "./memory-review.ts";
 import { ProjectImport } from "./project.ts";
 import { summarize } from "./records.ts";
 import { ImportReviews } from "./reviews.ts";
 import { failureReason, runImport } from "./run.ts";
 import { selectedInput } from "./source.ts";
+import { startPlan } from "./start.ts";
 
 const PREVIEW_MS = 90_000;
 
@@ -55,12 +61,35 @@ export class ImportJobs {
       this.closing.signal,
       (status) => this.publish(status),
       () => this.ctx.logger.error("import_cleanup_failed"),
-      (id, signal) => {
+      async (id, signal) => {
         const botId = this.store.target(id);
         if (typeof botId !== "string") throw new Error("import_job_missing");
-        return this.project.restore(id, botId, signal);
+        await this.project.restore(id, botId, signal);
+        await this.removeAttachmentFiles(id);
       },
     );
+  }
+
+  /** Long-message files go with their messages; a startup sweep would also catch leftovers. */
+  private async removeAttachmentFiles(importId: string) {
+    const files = this.store.attachmentFiles(importId);
+    if (!files.length) return;
+    const dataDir = await realpath(this.ctx.local.deps.dataDir);
+    await Promise.all(
+      files.map(({ path }) => rm(storedAttachmentFile(dataDir, path), { force: true })),
+    );
+  }
+
+  /** The import history, each batch with the same status (and cleanup state) as `status`. */
+  history({ before, limit = 20 }: ImportParams<"import.history">) {
+    const page = this.store.history(before, limit);
+    return {
+      items: page.rows.flatMap(({ id, createdAt }) => {
+        const status = this.cleanup.status(id);
+        return status ? [{ ...status, createdAt }] : [];
+      }),
+      next: page.next,
+    };
   }
 
   idle() {
@@ -113,18 +142,14 @@ export class ImportJobs {
       signal.throwIfAborted();
       if (!path) return null;
       const input = await selectedInput(this.ctx.local.deps, path, signal, source);
-      const summary = input.projectNote
-        ? await readProjectNote(input, signal).then(() => ({
-            topics: 0,
-            messages: 0,
-            from: null,
-            through: null,
-            projectNotes: 1,
-          }))
+      const { summary, paths } = input.projectNote
+        ? await readProjectNote(input, signal).then(() =>
+            noteSummary(this.ctx.local.deps.platform, path),
+          )
         : await summarize(this.adapters[source], input, signal);
       const preview = { importId: randomUUID(), source, ...summary };
       signal.throwIfAborted();
-      this.reviews.set(preview, input);
+      this.reviews.set(preview, input, paths);
       return preview;
     } catch (error) {
       if (error instanceof RpcError) throw error;
@@ -154,13 +179,7 @@ export class ImportJobs {
   start(
     importId: string,
     botId: string,
-    {
-      conversations = true,
-      memoryReview,
-      personaReview,
-      distillationQuoteId,
-      projectReviewId,
-    }: Omit<ImportParams<"import.start">, "importId" | "botId"> = {},
+    options: Omit<ImportParams<"import.start">, "importId" | "botId"> = {},
   ) {
     this.closing.signal.throwIfAborted();
     const existing = this.store.get(importId);
@@ -171,49 +190,21 @@ export class ImportJobs {
     }
     if (this.active || this.undoReservation || this.reviews.busy() || this.store.unfinished())
       throw new RpcError(RpcErrorCodes.invalidParams, "import_busy");
-    if (!this.store.availableBot(botId))
-      throw new RpcError(RpcErrorCodes.invalidParams, "import_target");
     const selection = this.reviews.requireSelection(importId);
-    const mapping = {
-      ...(memoryReview ? selectReview(selection.review, botId, memoryReview) : {}),
-      ...(personaReview ? selectReview(selection.persona, botId, personaReview) : {}),
-    };
-    const quote = selection.quote;
-    const port = this.ctx.local.memoryImportDistillation;
-    if (
-      distillationQuoteId &&
-      (!conversations ||
-        !port ||
-        quote?.quoteId !== distillationQuoteId ||
-        quote.botId !== botId ||
-        port.estimate(botId)?.modelId !== quote.modelId)
-    )
-      throw new RpcError(-32602, "import_distillation_quote_expired");
-    const distillation =
-      distillationQuoteId && quote && port ? { port, modelId: quote.modelId } : undefined;
-    const reviewedProject = selection.project;
-    if (projectReviewId && reviewedProject?.reviewId !== projectReviewId)
-      throw new RpcError(-32602, "import_project_review_expired");
-    const project =
-      projectReviewId && reviewedProject
-        ? { service: this.project, review: reviewedProject }
-        : undefined;
-    if (!conversations && !mapping.memories?.selected.length && !mapping.persona && !project)
-      throw new RpcError(RpcErrorCodes.invalidParams, "import_memory_selection_invalid");
-    if (selection.input.projectNote && (conversations || !project))
-      throw new RpcError(RpcErrorCodes.invalidParams, "import_project_review_expired");
-    if (selection.preview.source === "gemini" && selection.preview.topics === 0)
-      throw new RpcError(RpcErrorCodes.invalidParams, "import_format_gemini");
-    if (project && this.store.projects.compensating(project.review.receipt.root))
-      throw new RpcError(RpcErrorCodes.invalidParams, "import_busy");
+    const plan = startPlan(selection, botId, options, {
+      store: this.store,
+      port: this.ctx.local.memoryImportDistillation,
+    });
     this.store.create(importId, selection.preview.source, botId);
     this.reviews.clear();
     const controller = new AbortController();
     const done = runImport({
+      ctx: this.ctx,
       preview: selection.preview,
       input: selection.input,
       botId,
-      conversations,
+      ...plan,
+      projectService: this.project,
       cancel: controller.signal,
       closing: this.closing.signal,
       adapter: this.adapters[selection.preview.source],
@@ -221,17 +212,13 @@ export class ImportJobs {
       logger: this.ctx.logger,
       cleanup: this.cleanup,
       store: this.store,
-      ...mapping,
-      distillation,
-      project,
       progress: (status) => this.publish(status),
     })
       .then(({ status, change }) => {
         if (status.state === "completed") {
           this.changedTopics(importId);
-          for (const scope of new Set(change?.memories))
-            this.changedMemories(importId, scope, "added");
-          if (change?.persona) this.changedPersona(botId);
+          for (const owner of change?.memories ?? []) this.changedMemories(owner, "added");
+          if (change?.persona) this.changedPersona(change.persona);
           this.publish(status);
         }
         return status;
@@ -276,19 +263,16 @@ export class ImportJobs {
       if (this.active) throw new RpcError(RpcErrorCodes.invalidParams, "import_busy");
       if (status.state !== "completed")
         throw new RpcError(RpcErrorCodes.invalidParams, "import_not_completed");
-      await this.project.assertUndoable(
-        importId,
-        AbortSignal.any([this.closing.signal, AbortSignal.timeout(PREVIEW_MS)]),
-      );
+      // Hand-edited project files no longer block undo: cleanup keeps and counts them.
+      this.project.assertUndoable(importId);
       this.closing.signal.throwIfAborted();
       // No yield between these checks and the transaction; start and other undos hold the same reservation.
       if (this.active || this.store.unfinished() || this.status(importId).state !== "completed")
         throw new RpcError(RpcErrorCodes.invalidParams, "import_busy");
       const { status: pending, change, persona } = this.store.beginUndo(importId);
       this.changedTopics(importId);
-      for (const scope of change) this.changedMemories(importId, scope, "removed");
-      const botId = this.store.target(importId);
-      if (persona && typeof botId === "string") this.changedPersona(botId);
+      for (const owner of change) this.changedMemories(owner, "removed");
+      if (persona) this.changedPersona(persona);
       this.publish(pending);
       void this.cleanup.wake(importId);
       return pending;
@@ -308,12 +292,9 @@ export class ImportJobs {
   }
 
   private changedMemories(
-    importId: string,
-    scope: ImportMemoryScope | undefined,
+    { scope, botId }: { scope: ImportMemoryScope; botId: string },
     reason: "added" | "removed",
   ) {
-    const botId = this.store.target(importId);
-    if (!scope || typeof botId !== "string") return;
     try {
       this.ctx.peer.emit("memory.changed", {
         botId,
@@ -335,10 +316,12 @@ export class ImportJobs {
     }
   }
   private changedTopics(importId: string) {
-    const botId = this.store.target(importId);
-    if (typeof botId !== "string") return;
+    const target = this.store.target(importId);
+    const bots = new Set(this.store.topicBots(importId));
+    if (typeof target === "string") bots.add(target);
     try {
-      this.ctx.peer.emit("sidebar.changed", { conversationKey: `dm:${botId}` });
+      for (const botId of bots)
+        this.ctx.peer.emit("sidebar.changed", { conversationKey: `dm:${botId}` });
     } catch {
       // The committed state is authoritative even if the peer disconnected.
       this.ctx.logger.warn("import_topics_not_delivered");

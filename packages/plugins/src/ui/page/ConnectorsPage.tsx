@@ -14,16 +14,8 @@ import {
   useSettings,
   useWorkspace,
 } from "@pibot/renderer-kit";
-import { Button, Chip, Icon, PageHeading, pageTone } from "@pibot/ui";
-import {
-  type CSSProperties,
-  type ReactNode,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { Button, Chip, Icon, PageHeading, pageTone, Tabs } from "@pibot/ui";
+import { type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AppSetup } from "../setup/AppSetup.tsx";
 import { CustomMcp } from "../setup/CustomMcp.tsx";
 import { ImportPlugin } from "../setup/ImportPlugin.tsx";
@@ -587,45 +579,17 @@ export function ConnectorsPage({
         </div>
       </header>
       {showSecrets && <TokensDialog secrets={secrets} close={() => setShowSecrets(false)} />}
-      <div
+      <Tabs
         className={styles.tabs}
-        role="tablist"
-        aria-label={t("connectors.title")}
-        style={
-          {
-            "--seg-count": TABS.length,
-            "--seg-index": Math.max(0, TABS.indexOf(tab)),
-          } as CSSProperties
-        }
-        onKeyDown={(event) => {
-          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-          event.preventDefault();
-          const index = TABS.indexOf(tab);
-          const next =
-            event.key === "Home"
-              ? 0
-              : event.key === "End"
-                ? TABS.length - 1
-                : (index + (event.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length;
-          setTab(TABS[next] as Tab);
-          event.currentTarget.querySelectorAll<HTMLButtonElement>("[role=tab]")[next]?.focus();
-        }}
-      >
-        {TABS.map((value) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={tab === value}
-            tabIndex={tab === value ? 0 : -1}
-            className={styles.tab}
-            onClick={() => setTab(value)}
-          >
-            {t(`connections.tab.${value}`)}
-            {counts[value] !== undefined && <span className={styles.count}>{counts[value]}</span>}
-          </button>
-        ))}
-      </div>
+        label={t("connectors.title")}
+        value={tab}
+        onValueChange={setTab}
+        tabs={TABS.map((value) => ({
+          value,
+          label: t(`connections.tab.${value}`),
+          count: counts[value],
+        }))}
+      />
       <div className={styles.scroll}>
         <div className={styles.body} role="tabpanel">
           {results && <BringOverSummary results={results} rows={discovery.rows()} />}

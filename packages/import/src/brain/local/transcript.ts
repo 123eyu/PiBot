@@ -1,13 +1,17 @@
 // Projects only human-visible text from Claude Code, Codex, and Cursor transcripts.
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import {
   type ImportAdapter,
   ImportFailure,
   type ImportInput,
   type ImportRecord,
+  type ProjectRef,
+  previewMessage,
 } from "../adapter.ts";
+import { LONG_MESSAGE_CHARS } from "../limits.ts";
 import type { LocalSource } from "./locations.ts";
-import { jsonLines } from "./text.ts";
+import { jsonLines, OVERSIZED_LINE } from "./text.ts";
 
 const date = z.iso.datetime({ offset: true });
 const role = z.enum(["user", "assistant"]);
@@ -35,7 +39,7 @@ const envelope = z.object({
 });
 
 type Message = Extract<ImportRecord, { kind: "message" }>;
-const LIMIT = 65_536;
+const LIMIT = LONG_MESSAGE_CHARS;
 const names: Record<LocalSource, string> = {
   "claude-code": "Claude Code",
   codex: "Codex",
@@ -109,21 +113,60 @@ function message(
   };
 }
 
-async function* messages(source: LocalSource, input: ImportInput, signal: AbortSignal) {
+async function* messages(
+  source: LocalSource,
+  input: ImportInput,
+  signal: AbortSignal,
+  onRow?: (raw: unknown) => void,
+) {
   for await (const raw of jsonLines(input, signal)) {
+    onRow?.(raw);
     const item = message(source, raw, input.modifiedAt);
     if (item) yield item;
   }
 }
 
+// Claude Code stamps every row with `cwd`; Codex keeps it in the session_meta / turn_context payload.
+const workingDirectory = z.union([
+  z.object({ cwd: z.string() }),
+  z.object({ payload: z.object({ cwd: z.string() }) }),
+]);
+const absolute = /^(?:\/|[A-Za-z]:[\\/]|\\\\)/u;
+
+/** The project of a transcript is the folder the tool worked in; the key never carries the path. */
+export function localProject(raw: unknown): ProjectRef | undefined {
+  const parsed = workingDirectory.safeParse(raw);
+  if (!parsed.success) return;
+  const path = "cwd" in parsed.data ? parsed.data.cwd : parsed.data.payload.cwd;
+  if (!absolute.test(path) || path.length > 4096 || /[\p{Cc}\p{Cf}]/u.test(path)) return;
+  const name =
+    path
+      .split(/[\\/]+/u)
+      .filter(Boolean)
+      .at(-1) ?? path;
+  const key = `local:${createHash("sha256").update(path).digest("hex").slice(0, 32)}`;
+  return { key, name: name.slice(0, 200), path };
+}
+
 type Span = { createdAt: string; updatedAt: string; count: number };
 
-async function* read(source: LocalSource, input: ImportInput, signal: AbortSignal) {
+async function* read(
+  source: LocalSource,
+  input: ImportInput,
+  signal: AbortSignal,
+  oversized?: () => void,
+) {
   const spans = new Map<Variant, Span>();
+  let project: ProjectRef | undefined;
+  const findProject = (raw: unknown) => {
+    // Lines past the line limit (Codex context compaction, huge tool output) are skipped whole.
+    if (raw === OVERSIZED_LINE) oversized?.();
+    else project ??= localProject(raw);
+  };
   for await (const {
     variant,
     record: { createdAt },
-  } of messages(source, input, signal)) {
+  } of messages(source, input, signal, findProject)) {
     const span = spans.get(variant) ?? { createdAt, updatedAt: createdAt, count: 0 };
     if (createdAt < span.createdAt) span.createdAt = createdAt;
     if (createdAt > span.updatedAt) span.updatedAt = createdAt;
@@ -139,6 +182,7 @@ async function* read(source: LocalSource, input: ImportInput, signal: AbortSigna
     title: names[source],
     createdAt: span.createdAt,
     updatedAt: span.updatedAt,
+    ...(project ? { project } : {}),
   };
   for await (const { variant, record } of messages(source, input, signal)) {
     if (variant === preferred) yield record;
@@ -152,11 +196,18 @@ export function transcriptAdapter(source: LocalSource): ImportAdapter {
       yield true;
     },
     async *preview(input, signal) {
-      for await (const record of read(source, input, signal)) {
+      let skipped = 0;
+      for await (const record of read(source, input, signal, () => skipped++)) {
         if (record.kind === "topic")
-          yield { kind: "topic", createdAt: record.createdAt, updatedAt: record.updatedAt };
-        else yield { kind: "message", createdAt: record.createdAt };
+          yield {
+            kind: "topic",
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+            ...(record.project ? { project: record.project } : {}),
+          };
+        else yield previewMessage(record);
       }
+      for (let index = 0; index < skipped; index++) yield { kind: "skipped" as const };
     },
     read: (input, signal) => read(source, input, signal),
   };

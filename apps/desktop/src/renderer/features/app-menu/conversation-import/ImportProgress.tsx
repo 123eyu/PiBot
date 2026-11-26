@@ -39,14 +39,18 @@ export function ImportProgress({ running, restart, openInbox, openTopics, close 
           ? ` · ${t("conversationImport.elapsed", { count: Math.max(1, Math.round(job.elapsedMs / 1000)) })}`
           : ""}
       </p>
-      {status.state === "completed" && (status.memories || status.persona || status.projectFile) ? (
+      {status.state === "completed" &&
+      (status.memories || status.persona || status.projectFiles || status.folders) ? (
         <div className={styles.card}>
           {!!status.memories && (
             <p>{t("conversationImport.addedMemories", { count: status.memories })}</p>
           )}
           {status.persona && <p>{t("conversationImport.personaChanged")}</p>}
-          {status.projectFile && (
-            <p>{t("conversationImport.projectChanged", { file: status.projectFile })}</p>
+          {!!status.folders && (
+            <p>{t("conversationImport.foldersCreated", { count: status.folders })}</p>
+          )}
+          {!!status.projectFiles && (
+            <p>{t("conversationImport.projectChanged", { count: status.projectFiles })}</p>
           )}
         </div>
       ) : null}
@@ -58,10 +62,15 @@ export function ImportProgress({ running, restart, openInbox, openTopics, close 
           })}
         </p>
       )}
-      {status.keptProjectFile && (
-        <p className={styles.card}>
-          {t("conversationImport.projectKept", { file: status.keptProjectFile })}
-        </p>
+      {(!!status.keptProjectFiles || !!status.keptFolders) && (
+        <div className={styles.card}>
+          {!!status.keptProjectFiles && (
+            <p>{t("conversationImport.projectKept", { count: status.keptProjectFiles })}</p>
+          )}
+          {!!status.keptFolders && (
+            <p>{t("conversationImport.foldersKept", { count: status.keptFolders })}</p>
+          )}
+        </div>
       )}
       {showProjectApproval && (
         <div className={styles.card}>
@@ -106,12 +115,12 @@ export function ImportProgress({ running, restart, openInbox, openTopics, close 
             <Button variant="secondary" disabled={!!busy || !connected} onClick={undo}>
               {t("conversationImport.undo")}
             </Button>
-            {status.topics > 0 && (
+            {status.topics > 0 && job.botId && (
               <Button disabled={!!busy} onClick={() => openTopics(job.botId)}>
                 {t("conversationImport.viewTopics")}
               </Button>
             )}
-            {status.topics === 0 && (
+            {(status.topics === 0 || !job.botId) && (
               <Button disabled={!!busy} onClick={close}>
                 {t("appMenu.close")}
               </Button>

@@ -116,7 +116,7 @@ export function useImportJob() {
       setJob({
         importId: id,
         botId: params.botId,
-        hasProject: !!params.projectReviewId,
+        hasProject: !!params.projects?.some(({ reviewId }) => reviewId),
         cancelRequested: false,
         startedAt: performance.now(),
       });
@@ -162,6 +162,24 @@ export function useImportJob() {
     });
   }
 
+  /** Undo a batch from the import history (another session, or before a restart). */
+  function undoPast(status: Status) {
+    if (!peer || action.current || pending) return;
+    const { importId } = status;
+    attempt.current = { id: importId, acknowledged: true };
+    setJob({
+      importId,
+      botId: "",
+      status,
+      hasProject: !!status.projectFiles,
+      cancelRequested: false,
+      startedAt: performance.now(),
+    });
+    void act("undo", async () => {
+      apply(await peer.call("import.undo", { importId }, backgroundOptions));
+    });
+  }
+
   return {
     job,
     busy,
@@ -170,6 +188,7 @@ export function useImportJob() {
     start,
     cancel,
     undo,
+    undoPast,
     clear() {
       if (action.current || pending) return;
       attempt.current = undefined;

@@ -5,7 +5,9 @@ import {
   ImportFailure,
   type ImportInput,
   type ImportRecord,
+  previewMessage,
 } from "../adapter.ts";
+import { LONG_MESSAGE_CHARS } from "../limits.ts";
 import { jsonArray } from "./json-array.ts";
 import { zipMember } from "./zip-member.ts";
 
@@ -86,7 +88,8 @@ function classify(raw: unknown) {
       .filter(Boolean)
       .join("\n");
   if (!userText || !answer) return;
-  if (userText.length > 65_536 || answer.length > 65_536) throw new ImportFailure("limit");
+  if (userText.length > LONG_MESSAGE_CHARS || answer.length > LONG_MESSAGE_CHARS)
+    throw new ImportFailure("limit");
   return { userText, answer, createdAt: new Date(time).toISOString() };
 }
 
@@ -120,7 +123,7 @@ export const geminiAdapter: ImportAdapter = {
     for await (const record of activityRecords(input, signal)) {
       if (record.kind === "topic")
         yield { kind: "topic", createdAt: record.createdAt, updatedAt: record.updatedAt };
-      else if (record.kind === "message") yield { kind: "message", createdAt: record.createdAt };
+      else if (record.kind === "message") yield previewMessage(record);
       else yield record;
     }
   },

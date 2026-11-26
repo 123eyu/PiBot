@@ -1,14 +1,14 @@
 import { ChatFontSizeSchema } from "@pibot/protocol";
 import { useNavigation, useRpc, useSettings } from "@pibot/renderer-kit";
 import { Avatar, Button, type IconName, IconTile, SegmentedControl, type Tone } from "@pibot/ui";
-import { useRef, useState } from "react";
-import { menuKeys, useMenuPopover } from "../workspace/profile/use-menu-popover.ts";
+import { useState } from "react";
 import { AboutYouMenuItem } from "./AboutYouMenuItem.tsx";
 import { AppDialog } from "./AppDialog.tsx";
 import { AboutPanel, FeedbackPanel, openWebsite } from "./AppPanels.tsx";
 import { AvatarUpload } from "./AvatarUpload.tsx";
 import styles from "./app-menu.module.css";
 import { ConversationImportDialog } from "./conversation-import/ConversationImportDialog.tsx";
+import { MenuPopover } from "./MenuPopover.tsx";
 import { UpdatesPanel } from "./UpdatesPanel.tsx";
 
 type Panel = "profile" | "about" | "feedback" | "updates";
@@ -200,32 +200,5 @@ export function AppMenu() {
         </AppDialog>
       )}
     </>
-  );
-}
-function MenuPopover({
-  opener,
-  x,
-  y,
-  close,
-  children,
-}: {
-  opener: HTMLElement;
-  x: number;
-  y: number;
-  close(): void;
-  children: React.ReactNode;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  useMenuPopover(ref, opener, x, y, close);
-  return (
-    <div
-      ref={ref}
-      popover="manual"
-      role="menu"
-      className={styles.menu}
-      onKeyDown={(event) => menuKeys(event, close)}
-    >
-      {children}
-    </div>
   );
 }

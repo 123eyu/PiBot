@@ -30,21 +30,40 @@ export function parseJson(value: string): unknown {
   }
 }
 
-export async function* jsonLines(input: ImportInput, signal: AbortSignal) {
+/** Stands for a line past LINE_LIMIT; its bytes were dropped as they arrived, never buffered. */
+export const OVERSIZED_LINE: unique symbol = Symbol("oversized_line");
+
+export async function* jsonLines(
+  input: ImportInput,
+  signal: AbortSignal,
+): AsyncGenerator<unknown | typeof OVERSIZED_LINE> {
   let pending = "";
+  let skipping = false;
   for await (const text of textChunks(input(signal), signal)) {
     const lines = text.split("\n");
-    pending += lines.shift() ?? "";
-    if (pending.length > LINE_LIMIT) throw new ImportFailure("limit");
+    const head = lines.shift() ?? "";
+    if (!skipping) pending += head;
+    if (!skipping && pending.length > LINE_LIMIT) {
+      // One oversized row (a compaction summary, a huge tool output) must not fail the file.
+      skipping = true;
+      pending = "";
+    }
     if (!lines.length) continue;
-    if (pending.trim()) yield parseJson(pending);
+    if (skipping) yield OVERSIZED_LINE;
+    else if (pending.trim()) yield parseJson(pending);
+    skipping = false;
     pending = lines.pop() ?? "";
     for (const line of lines) {
       signal.throwIfAborted();
       if (line.trim()) yield parseJson(line);
     }
+    if (pending.length > LINE_LIMIT) {
+      skipping = true;
+      pending = "";
+    }
   }
-  if (pending.trim()) yield parseJson(pending);
+  if (skipping) yield OVERSIZED_LINE;
+  else if (pending.trim()) yield parseJson(pending);
 }
 
 export async function readProjectNote(input: ImportInput, signal: AbortSignal) {

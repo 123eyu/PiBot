@@ -31,22 +31,25 @@ export class ImportPersonas {
     if (current.text === selection.text) return false;
     new BotsRepo(this.db).update(botId, { systemPrompt: selection.text });
     this.db
-      .prepare("INSERT INTO import_personas(import_id,previous_prompt,applied_hash) VALUES(?,?,?)")
-      .run(importId, current.text, personaHash(selection.text));
+      .prepare(`INSERT INTO import_personas(import_id,previous_prompt,applied_hash,bot_id)
+        VALUES(?,?,?,?)`)
+      .run(importId, current.text, personaHash(selection.text), botId);
     return true;
   }
 
-  undo(importId: string, botId: string) {
+  /** Returns the Bot whose role was restored; `batchBot` owns rows from before per-role Bots. */
+  undo(importId: string, batchBot: string) {
     const row = this.db
-      .prepare("SELECT previous_prompt,applied_hash FROM import_personas WHERE import_id=?")
+      .prepare("SELECT previous_prompt,applied_hash,bot_id FROM import_personas WHERE import_id=?")
       .get(importId);
-    if (!row) return false;
+    if (!row) return undefined;
+    const botId = typeof row.bot_id === "string" ? row.bot_id : batchBot;
     const repo = new BotsRepo(this.db);
     const bot = repo.get(botId);
     if (bot && personaHash(bot.systemPrompt) !== row.applied_hash)
       throw new RpcError(-32011, "import_persona_conflict");
     if (bot) repo.update(botId, { systemPrompt: String(row.previous_prompt) });
     this.db.prepare("DELETE FROM import_personas WHERE import_id=?").run(importId);
-    return !!bot;
+    return bot ? botId : undefined;
   }
 }

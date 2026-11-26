@@ -84,32 +84,35 @@ export class ImportMemories {
       const saved = repo.get(botId, memory.id);
       if (!saved) throw new Error("import_memory_missing");
       this.db
-        .prepare("INSERT INTO import_memories(import_id,memory_id,scope,revision) VALUES(?,?,?,?)")
-        .run(importId, memory.id, scope, revision(saved));
+        .prepare(`INSERT INTO import_memories(import_id,memory_id,scope,revision,owner_id)
+          VALUES(?,?,?,?,?)`)
+        .run(importId, memory.id, scope, revision(saved), botId);
       added++;
     }
     this.db
       .prepare("UPDATE import_jobs SET added_memories=added_memories+? WHERE id=?")
       .run(added, importId);
-    return added ? scope : undefined;
+    return added ? { scope, botId } : undefined;
   }
 
+  /** `botId` is the batch Bot, the owner of rows recorded before per-item destinations. */
   remove(importId: string, botId: string) {
     const rows = this.db
-      .prepare("SELECT memory_id,scope,revision FROM import_memories WHERE import_id=?")
+      .prepare("SELECT memory_id,scope,revision,owner_id FROM import_memories WHERE import_id=?")
       .all(importId);
-    const scopes = new Set<ImportMemoryScope>();
+    const changed = new Map<string, { scope: ImportMemoryScope; botId: string }>();
     for (const row of rows) {
       const scope = row.scope === "user" ? "user" : "bot";
+      const owner = typeof row.owner_id === "string" ? row.owner_id : botId;
       const id = String(row.memory_id);
-      const stored = this.repo(botId, scope).get(botId, id);
+      const stored = this.repo(owner, scope).get(owner, id);
       if (!stored) continue;
       if (stored.id !== id || revision(stored) !== row.revision)
         throw new RpcError(-32011, "import_memory_conflict");
       this.db.prepare("DELETE FROM scoped_memories WHERE id=?").run(id);
-      scopes.add(scope);
+      changed.set(scope === "user" ? "user" : owner, { scope, botId: owner });
     }
     this.db.prepare("DELETE FROM import_memories WHERE import_id=?").run(importId);
-    return [...scopes];
+    return [...changed.values()];
   }
 }

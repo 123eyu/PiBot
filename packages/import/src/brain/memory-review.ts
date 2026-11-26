@@ -7,6 +7,7 @@ import { MemorySchema, RpcError, RpcErrorCodes } from "@pibot/protocol-base";
 import {
   type ImportMemories,
   type ImportMemoryScope,
+  type MemoryCandidate,
   type MemorySelection,
   normalized,
   type ReviewedMemory,
@@ -103,4 +104,137 @@ export function selectReview(
   if (!review.personaHash || text.length > 16_000)
     throw new RpcError(RpcErrorCodes.invalidParams, "import_persona_limit");
   return { persona: { expected: review.personaHash, text } };
+}
+
+/** The compared role replaces the Bot's role with all the custom instructions it showed. */
+export function selectPersona(review: ReviewedImport | undefined, botId: string, reviewId: string) {
+  if (review?.scope !== "persona")
+    throw new RpcError(RpcErrorCodes.invalidParams, "import_memory_review_expired");
+  const selected = review.records.map(({ item }) => item.id);
+  return selectReview(review, botId, { reviewId, selected }).persona;
+}
+
+type Target = "user" | string;
+export type PlannedMemory = {
+  candidate: Omit<MemoryCandidate, "outcome" | "existingText">;
+  kind: "preference" | "method";
+  project?: string;
+  /** Destinations that already hold it, with the revision digest a later write must match. */
+  known: Map<Target, ReviewedMemory>;
+};
+export type ReviewedPlan = {
+  reviewId: string;
+  memories: Map<string, PlannedMemory>;
+};
+
+/**
+ * One pass over the export's memories, checked against 关于你 and every active Bot, so each item
+ * can move to any destination without another review. Project memories are ways of working.
+ */
+export async function reviewPlan(input: {
+  preview: ImportPreview;
+  input: ImportInput;
+  bots: readonly string[];
+  memories: ImportMemories;
+  redactor: BrainRedactor;
+  signal: AbortSignal;
+}) {
+  const { source } = input.preview;
+  const memories: PlannedMemory[] = [];
+  let instructions: string | undefined;
+  let omitted = 0;
+  const anyBot = input.bots[0];
+  if ((source === "chatgpt" || source === "claude") && anyBot) {
+    const inspectors = new Map<Target, ReturnType<ImportMemories["inspection"]>>([
+      ["user", input.memories.inspection(anyBot, "user")],
+      ...input.bots.map((bot) => [bot, input.memories.inspection(bot, "bot")] as const),
+    ]);
+    const seen = new Set<string>();
+    for await (const item of exportItems(source, input.input, input.signal)) {
+      input.signal.throwIfAborted();
+      if (item.kind === "customInstructions") {
+        instructions ??= redactImportText(input.redactor, item.text).trim().slice(0, 300);
+        continue;
+      }
+      if (item.kind !== "memories") continue;
+      const text = MemorySchema.shape.text.safeParse(redactImportText(input.redactor, item.text));
+      if (!text.success || memories.length >= 100 || seen.has(normalized(text.data))) {
+        omitted++;
+        continue;
+      }
+      seen.add(normalized(text.data));
+      const kind = item.project ? ("method" as const) : ("preference" as const);
+      const candidate = {
+        id: randomUUID(),
+        text: text.data,
+        category: kind === "method" ? ("how_to" as const) : ("about_you" as const),
+      };
+      const known = new Map<Target, ReviewedMemory>();
+      for (const [target, inspect] of inspectors) {
+        const reviewed = inspect(candidate);
+        if (reviewed.item.outcome === "add") continue;
+        if (reviewed.item.existingText)
+          reviewed.item.existingText = redactImportText(input.redactor, reviewed.item.existingText);
+        known.set(target, reviewed);
+      }
+      memories.push({
+        candidate,
+        kind,
+        ...(item.project ? { project: item.project.key } : {}),
+        known,
+      });
+      if (memories.length % 8 === 0) await yieldToLoop(undefined, { signal: input.signal });
+    }
+  }
+  input.signal.throwIfAborted();
+  const review: ReviewedPlan = {
+    reviewId: randomUUID(),
+    memories: new Map(memories.map((memory) => [memory.candidate.id, memory])),
+  };
+  const dto = {
+    reviewId: review.reviewId,
+    memories: memories.map(({ candidate, kind, project, known }) => ({
+      id: candidate.id,
+      text: candidate.text,
+      kind,
+      ...(project ? { project } : {}),
+      known: [...known].map(([target, { item }]) => ({
+        target,
+        outcome: item.outcome === "conflict" ? ("conflict" as const) : ("duplicate" as const),
+        ...(item.existingText ? { existingText: item.existingText } : {}),
+      })),
+    })),
+    omitted,
+    ...(instructions ? { instructions } : {}),
+  };
+  return { review, dto };
+}
+
+/**
+ * The confirmed items grouped by destination; each keeps the digest its destination had at
+ * review time, so a memory changed since then fails the batch instead of being overwritten.
+ */
+export function selectPlan(
+  review: ReviewedPlan | undefined,
+  choice: { reviewId: string; items: { id: string; target: Target }[] },
+  available: (botId: string) => boolean,
+) {
+  if (!review || review.reviewId !== choice.reviewId)
+    throw new RpcError(RpcErrorCodes.invalidParams, "import_memory_review_expired");
+  const groups = new Map<Target, ReviewedMemory[]>();
+  const ids = new Set<string>();
+  for (const { id, target } of choice.items) {
+    const planned = review.memories.get(id);
+    if (!planned || ids.has(id) || (target !== "user" && !available(target)))
+      throw new RpcError(RpcErrorCodes.invalidParams, "import_memory_selection_invalid");
+    ids.add(id);
+    const known = planned.known.get(target);
+    if (known?.item.outcome === "duplicate") continue;
+    const reviewed = known ?? {
+      item: { ...planned.candidate, outcome: "add" as const },
+      conflict: "",
+    };
+    groups.set(target, [...(groups.get(target) ?? []), reviewed]);
+  }
+  return groups;
 }

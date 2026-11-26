@@ -1,4 +1,5 @@
 // Keeps desktop-selected imports within the documented local source layouts.
+import { createHash } from "node:crypto";
 import { posix, win32 } from "node:path";
 import type { ImportSource } from "@pibot/import-contract";
 import { containsPath, type Platform } from "@pibot/policy";
@@ -100,4 +101,36 @@ function isCursorRule(api: ReturnType<typeof pathApi>, file: string) {
   if (!name.endsWith(".mdc")) return false;
   const parts = api.dirname(file).split(api.sep);
   return parts.some((part, index) => part === ".cursor" && parts[index + 1] === "rules");
+}
+
+/**
+ * A selected CLAUDE.md / AGENTS.md / Cursor rule is one project: the folder it lives in (above
+ * `.cursor`). A Claude Code memory note only names its encoded project folder, never a path.
+ */
+export function noteSummary(platform: NodeJS.Platform, file: string) {
+  const api = pathApi(platform === "win32" ? "win32" : "darwin");
+  const parts = api.dirname(file).split(api.sep);
+  const cursor = parts.lastIndexOf(".cursor");
+  const memory = parts.at(-1) === "memory" && parts.at(-3) === "projects";
+  const folder = memory
+    ? undefined
+    : cursor > 0
+      ? parts.slice(0, cursor).join(api.sep) || api.sep
+      : api.dirname(file);
+  const name = (folder ? api.basename(folder) : (parts.at(-2) ?? "").replace(/^-+/u, "")) || "";
+  const key = `note:${createHash("sha256")
+    .update(folder ?? file)
+    .digest("hex")
+    .slice(0, 32)}`;
+  return {
+    summary: {
+      topics: 0,
+      messages: 0,
+      from: null,
+      through: null,
+      projectNotes: 1,
+      projects: [{ key, name: name.slice(0, 200), topics: 0, messages: 0, knowledge: 1 }],
+    },
+    paths: new Map<string, string>(folder ? [[key, folder]] : []),
+  };
 }

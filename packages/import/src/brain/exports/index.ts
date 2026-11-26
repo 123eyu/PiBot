@@ -8,6 +8,7 @@ import {
   type ImportInput,
   type ImportRecord,
   type PreviewRecord,
+  previewMessage,
 } from "../adapter.ts";
 import { chatgptConversation } from "./chatgpt.ts";
 import { claudeConversation } from "./claude.ts";
@@ -104,7 +105,7 @@ export async function* exportItems(
     for (const [entry, kind] of optional) {
       for await (const row of jsonRecords(zipMember(file, entry, signal), signal, true)) {
         for (const item of supplementItems(kind, row)) {
-          if (++summary[kind] > MAX_SUPPLEMENTS) throw new ImportFailure("limit");
+          if (item.text && ++summary[kind] > MAX_SUPPLEMENTS) throw new ImportFailure("limit");
           yield item;
         }
         await yieldToLoop(undefined, { signal });
@@ -123,9 +124,16 @@ export function exportAdapter(vendor: Vendor): ImportAdapter {
     async *preview(input, signal) {
       for await (const item of exportItems(vendor, input, signal)) {
         if (item.kind === "topic") {
-          yield { kind: "topic", createdAt: item.createdAt, updatedAt: item.updatedAt };
+          yield {
+            kind: "topic",
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+            ...(item.project ? { project: item.project } : {}),
+          };
+        } else if (item.kind === "projects" && item.project) {
+          yield { kind: "projectKnowledge", project: item.project, pieces: item.text ? 1 : 0 };
         } else if (item.kind === "message") {
-          yield { kind: "message", createdAt: item.createdAt };
+          yield previewMessage(item);
         } else if (item.kind === "exportSummary") yield item;
       }
     },

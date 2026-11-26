@@ -480,7 +480,26 @@ const methodCases = {
     badParams: {},
     badResult: {},
   },
-  "import.reviewProject": { params: { importId: id }, result: null, badParams: {}, badResult: {} },
+  "import.reviewPlan": {
+    params: { importId: id },
+    result: { reviewId: id, memories: [], omitted: 0, folders: [], projects: [] },
+    badParams: {},
+    badResult: {},
+  },
+  "import.reviewProject": {
+    params: { importId: id, key: "claude:p1", folder: { kind: "new" } },
+    result: {
+      reviewId: id,
+      file: "AGENTS.md",
+      folder: "~/Documents/p1",
+      path: "~/Documents/p1/AGENTS.md",
+      diff: "+# p1",
+      lines: 1,
+      create: "folder",
+    },
+    badParams: { importId: id, key: "claude:p1", folder: { kind: "path", path: "/tmp" } },
+    badResult: {},
+  },
   "import.start": {
     params: { importId: id, botId: id },
     result: importStatus,
@@ -488,6 +507,12 @@ const methodCases = {
     badResult: {},
   },
   "import.status": { params: { importId: id }, result: importStatus, badParams: {}, badResult: {} },
+  "import.history": {
+    params: { limit: 20 },
+    result: { items: [{ ...importStatus, createdAt: null }], next: null },
+    badParams: { limit: 0 },
+    badResult: {},
+  },
   "import.cancel": { params: { importId: id }, result: importStatus, badParams: {}, badResult: {} },
   "import.undo": {
     params: { importId: id },

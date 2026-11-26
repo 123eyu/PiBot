@@ -1,293 +1,197 @@
 import { useT } from "@pibot/renderer-kit";
-import { Button } from "@pibot/ui";
-import type { ReactNode } from "react";
+import { Button, Tabs } from "@pibot/ui";
+import { Fragment, type ReactNode, useState } from "react";
+import { ChatRows, MemoryRows, RoleRows } from "./ContentRows.tsx";
 import styles from "./conversation-import.module.css";
-import type { Preview, Selection } from "./import-state.ts";
+import { localSources, marks, type Preview } from "./import-state.ts";
+import { ProjectRows } from "./ProjectRows.tsx";
 import type { ImportDraft } from "./use-import-draft.ts";
 
+type Tab = "projects" | "memories" | "chats" | "role";
+
+/**
+ * The preview groups what will be imported by kind, each with where it goes: projects → work
+ * folders and Bots, memories → 关于你 or a Bot, chats → a Bot, instructions → a Bot's role.
+ */
 export function ImportPreview({
   draft,
   preview,
   disabled,
+  error,
+  cancel,
+  start,
 }: {
   draft: ImportDraft;
   preview: Preview;
   disabled: boolean;
+  error?: ReactNode;
+  cancel(): void;
+  start?: () => void;
 }) {
   const t = useT();
-  const details = preview.exportDetails;
-  const projects = (details?.projects ?? 0) + (preview.projectNotes ?? 0);
+  const { plan } = draft;
+  const projectChats = (preview.projects ?? []).reduce((sum, { topics }) => sum + topics, 0);
+  const otherChats = preview.topics - projectChats;
+  const tabs = plan
+    ? [
+        ...(preview.projects?.length
+          ? [
+              {
+                value: "projects" as const,
+                label: t("conversationImport.tab.projects"),
+                count: preview.projects.length,
+              },
+            ]
+          : []),
+        ...(plan.memories.length
+          ? [
+              {
+                value: "memories" as const,
+                label: t("conversationImport.tab.memories"),
+                count: plan.memories.length,
+              },
+            ]
+          : []),
+        ...(otherChats > 0
+          ? [
+              {
+                value: "chats" as const,
+                label: t("conversationImport.tab.chats"),
+                count: preview.topics,
+              },
+            ]
+          : []),
+        ...(plan.instructions
+          ? [{ value: "role" as const, label: t("conversationImport.tab.role"), count: 1 }]
+          : []),
+      ]
+    : [];
+  const [chosen, setTab] = useState<Tab>();
+  const tab = tabs.find(({ value }) => value === chosen)?.value ?? tabs[0]?.value;
   const from = preview.from?.slice(0, 10);
   const through = preview.through?.slice(0, 10);
+  // The fixture source only exists in tests; it has no tile of its own.
+  const source = preview.source === "fixture" ? undefined : preview.source;
+  const local = !!source && localSources.has(source);
   return (
-    <>
-      <p className={styles.intro}>
-        <strong>{t(`conversationImport.source.${preview.source}`)}</strong>
-        {from && through && ` · ${t("conversationImport.dateRange", { from, through })}`}
-        {" · "}
-        {t("conversationImport.previewNote")}
-      </p>
-      <fieldset
-        className={styles.card}
-        aria-label={t("conversationImport.preview")}
-        disabled={disabled}
-      >
-        <div className={styles.controlRow}>
-          <label className={styles.selectRow}>
-            <span>{t("conversationImport.target")}</span>
-            <select value={draft.botId} onChange={(event) => draft.changeBot(event.target.value)}>
-              {!draft.botId && <option value="">{t("conversationImport.selectBot")}</option>}
-              {draft.bots.map((bot) => (
-                <option key={bot.id} value={bot.id}>
-                  {bot.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          {draft.moreBots && (
-            <Button variant="ghost" disabled={disabled} onClick={() => void draft.moreBots?.()}>
-              {t("conversationImport.moreBots")}
-            </Button>
+    <div className={styles.preview}>
+      <div className={styles.strip}>
+        <span className={styles.monogram} aria-hidden="true">
+          {source ? marks[source] : "?"}
+        </span>
+        <span className={styles.stripText}>
+          <strong>
+            {t(local ? "conversationImport.sourceLocal" : "conversationImport.sourceExport", {
+              source: t(`conversationImport.source.${preview.source}`),
+            })}
+          </strong>
+          <small>
+            {from && through ? `${t("conversationImport.dateRange", { from, through })} · ` : ""}
+            {t("conversationImport.readLocally")}
+          </small>
+        </span>
+      </div>
+      {!plan ? (
+        <p className={styles.intro} role="status">
+          {t("conversationImport.loading.plan")}
+        </p>
+      ) : tabs.length === 0 ? (
+        <p className={styles.intro}>{t("conversationImport.empty")}</p>
+      ) : (
+        <>
+          {tabs.length > 1 && (
+            <Tabs
+              className={styles.tabs}
+              label={t("conversationImport.preview")}
+              tabs={tabs}
+              value={tab ?? "projects"}
+              onValueChange={setTab}
+            />
           )}
-        </div>
-        {preview.topics > 0 && (
-          <CheckRow
-            checked={draft.conversations}
-            change={draft.changeConversations}
-            title={t("conversationImport.conversationCount", { count: preview.topics })}
-            note={t("conversationImport.readOnlyNote", { count: preview.messages })}
-          />
-        )}
-        {details && (details.memories > 0 || details.customInstructions > 0) && (
-          <ReviewRows draft={draft} preview={preview} />
-        )}
-        {projects > 0 && (
-          <div className={styles.section}>
-            <div className={styles.controlRow}>
-              <div>
-                <strong>{t("conversationImport.projectCount", { count: projects })}</strong>
-                <small>{t("conversationImport.projectNote")}</small>
-              </div>
-              <Button variant="secondary" disabled={!draft.botId} onClick={draft.reviewProject}>
-                {t(
-                  draft.project
-                    ? "conversationImport.changeFolder"
-                    : "conversationImport.chooseFolder",
-                )}
-              </Button>
-            </div>
-            {draft.project && (
+          <div className={styles.panel} role={tabs.length > 1 ? "tabpanel" : undefined}>
+            {tab === "projects" && (
+              <ProjectRows draft={draft} preview={preview} plan={plan} disabled={disabled} />
+            )}
+            {tab === "memories" && <MemoryRows draft={draft} plan={plan} disabled={disabled} />}
+            {tab === "chats" && (
               <>
-                <p className={styles.path} dir="auto">
-                  {draft.project.folder} · {draft.project.file}
-                </p>
-                <section
-                  className={styles.diff}
-                  // biome-ignore lint/a11y/noNoninteractiveTabindex: keyboard users must be able to scroll the diff.
-                  tabIndex={0}
-                  aria-label={t("conversationImport.projectDiff")}
-                >
-                  <pre>{draft.project.diff}</pre>
-                </section>
-                <CheckRow
-                  checked={draft.projectConfirmed}
-                  change={draft.setProjectConfirmed}
-                  title={t("conversationImport.confirmProjectDiff")}
-                  note={t("conversationImport.projectApproval")}
-                />
+                <ChatRows draft={draft} preview={preview} disabled={disabled} />
+                <RoleRows draft={draft} plan={plan} disabled={disabled} />
               </>
             )}
+            {tab === "role" && <RoleRows draft={draft} plan={plan} disabled={disabled} />}
           </div>
-        )}
-        {preview.topics > 0 && (
-          <CheckRow
-            checked={!!draft.quote || draft.busy === "quote"}
-            disabled={!draft.conversations || !draft.botId}
-            change={draft.toggleQuote}
-            title={t("conversationImport.distil")}
-            note={
-              draft.quote
-                ? t("conversationImport.quote", {
-                    model: draft.quote.modelId,
-                    count: draft.quote.maxTokens,
-                    cost: draft.quote.costUsd,
-                  })
-                : t(
-                    draft.quoteUnavailable
-                      ? "conversationImport.quoteUnavailable"
-                      : "conversationImport.distilNote",
-                  )
-            }
-          />
-        )}
-        {!preview.topics && !projects && !details?.memories && !details?.customInstructions && (
-          <p className={styles.intro}>{t("conversationImport.empty")}</p>
-        )}
-      </fieldset>
-      <PreviewSkipped preview={preview} />
-      <p className={styles.intro}>{t("conversationImport.dataNote")}</p>
-    </>
+        </>
+      )}
+      <PreviewNotes preview={preview} />
+      {error}
+      <footer className={styles.footer}>
+        <span className={styles.summary} role="status">
+          <Summary draft={draft} preview={preview} />
+        </span>
+        <Button variant="secondary" onClick={cancel}>
+          {t("common.cancel")}
+        </Button>
+        <Button disabled={disabled || !start} onClick={start}>
+          {t("conversationImport.start")}
+        </Button>
+      </footer>
+    </div>
   );
 }
 
-function CheckRow({
-  title,
-  note,
-  checked,
-  change,
-  disabled,
-}: {
-  title: ReactNode;
-  note?: string;
-  checked: boolean;
-  change(checked: boolean): void;
-  disabled?: boolean;
-}) {
-  return (
-    <label className={styles.check}>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => change(event.target.checked)}
-      />
-      <span>
-        <strong>{title}</strong>
-        {note && <small>{note}</small>}
-      </span>
-    </label>
-  );
-}
-
-function ReviewRows({ draft, preview }: { draft: ImportDraft; preview: Preview }) {
+/** "将导入 2 个项目、5 条记忆、186 个对话" with the numbers set in bold. */
+function Summary({ draft, preview }: { draft: ImportDraft; preview: Preview }) {
   const t = useT();
-  const memoryCount = preview.exportDetails?.memories ?? 0;
-  const instructions = preview.exportDetails?.customInstructions ?? 0;
+  const projects = (preview.projects ?? []).filter(({ key }) => draft.projects[key]?.on);
+  const projectChats = (preview.projects ?? []).reduce((sum, { topics }) => sum + topics, 0);
+  const chats =
+    projects.reduce((sum, { topics }) => sum + topics, 0) +
+    (draft.conversations ? preview.topics - projectChats : 0);
+  const memories = draft.memories.filter((memory) => draft.memoryOn(memory)).length;
+  const parts = [
+    ["conversationImport.summary.projects", projects.length],
+    ["conversationImport.summary.memories", memories],
+    ["conversationImport.summary.chats", chats],
+    ["conversationImport.summary.role", draft.persona.on && draft.persona.review ? 1 : 0],
+  ] as const;
+  const shown = parts.filter(([, count]) => count > 0);
+  if (!draft.plan) return null;
+  if (!shown.length) return <>{t("conversationImport.summary.nothing")}</>;
+  const marker = "\u0001";
   return (
     <>
-      <div className={styles.section}>
-        <div className={styles.controlRow}>
-          <div>
-            <strong>{t("conversationImport.memoryCount", { count: memoryCount })}</strong>
-            {instructions > 0 && (
-              <small>{t("conversationImport.instructionCount", { count: instructions })}</small>
-            )}
-          </div>
-          <label className={styles.selectRow}>
-            <span>{t("conversationImport.memoryTarget")}</span>
-            <select
-              value={draft.scope}
-              onChange={(event) => draft.changeScope(event.target.value === "bot" ? "bot" : "user")}
-            >
-              <option value="user">{t("appMenu.aboutYou")}</option>
-              <option value="bot">{t("conversationImport.botMemory")}</option>
-            </select>
-          </label>
-          <Button
-            variant="secondary"
-            disabled={!draft.botId}
-            onClick={() => draft.review("memory")}
-          >
-            {t("conversationImport.reviewMemory")}
-          </Button>
-        </div>
-        {draft.memories && <ReviewedChoices value={draft.memories} update={draft.setMemories} />}
-      </div>
-      {instructions > 0 && (
-        <div className={styles.section}>
-          <div className={styles.controlRow}>
-            <div>
-              <strong>{t("conversationImport.persona")}</strong>
-              <small>{t("conversationImport.personaNote")}</small>
-            </div>
-            <Button
-              variant="secondary"
-              disabled={!draft.botId}
-              onClick={() => draft.review("persona")}
-            >
-              {t("conversationImport.reviewPersona")}
-            </Button>
-          </div>
-          {draft.persona && (
-            <>
-              <details className={styles.before}>
-                <summary>{t("conversationImport.currentPersona")}</summary>
-                <p dir="auto">
-                  {draft.persona.review.personaBefore || t("conversationImport.noPersona")}
-                </p>
-              </details>
-              <ReviewedChoices value={draft.persona} update={draft.setPersona} />
-            </>
-          )}
-        </div>
-      )}
-    </>
-  );
-}
-
-function ReviewedChoices({ value, update }: { value: Selection; update(value: Selection): void }) {
-  const t = useT();
-  return (
-    <>
-      {value.review.items.length === 0 && (
-        <p className={styles.intro}>{t("conversationImport.noCandidates")}</p>
-      )}
-      {value.review.items.map((item) => {
-        const duplicate = item.outcome === "duplicate";
+      {t("conversationImport.summary.lead")}
+      {shown.map(([key, count], index) => {
+        const [before = "", after = ""] = t(key, { count: marker }).split(marker);
         return (
-          <CheckRow
-            key={item.id}
-            title={
-              <span className={styles.reviewText} dir="auto">
-                {item.text}
-              </span>
-            }
-            note={
-              duplicate
-                ? t("conversationImport.duplicate")
-                : item.outcome === "conflict"
-                  ? t("conversationImport.conflict", { text: item.existingText ?? "" })
-                  : undefined
-            }
-            checked={value.selected.includes(item.id)}
-            disabled={duplicate}
-            change={(checked) =>
-              update({
-                ...value,
-                selected: checked
-                  ? [...value.selected, item.id]
-                  : value.selected.filter((id) => id !== item.id),
-              })
-            }
-          />
+          <Fragment key={key}>
+            {index > 0 && t("conversationImport.summary.separator")}
+            {before}
+            <strong>{count.toLocaleString()}</strong>
+            {after}
+          </Fragment>
         );
       })}
-      {value.review.omitted > 0 && (
-        <p className={styles.intro}>
-          {t("conversationImport.omitted", { count: value.review.omitted })}
-        </p>
-      )}
     </>
   );
 }
 
-function PreviewSkipped({ preview }: { preview: Preview }) {
+function PreviewNotes({ preview }: { preview: Preview }) {
   const t = useT();
   const fields = [
+    ["longMessages", preview.longMessages],
     ["skippedRecords", preview.skippedRecords],
     ["skippedAttachments", preview.exportDetails?.skippedAttachments],
     ["skippedFiles", preview.exportDetails?.skippedFiles],
   ] as const;
+  const shown = fields.filter(([, count]) => !!count);
   return (
-    <>
-      {fields.map(
-        ([name, count]) =>
-          !!count && (
-            <p key={name} className={styles.intro}>
-              {t(`conversationImport.${name}`, { count })}
-            </p>
-          ),
-      )}
-    </>
+    <div className={styles.notes}>
+      {shown.map(([name, count]) => (
+        <p key={name}>{t(`conversationImport.${name}`, { count: count ?? 0 })}</p>
+      ))}
+      <p>{t("conversationImport.dataNote")}</p>
+    </div>
   );
 }

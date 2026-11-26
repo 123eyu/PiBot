@@ -9,7 +9,8 @@ export function importCapability(): BrainCapability {
   return {
     id: "import",
     register(ctx) {
-      const jobs = new ImportJobs(ctx, new ImportStore(ctx.db, ctx.redactor));
+      const store = new ImportStore(ctx.db, ctx.redactor, ctx.local.workplaces.repo);
+      const jobs = new ImportJobs(ctx, store);
       const lifecycle = { start: () => jobs.recover(), stop: () => jobs.stop() };
       ctx.sleep.participate({ idle: () => jobs.idle() });
       if (!ctx.host.pickFile) return lifecycle;
@@ -36,13 +37,18 @@ export function importCapability(): BrainCapability {
           return jobs.reviews.estimateDistillation(params);
         },
       );
-      handle(
-        "import.reviewProject",
-        ({ importId }: ImportParams<"import.reviewProject">, request) => {
-          desktop(request.source);
-          return jobs.reviews.reviewProject(importId, request.signal);
-        },
-      );
+      handle("import.history", (params: ImportParams<"import.history">, request) => {
+        desktop(request.source);
+        return jobs.history(params);
+      });
+      handle("import.reviewPlan", ({ importId }: ImportParams<"import.reviewPlan">, request) => {
+        desktop(request.source);
+        return jobs.reviews.plan(importId, request.signal);
+      });
+      handle("import.reviewProject", (params: ImportParams<"import.reviewProject">, request) => {
+        desktop(request.source);
+        return jobs.reviews.reviewProject(params, request.signal);
+      });
       handle(
         "import.start",
         ({ importId, botId, ...options }: ImportParams<"import.start">, request) => {

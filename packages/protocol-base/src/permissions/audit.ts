@@ -220,8 +220,13 @@ export const AuditDetailSchema = z.strictObject({
       messages: count,
       memories: count.optional(),
       persona: z.literal(true).optional(),
+      // Single-file fields of earlier batches stay readable in the audit log.
       projectFile: z.literal("AGENTS.md").optional(),
       keptProjectFile: z.literal("AGENTS.md").optional(),
+      projectFiles: count.optional(),
+      folders: count.optional(),
+      keptProjectFiles: count.optional(),
+      keptFolders: count.optional(),
     })
     .optional(),
   pluginInstall: z

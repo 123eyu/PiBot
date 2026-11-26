@@ -15,59 +15,82 @@ export const localSources = new Set<Source>(["claude-code", "codex", "cursor"]);
 
 export type Preview = NonNullable<MethodResults["import.preview"]>;
 export type Status = MethodResults["import.status"];
-export type Project = NonNullable<MethodResults["import.reviewProject"]>;
+export type Plan = MethodResults["import.reviewPlan"];
+export type PlanMemory = Plan["memories"][number];
+export type ProjectDiff = MethodResults["import.reviewProject"];
 export type Quote = NonNullable<MethodResults["import.estimateDistillation"]>;
-export type Scope = MethodParams["import.reviewMemories"]["scope"];
 export type Review = MethodResults["import.reviewMemories"];
-export type Selection = { review: Review; selected: string[] };
+export type FolderTarget = MethodParams["import.reviewProject"]["folder"];
+/** "user" is 关于你; anything else is a Bot id. */
+export type Destination = "user" | string;
 
 export const reviewOptions = { timeoutMs: 95_000 };
 export const backgroundOptions = { timeoutMs: 115_000 };
 
-export function selection(review: Review, scope: Scope): Selection {
-  return {
-    review,
-    // Replacing a persona and keeping a conflict both require selecting individual content.
-    selected:
-      scope === "persona"
-        ? []
-        : review.items.filter(({ outcome }) => outcome === "add").map(({ id }) => id),
-  };
-}
+export const sameFolder = (left: FolderTarget, right: FolderTarget) =>
+  left.kind === right.kind &&
+  (left.kind !== "folder" || (right.kind === "folder" && left.folderId === right.folderId));
 
-function choice(value?: Selection) {
-  return value?.selected.length
-    ? { reviewId: value.review.reviewId, selected: value.selected }
-    : undefined;
+/** One source project's choices; `diff` is the AGENTS.md change reviewed for `folder`. */
+export type ProjectChoice = {
+  on: boolean;
+  botId: string;
+  folder: FolderTarget;
+  diff?: ProjectDiff;
+  diffFor?: FolderTarget;
+  diffFailed?: boolean;
+  /** The user read the diff and pressed "看过了，写入". */
+  confirmed: boolean;
+  open: boolean;
+};
+
+export type MemoryChoice = { on?: boolean; target?: Destination };
+
+export function known(memory: PlanMemory, target: Destination) {
+  return memory.known.find((entry) => entry.target === target);
 }
 
 export function startParams({
   preview,
+  plan,
   botId,
   conversations,
+  projects,
   memories,
   persona,
-  project,
   quote,
 }: {
   preview: Preview;
+  plan?: Plan;
   botId: string;
   conversations: boolean;
-  memories?: Selection;
-  persona?: Selection;
-  project?: Project;
+  projects: Record<string, ProjectChoice>;
+  memories: { id: string; target: Destination }[];
+  persona?: { reviewId: string; botId: string };
   quote?: Quote;
 }): MethodParams["import.start"] | undefined {
-  const memoryReview = choice(memories);
-  const personaReview = choice(persona);
-  if (!botId || (!conversations && !memoryReview && !personaReview && !project)) return;
+  const included = Object.entries(projects).filter(([, choice]) => choice.on);
+  const hasMemories = !!plan && memories.length > 0;
+  if (!botId || (!conversations && !included.length && !hasMemories && !persona)) return;
   return {
     importId: preview.importId,
     botId,
     conversations,
-    ...(memoryReview && { memoryReview }),
-    ...(personaReview && { personaReview }),
-    ...(project && { projectReviewId: project.reviewId }),
+    ...(included.length && {
+      projects: included.map(([key, choice]) => ({
+        key,
+        botId: choice.botId,
+        folder: choice.folder,
+        ...(choice.confirmed &&
+        choice.diff &&
+        choice.diffFor &&
+        sameFolder(choice.diffFor, choice.folder)
+          ? { reviewId: choice.diff.reviewId }
+          : {}),
+      })),
+    }),
+    ...(hasMemories && plan && { memories: { reviewId: plan.reviewId, items: memories } }),
+    ...(persona && { persona }),
     ...(conversations && quote && { distillationQuoteId: quote.quoteId }),
   };
 }

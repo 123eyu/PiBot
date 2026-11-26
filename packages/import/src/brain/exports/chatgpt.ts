@@ -15,6 +15,8 @@ const record = z.object({
     (value) => typeof value === "object" && value !== null && !Array.isArray(value),
   ),
   version: z.undefined().optional(),
+  // Project chats carry their project's "g-p-" gizmo; custom GPTs ("g-") are not projects.
+  gizmo_id: z.string().nullish(),
 });
 const node = z.object({
   parent: z.string().nullable(),
@@ -112,12 +114,17 @@ export async function* chatgptConversation(
 ): AsyncGenerator<ConversationItem> {
   const parsed = record.safeParse(raw);
   if (!parsed.success) throw new ImportFailure("format");
-  const { title, create_time, update_time, mapping, current_node } = parsed.data;
+  const { title, create_time, update_time, mapping, current_node, gizmo_id } = parsed.data;
+  const project =
+    gizmo_id?.startsWith("g-p-") && gizmo_id.length <= 120
+      ? { key: `chatgpt:${gizmo_id}`, name: "" }
+      : undefined;
   yield {
     kind: "topic",
     title: (title ?? "").slice(0, 200),
     createdAt: iso(create_time),
     updatedAt: iso(update_time ?? create_time),
+    ...(project ? { project } : {}),
   };
   for (const raw of await branch(mapping, current_node, signal)) {
     signal.throwIfAborted();

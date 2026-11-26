@@ -10,7 +10,14 @@ const conversation = z.object({
   updated_at: stamp.nullish(),
   chat_messages: z.array(z.unknown()),
   version: z.undefined().optional(),
+  // Exports that link a chat to its project use either field; neither is required.
+  project_uuid: z.string().max(120).nullish(),
+  project: z.object({ uuid: z.string().max(120), name: z.string().nullish() }).nullish(),
 });
+
+export function claudeProjectKey(uuid: string) {
+  return `claude:${uuid}`;
+}
 const message = z.object({
   sender: z.string(),
   text: z.string().nullish(),
@@ -54,12 +61,16 @@ export function* claudeConversation(
 ): Generator<ConversationItem> {
   const parsed = conversation.safeParse(raw);
   if (!parsed.success) throw new ImportFailure("format");
-  const { name, created_at, updated_at, chat_messages } = parsed.data;
+  const { name, created_at, updated_at, chat_messages, project_uuid, project } = parsed.data;
+  const uuid = project?.uuid || project_uuid;
   yield {
     kind: "topic",
     title: (name ?? "").slice(0, 200),
     createdAt: created_at,
     updatedAt: updated_at ?? created_at,
+    ...(uuid
+      ? { project: { key: claudeProjectKey(uuid), name: (project?.name ?? "").slice(0, 200) } }
+      : {}),
   };
   for (const chat of chat_messages) {
     signal.throwIfAborted();

@@ -34,7 +34,8 @@ export interface ToolRunContext {
     callId: string;
     workplace: ResolvedWorkplace;
     diff: string;
-    expectedHash: string;
+    /** `null`: the reviewed change creates AGENTS.md, so the file must still be missing. */
+    expectedHash: string | null;
     assertSource?(signal: AbortSignal): Promise<void>;
     assertCurrent?(): void;
   }>;
@@ -356,7 +357,7 @@ export interface LocalDependencies {
 }
 export interface PreparedTool {
   /** Kernel-only optimistic write condition, bound by this call's approval fingerprint. */
-  projectNotesWrite?: { expectedHash: string };
+  projectNotesWrite?: { expectedHash: string | null };
   browserSecretUses?: import("@pibot/protocol-base").BrowserSecretUse[];
   hostSsh?: import("../runtime/tools/host-ssh-prepare.ts").PreparedHostSshCall;
   /**
