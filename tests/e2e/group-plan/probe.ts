@@ -296,13 +296,31 @@ async function parallelWriters(
     (items) => items.at(-1)?.status === "passed",
     280_000,
   );
-  const workspaces = dbRead(f, (db) =>
-    db
-      .prepare(
-        "SELECT w.task_id,w.state,w.integration_path,t.path FROM group_member_workspaces w JOIN managed_worktrees t ON t.id=w.worktree_id ORDER BY w.updated_at",
-      )
-      .all(),
-  ) as { task_id: string; state: string; integration_path: string; path: string }[];
+  // A passed plan starts cleanup asynchronously; its status alone does not prove Git removal.
+  const { workspaces } = await until(
+    "parallel workspaces cleaned",
+    async () => {
+      const workspaces = dbRead(f, (db) =>
+        db
+          .prepare(
+            "SELECT w.task_id,w.state,w.integration_path,t.path FROM group_member_workspaces w JOIN managed_worktrees t ON t.id=w.worktree_id ORDER BY w.updated_at",
+          )
+          .all(),
+      ) as { task_id: string; state: string; integration_path: string; path: string }[];
+      const left = existsSync(join(repo, ".pibot", "wt"))
+        ? readdirSync(join(repo, ".pibot", "wt"))
+        : [];
+      return { workspaces, left };
+    },
+    ({ workspaces, left }) =>
+      workspaces.length === 3 &&
+      workspaces
+        .map((row) => row.state)
+        .sort()
+        .join(",") === "integrated,integrated,removed" &&
+      left.length === 0,
+    60_000,
+  );
   assert.equal(workspaces.length, 3, "data, sources and the redo each had a workspace");
   assert(workspaces.every((row) => row.integration_path === repo), "Git repository: no copy");
   assert(workspaces.every((row) => row.path.startsWith(join(repo, ".pibot", "wt"))));
