@@ -78,7 +78,7 @@ import { collaborationRefusal } from "../../core/assignment-refusal.ts";
 import { auditText, auditToolFields } from "../../core/audit-fields.ts";
 import { GroupToolError } from "../../core/collaboration-tool-error.ts";
 import type { PreparedTool, ToolRunContext } from "../../core/local-types.ts";
-import { mainDirectRun } from "../../core/main-direct.ts";
+import { mainDirectTopic } from "../../core/main-direct.ts";
 import { runPermissionScope, runPermissions } from "../../core/run-permissions.ts";
 import { toolPermissionCategory } from "../../core/tool-category.ts";
 import { auditYolo, runYolo } from "../../core/yolo.ts";
@@ -218,7 +218,7 @@ export class LocalRun implements ToolRuntime {
     local.changes.turn.begin(context);
     this.lockOwner = { runId: context.runId, botId: context.botId, lease: randomUUID() };
     let mainDirectAnswer: boolean | undefined;
-    const mainDirect = () => (mainDirectAnswer ??= mainDirectRun(local, context));
+    const mainDirect = () => (mainDirectAnswer ??= mainDirectTopic(local, context));
     const definitions = local.toolDefinitions.filter(
       (tool) =>
         (!context.executionTaskId ||

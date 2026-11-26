@@ -16,6 +16,39 @@ import type { ToolRunContext } from "./local-types.ts";
  * A dispatched run therefore can never dispatch again (the loop guard's first half).
  */
 export function mainDirectRun(local: LocalService, context: ToolRunContext): boolean {
+  if (!mainDirectTopic(local, context)) return false;
+  const { db } = local.deps;
+  const run = new RunsRepo(db).get(context.runId);
+  if (
+    !run ||
+    run.botId !== context.botId ||
+    run.groupId ||
+    run.kind !== "chat" ||
+    !run.userMessageId
+  )
+    return false;
+  const message = new MessagesRepo(db).get(run.userMessageId);
+  const usage = message?.usage;
+  return (
+    message?.role === "user" &&
+    !!usage &&
+    typeof usage === "object" &&
+    !Array.isArray(usage) &&
+    ["user", "phone"].includes(String((usage as Record<string, unknown>).inputOrigin)) &&
+    !("forward" in usage) &&
+    !("dispatch" in usage) &&
+    !("systemEvent" in usage)
+  );
+}
+
+/**
+ * Where the tools are offered: the default Pi's own visible DM topic, never one an ACP editor
+ * has written into. It does not look at the turn's message, so the catalog of a topic stays the
+ * same from turn to turn: a routine notice or a card answer between two typed turns used to drop
+ * and re-add the tools, which changed the session's tool set, forced a context checkpoint (extra
+ * model calls) and broke the prompt cache. Policy and the executors still require `mainDirectRun`.
+ */
+export function mainDirectTopic(local: LocalService, context: ToolRunContext): boolean {
   if (
     context.groupId ||
     context.threadId ||
@@ -37,19 +70,10 @@ export function mainDirectRun(local: LocalService, context: ToolRunContext): boo
   const topic = conversations.get(context.conversationId);
   if (topic?.kind !== "dm" || topic.botId !== bot.id || conversations.isInternal(topic.id))
     return false;
-  const run = new RunsRepo(db).get(context.runId);
-  if (!run || run.botId !== bot.id || run.groupId || run.kind !== "chat" || !run.userMessageId)
-    return false;
-  const message = new MessagesRepo(db).get(run.userMessageId);
-  const usage = message?.usage;
-  return (
-    message?.role === "user" &&
-    !!usage &&
-    typeof usage === "object" &&
-    !Array.isArray(usage) &&
-    ["user", "phone"].includes(String((usage as Record<string, unknown>).inputOrigin)) &&
-    !("forward" in usage) &&
-    !("dispatch" in usage) &&
-    !("systemEvent" in usage)
-  );
+  // A topic an ACP editor drives keeps these tools out of its catalog for good.
+  return !db
+    .prepare(
+      "SELECT 1 FROM messages WHERE conversation_id=? AND json_extract(usage,'$.inputOrigin')='acp' LIMIT 1",
+    )
+    .get(topic.id);
 }
