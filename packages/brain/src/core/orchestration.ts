@@ -158,6 +158,9 @@ export interface ExecutionPort {
     context: Pick<ToolRunContext, "botId" | "conversationId"> & Partial<ToolRunContext>,
     tool: string,
   ): boolean;
+  catalogAvailability(
+    context: Pick<ToolRunContext, "botId" | "conversationId"> & Partial<ToolRunContext>,
+  ): (tool: string) => boolean;
   todo(scope: ExecutionScope): TodoPlan;
   updateTodo(
     scope: ExecutionScope,

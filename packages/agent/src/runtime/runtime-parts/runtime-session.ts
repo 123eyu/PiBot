@@ -1,5 +1,6 @@
 // Open and configure a managed pi session for a Bot run.
 import { join } from "node:path";
+import { setImmediate as yieldToLoop } from "node:timers/promises";
 import { sanitizeBrainEnv } from "../../core/env.ts";
 import { AgentError, mapAgentError } from "../../core/errors.ts";
 import type { AgentRuntime } from "../../core/types.ts";
@@ -274,6 +275,8 @@ export function createSessionOperations({
         };
         if (opts.context && !opts.localTools) throw new AgentError("internal");
         phase("extensions");
+        // Registration can follow the last JSONL batch in the same microtask drain.
+        if (opts.localTools) await yieldToLoop(undefined, { signal: opts.signal });
         const extensions = await loadLocalExtensions(
           opts.homeDir,
           join(dataDir, "pi"),
@@ -320,7 +323,10 @@ export function createSessionOperations({
         try {
           opts.signal?.throwIfAborted();
           phase("bind");
-          if (opts.localTools) await session.bindExtensions({});
+          if (opts.localTools) {
+            await yieldToLoop(undefined, { signal: opts.signal });
+            await session.bindExtensions({});
+          }
           // Tool groups the transcript still declares stay loaded when still allowed.
           extensions.loadout?.reset(session.messages);
           await session.setModel(model);

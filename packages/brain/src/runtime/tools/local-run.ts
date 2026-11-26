@@ -457,6 +457,7 @@ export class LocalRun implements ToolRuntime {
       const adapted = connectorCapabilityDefinition(this.local, this.context, tool, capability);
       return adapted ? [adapted] : [];
     });
+    const executionAllows = this.local.execution.catalogAvailability(this.context);
     return selected.filter((tool) => {
       if (this.local.endpoints && !this.local.endpoints.allows(tool.name, this.context))
         return false;
@@ -480,7 +481,7 @@ export class LocalRun implements ToolRuntime {
           levels[category] !== "never" ||
           (["read_file", "list_dir"].includes(tool.name) && levels.read_ai_config !== "never")) &&
         this.local.reviews.allowsTool(this.context, tool.name) &&
-        this.local.execution.allows(this.context, tool.name) &&
+        executionAllows(tool.name) &&
         (tool.name !== "check_command_propose" || checks) &&
         // A capability tool that answers with an image (phone_media_get) needs image input too.
         (images || !this.local.deps.capabilityTools.specs[tool.name]?.imageInput) &&
