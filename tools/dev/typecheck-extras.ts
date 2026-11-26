@@ -1,5 +1,5 @@
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
-import { availableParallelism } from "node:os";
+import { availableParallelism, totalmem } from "node:os";
 import { basename, join, relative, resolve } from "node:path";
 import { runStages, type Step } from "./run-steps.ts";
 import { loadWorkspaceProjects } from "./tsconfig-references.ts";
@@ -8,7 +8,13 @@ const repo = resolve(import.meta.dirname, "../..");
 // tsc 7 is a Go program that uses every core; four in parallel (below) times two concurrent checks
 // (a verify beside a dev Bot's check:changed) drove load past 500 on 16 cores. Give each
 // parallel tsc its share; alone, four shares still use the whole machine.
-process.env.GOMAXPROCS ??= String(Math.max(2, Math.floor(availableParallelism() / 4)));
+// Each tsc holds 1–1.5 GB; on a small machine (CI macOS: 3 cores, 7 GB) four at once swapped and the
+// job ran past its hour. Run as many as memory allows, at most four.
+const width = Math.max(
+  1,
+  Math.min(4, availableParallelism(), Math.floor(totalmem() / (2.5 * 1024 ** 3))),
+);
+process.env.GOMAXPROCS ??= String(Math.max(2, Math.floor(availableParallelism() / width)));
 const requested = new Set<string>();
 for (let index = 2; index < process.argv.length; index++)
   if (process.argv[index] === "--project") {
@@ -56,8 +62,8 @@ const semanticSteps: Step[] = semanticConfigs.map((config, index) => ({
   args: ["exec", "tsc", "-b", config],
 }));
 const semanticStages: Step[][] = [];
-for (let index = 0; index < semanticSteps.length; index += 4)
-  semanticStages.push(semanticSteps.slice(index, index + 4));
+for (let index = 0; index < semanticSteps.length; index += width)
+  semanticStages.push(semanticSteps.slice(index, index + width));
 if (semanticStages.length > 0) await runStages(semanticStages);
 
 const steps: Step[] = projects.flatMap((project) =>
@@ -102,7 +108,8 @@ for (const [root, file] of [
 }
 
 const stages: Step[][] = [];
-for (let index = 0; index < steps.length; index += 4) stages.push(steps.slice(index, index + 4));
+for (let index = 0; index < steps.length; index += width)
+  stages.push(steps.slice(index, index + width));
 
 try {
   if (steps.length) await runStages(stages);
