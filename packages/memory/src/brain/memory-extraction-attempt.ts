@@ -21,6 +21,7 @@ import {
 } from "./memory-extraction.ts";
 import { extractionErrorCode } from "./memory-extraction-result.ts";
 import { settleExtraction } from "./memory-extraction-settlement.ts";
+import { logMemoryAttempt } from "./memory-maintenance-log.ts";
 import type { MemoryService } from "./memory-service.ts";
 
 interface Model {
@@ -33,6 +34,7 @@ export interface MemoryExtractionAttemptDeps {
   logger: { warn(message: string): void; info?(message: string): void };
   memory: MemoryService;
   healthChanged?(): void;
+  statusChanged?(botId: string): void;
   isBotIdle(botId: string, correction?: boolean): boolean;
   publishReply?(message: Message, botId: string): void;
   isPaused(): boolean;
@@ -78,10 +80,11 @@ export class MemoryExtractionAttempt {
     // An image Bot's own model only draws (e.g. seedream), so it is never among the text models
     // extraction can run on and every attempt failed with no_model (maintainers 2026-11-18, 小图). It
     // uses the default model its sibling Bots chat with instead.
-    if (bot?.imageMode) return this.settings.get().defaultModel ?? undefined;
+    const { defaultModel, auxiliaryModel } = this.settings.get();
+    if (bot?.imageMode) return defaultModel ?? auxiliaryModel ?? undefined;
     return bot?.modelProvider && bot.modelId
       ? { provider: bot.modelProvider, id: bot.modelId }
-      : (this.settings.get().defaultModel ?? undefined);
+      : (defaultModel ?? auxiliaryModel ?? undefined);
   }
   private permitted(row: MemoryExtraction): boolean {
     const bot = this.bots.get(row.botId);
@@ -100,10 +103,13 @@ export class MemoryExtractionAttempt {
       : topic.bot_id === row.botId;
   }
   async process(row: MemoryExtraction, signal: AbortSignal) {
+    const start = performance.now();
     try {
       await this.extract(row, signal);
     } catch (error) {
       this.failed(row, signal, error);
+    } finally {
+      logMemoryAttempt(this.deps, "extraction", row, start);
     }
   }
   private async extract(row: MemoryExtraction, signal: AbortSignal) {
@@ -232,6 +238,7 @@ export class MemoryExtractionAttempt {
         : redact(extractionPrompt(catalog, source.text, source.truncated));
     const used = memoryMaintenanceUsage(this.deps.db, dayStart());
     const limit = this.limit();
+    let reserved = false;
     const draft = (chosen: Model) =>
       draftMemories({
         model: chosen,
@@ -242,16 +249,19 @@ export class MemoryExtractionAttempt {
           tokens: Math.max(0, limit.tokens - used.tokens),
           costUsd: Math.max(0, limit.costUsd - used.costUsd),
         },
-        onUsage: (usage: MemoryDraftUsage) => this.repo.recordUsage(row.id, usage),
+        onUsage: (usage: MemoryDraftUsage) => {
+          this.repo.recordUsage(row.id, usage);
+          reserved = true;
+        },
       });
     // The Bot's own model may be gone or its key invalid while the main model in Settings still
-    // works; one retry there keeps the job alive (maintainers 2026-11-18). Both fail before any
-    // request is dispatched, so nothing is billed twice.
+    // works. A reservation means dispatch may have occurred, so never retry that call.
     const fallback = this.settings.get().defaultModel ?? undefined;
     return draft(model).catch((error: unknown) => {
       const code = extractionErrorCode(error);
       if (
         (code !== "no_model" && code !== "auth_failed") ||
+        reserved ||
         !fallback ||
         (fallback.provider === model.provider && fallback.id === model.id) ||
         signal.aborted
@@ -275,9 +285,6 @@ export class MemoryExtractionAttempt {
       this.repo.finish(row.id, { status: "skipped", error: code });
       return;
     }
-    this.deps.logger.warn(
-      JSON.stringify({ module: "memory", reasonCode: "memory_extraction_failed", error: code }),
-    );
     this.health.fail("memory_extraction", row.botId, code);
     this.repo.finish(row.id, { status: "failed", error: code });
   }

@@ -1,3 +1,4 @@
+// Executes bounded model requests for work outside the chat turn.
 import { AgentError, mapAgentError } from "../../core/errors.ts";
 import type { AgentRuntime } from "../../core/types.ts";
 import { commitDraftInstruction, parseCommitDraft } from "../commit-draft.ts";
@@ -6,6 +7,14 @@ import { memoryDraftInstruction, memoryDraftUsage, parseMemoryDraft } from "../m
 import { parsePersona, personaInstruction } from "../persona.ts";
 import type { RuntimeContext } from "../runtime.ts";
 import { parseSkillDraft, skillDraftInstruction } from "../skill-draft.ts";
+
+// Keep malformed memory JSON distinct from a failed model request without carrying raw text.
+class InvalidMemoryDraft extends SyntaxError {
+  constructor() {
+    super("memory_draft_invalid");
+  }
+}
+
 export function createAuxiliaryOperations({
   auxiliaryModel,
   buildRuntime,
@@ -222,12 +231,15 @@ export function createAuxiliaryOperations({
           .flatMap((part) => (part.type === "text" ? [part.text] : []))
           .join("");
         if (!text.trim() || text.length > 50_000) throw new AgentError("provider_error");
-        return {
-          draft: parseMemoryDraft(text),
-          tokens: settled.tokens,
-          costUsd: settled.costUsd,
-        };
+        let draft: unknown;
+        try {
+          draft = parseMemoryDraft(text);
+        } catch {
+          throw new InvalidMemoryDraft();
+        }
+        return { draft, tokens: settled.tokens, costUsd: settled.costUsd };
       } catch (error) {
+        if (!signal.aborted && error instanceof InvalidMemoryDraft) throw error;
         throw new AgentError(signal.aborted ? "aborted" : mapAgentError(error));
       }
     },

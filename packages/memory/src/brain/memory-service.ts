@@ -807,9 +807,6 @@ export function registerMemoryRpc(handle: RegisterRpc, memory: MemoryService) {
   handle("memory.list", async ({ botId, scope, ownerId, state, ...page }) =>
     memory.list(botId, scope, ownerId, page, state),
   );
-  handle("memory.status", async ({ botId, scope, ownerId }) =>
-    memory.status(botId, scope, ownerId),
-  );
   handle("memory.update", async ({ botId, id, scope, ownerId, ...patch }) =>
     memory.update(botId, id, patch, scope, ownerId),
   );

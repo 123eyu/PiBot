@@ -233,6 +233,7 @@ export const KernelEventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("group.paused"),
   eventSchema("memory.sortProgress"),
   eventSchema("memory.changed"),
+  eventSchema("memory.status.changed"),
   eventSchema("groups.resources.changed"),
   eventSchema("inbox.changed"),
   eventSchema("sidebar.changed"),

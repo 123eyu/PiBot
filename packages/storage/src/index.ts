@@ -3,6 +3,7 @@ export * from "./bots/bot-hooks.ts";
 export * from "./bots/memory.ts";
 export * from "./bots/memory-extraction.ts";
 export * from "./bots/memory-maintenance.ts";
+export * from "./bots/memory-maintenance-status.ts";
 export * from "./bots/memory-management.ts";
 export * from "./bots/memory-organization.ts";
 export { MemoryProjectsRepo } from "./bots/memory-projects.ts";

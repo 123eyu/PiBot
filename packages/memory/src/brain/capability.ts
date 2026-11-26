@@ -3,6 +3,7 @@ import type { BrainCapability } from "@pibot/brain/kit";
 import { registerGroupMemoryRpc } from "./group-memory-service.ts";
 import { MemoryExtractionQueue } from "./memory-extraction-queue.ts";
 import { registerMemoryImport } from "./memory-import.ts";
+import { registerMemoryStatus } from "./memory-maintenance-status.ts";
 import { registerMemoryManagement } from "./memory-management.ts";
 import { MemoryOrganizationQueue } from "./memory-organization-queue.ts";
 import { proposeScopeMoves } from "./memory-scope-moves.ts";
@@ -19,6 +20,8 @@ export function memoryCapability(): BrainCapability {
         ),
       );
       registerMemoryRpc(ctx.rpc.handle, memory);
+      registerMemoryStatus(ctx.rpc.handle, ctx.db, memory);
+      const statusChanged = (botId: string) => ctx.peer.emit("memory.status.changed", { botId });
       // Both workers call the same auxiliary model, so each treats a running run of the
       // other as busy. Two parallel model calls would double the burst on a small local model and
       // make the shared daily budget overshoot before either result is written.
@@ -30,6 +33,7 @@ export function memoryCapability(): BrainCapability {
         logger: ctx.logger,
         memory,
         healthChanged,
+        statusChanged,
         isIdle: () => ctx.chat.queue.isIdle() && (extraction?.idle() ?? true),
         draftMemories: ctx.agent.draftMemories?.bind(ctx.agent),
       });
@@ -48,6 +52,7 @@ export function memoryCapability(): BrainCapability {
         logger: ctx.logger,
         memory,
         healthChanged,
+        statusChanged,
         isIdle: () => organization.idle(),
         isBotIdle: (botId, correction) => ctx.chat.queue.isBotIdle(botId, correction),
         onAvailable: (listener) => ctx.chat.queue.onAvailable(listener),

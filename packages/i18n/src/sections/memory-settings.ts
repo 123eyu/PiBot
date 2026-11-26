@@ -1,4 +1,15 @@
+// Provides the shared bilingual copy for memory management and maintenance status.
 export const memorySettingsZh = {
+  "memorySettings.maintenance.lastExtraction": "最近一次：{time}。",
+  "memorySettings.maintenance.healthy": "记忆正常 · 最近一次记下 {time}。",
+  "memorySettings.maintenance.extraction": "提炼记忆最近 {count} 次未完成：{reason}",
+  "memorySettings.maintenance.organization": "整理记忆最近 {count} 次未完成：{reason}",
+  "memorySettings.maintenance.no_model": "没有可用的文字模型。",
+  "memorySettings.maintenance.auth_failed": "模型密钥无效或登录已失效。",
+  "memorySettings.maintenance.budget_exhausted": "今日记忆预算不足。",
+  "memorySettings.maintenance.draft_invalid": "模型返回的记忆格式无法读取。",
+  "memorySettings.maintenance.failed": "记忆维护遇到错误，请检查模型设置。",
+  "memorySettings.maintenance.budgetNext": "将在预算恢复后继续。",
   "memorySettings.sortIntoPlace": "整理归位",
   "memorySettings.sortLead": "用模型将工作记忆归回来源 Bot，保留个人偏好；移动前由你逐条确认。",
   "memorySettings.sortProgress": "正在整理：已检查 {processed} / {total} 条…",
@@ -103,6 +114,20 @@ export const memorySettingsZh = {
   "memorySettings.exportLimit": "导出超过 2000 条或 1 MiB 限制，未生成文件；请选择较小的归属范围。",
 } as const;
 export const memorySettingsEn = {
+  "memorySettings.maintenance.lastExtraction": "Last attempt: {time}.",
+  "memorySettings.maintenance.healthy": "Memory is healthy · Last saved {time}.",
+  "memorySettings.maintenance.extraction":
+    "Recent unfinished extraction attempts ({count}): {reason}",
+  "memorySettings.maintenance.organization":
+    "Recent unfinished organization attempts ({count}): {reason}",
+  "memorySettings.maintenance.no_model": "No text model is available.",
+  "memorySettings.maintenance.auth_failed":
+    "The model API key is invalid or the sign-in has expired.",
+  "memorySettings.maintenance.budget_exhausted": "There is not enough memory budget left today.",
+  "memorySettings.maintenance.draft_invalid":
+    "The model returned a memory draft that could not be read.",
+  "memorySettings.maintenance.failed": "Memory maintenance failed. Check the model settings.",
+  "memorySettings.maintenance.budgetNext": "Work resumes when the budget is available.",
   "memorySettings.sortIntoPlace": "Sort into place",
   "memorySettings.sortLead":
     "Use the model to return work memories to their source Bot and keep personal preferences shared; confirm each move.",

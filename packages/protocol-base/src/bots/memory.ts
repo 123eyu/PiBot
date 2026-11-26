@@ -1,3 +1,4 @@
+// Defines the public memory and maintenance status contracts.
 import { z } from "zod";
 import { IdSchema } from "../core/ids.ts";
 import { PageSchema } from "../core/page.ts";
@@ -138,6 +139,18 @@ const memoryStatus = z.strictObject({
   unusedCount: z.number().int().nonnegative(),
   needsOrganization: z.boolean(),
 });
+export const MemoryMaintenanceIssueSchema = z.strictObject({
+  reason: z.enum(["no_model", "auth_failed", "budget_exhausted", "draft_invalid", "failed"]),
+  count: z.number().int().positive(),
+  task: z.enum(["extraction", "organization"]),
+});
+export const MemoryMaintenanceStatusSchema = z.strictObject({
+  lastExtractionAt: time.nullable(),
+  lastSavedAt: time.nullable(),
+  issue: MemoryMaintenanceIssueSchema.optional(),
+});
+export type MemoryMaintenanceStatus = z.infer<typeof MemoryMaintenanceStatusSchema>;
+
 export const MemoryMethods = {
   "memory.sortIntoPlace": {
     timeoutMs: 330_000,
@@ -232,8 +245,8 @@ export const MemoryMethods = {
     result: z.array(MemorySchema).max(100),
   },
   "memory.status": {
-    params: botId,
-    result: memoryStatus,
+    params: botId.or(z.strictObject({})),
+    result: memoryStatus.extend({ maintenance: MemoryMaintenanceStatusSchema.optional() }),
   },
   "memory.update": {
     params: botId
@@ -256,6 +269,7 @@ export const MemoryMethods = {
   },
 } as const;
 export const MemoryEvents = {
+  "memory.status.changed": z.strictObject({ botId: IdSchema }),
   "memory.sortProgress": z.strictObject({
     processed: z.number().int().nonnegative(),
     total: z.number().int().nonnegative(),

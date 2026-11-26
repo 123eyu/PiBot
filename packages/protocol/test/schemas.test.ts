@@ -1704,7 +1704,7 @@ const methodCases = {
   "memory.status": {
     params: { botId: id },
     result: { activeCount: 1, archivedCount: 0, unusedCount: 0, needsOrganization: false },
-    badParams: {},
+    badParams: { scope: "bot" },
     badResult: { activeCount: -1 },
   },
   "memory.project": {
@@ -3962,6 +3962,7 @@ const eventCases = {
     payload: { groupId: id, kind: "memory" },
     bad: { groupId: id, kind: "other" },
   },
+  "memory.status.changed": { payload: { botId: id }, bad: { unexpected: true } },
   "memory.sortProgress": { payload: { processed: 0, total: 0, moves: 0 }, bad: { processed: -1 } },
   "memory.changed": {
     payload: { botId: id, reason: "added", memoryId: id },

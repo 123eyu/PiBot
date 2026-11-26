@@ -155,7 +155,7 @@ export class MemoryExtractionsRepo {
       const value = row(found);
       const changed = this.db
         .prepare(
-          `UPDATE memory_extractions SET status='running', started_at=?
+          `UPDATE memory_extractions SET status='running', started_at=?, finished_at=NULL
           WHERE id=? AND status='queued'`,
         )
         .run(now, value.id);
@@ -214,9 +214,9 @@ export class MemoryExtractionsRepo {
         .get(value.conversationId);
       if (!Number(usage?.tokens) && !successor) {
         this.db
-          .prepare(`UPDATE memory_extractions SET status='queued', started_at=NULL,
+          .prepare(`UPDATE memory_extractions SET status='queued', started_at=NULL, finished_at=?,
           error=? WHERE id=? AND status='running'`)
-          .run(reason, value.id);
+          .run(reason === "budget_exhausted" ? new Date().toISOString() : null, reason, value.id);
         return;
       }
       if (Number(usage?.tokens)) this.finish(value.id, { status: "failed", error: reason });
@@ -224,9 +224,13 @@ export class MemoryExtractionsRepo {
       this.enqueue(value, value.createdAt);
       this.db
         .prepare(
-          "UPDATE memory_extractions SET error=? WHERE conversation_id=? AND status='queued' AND error IS NULL",
+          "UPDATE memory_extractions SET error=?, finished_at=? WHERE conversation_id=? AND status='queued' AND error IS NULL",
         )
-        .run(reason, value.conversationId);
+        .run(
+          reason,
+          reason === "budget_exhausted" ? new Date().toISOString() : null,
+          value.conversationId,
+        );
     });
   }
 

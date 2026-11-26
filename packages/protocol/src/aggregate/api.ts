@@ -317,6 +317,7 @@ export const EventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("group.paused"),
   eventSchema("memory.sortProgress"),
   eventSchema("memory.changed"),
+  eventSchema("memory.status.changed"),
   eventSchema("groups.resources.changed"),
   eventSchema("inbox.changed"),
   eventSchema("providers.loginState"),

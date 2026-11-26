@@ -31,15 +31,6 @@ export function settleExtraction(
   );
   repo.diagnostics(row.id, counts);
   const accepted = counts.applied + counts.proposed;
-  deps.logger.info?.(
-    JSON.stringify({
-      module: "memory",
-      reasonCode: "extraction_result",
-      botId: row.botId,
-      extractionId: row.id,
-      ...counts,
-    }),
-  );
   audit(deps, row, source.messageCount, accepted);
   const failed = counts.raw && !accepted && !counts.reasons.candidate_duplicate;
   repo.finish(row.id, {

@@ -58,7 +58,7 @@ const OPTIONAL_KEYS = [
 export class SettingsRepo {
   constructor(private readonly db: DatabaseSync) {}
 
-  get(): Settings {
+  get({ initializeDefaultModel = true } = {}): Settings {
     // Older databases never persisted this default; a missing key must retain their enabled state.
     const values = { ...DEFAULT_SETTINGS, openAtLogin: true };
     let hasDefaultModel = false;
@@ -89,9 +89,10 @@ export class SettingsRepo {
               thinkingPreference: pi.thinkingPreference ?? null,
             }
           : null;
-      this.db
-        .prepare("INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO NOTHING")
-        .run("defaultModel", JSON.stringify(values.defaultModel));
+      if (initializeDefaultModel)
+        this.db
+          .prepare("INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO NOTHING")
+          .run("defaultModel", JSON.stringify(values.defaultModel));
     }
     return SettingsSchema.parse(values);
   }
