@@ -34,6 +34,7 @@ export function renderChatComposer(screen: ChatScreenModel) {
   const {
     peer,
     disconnected,
+    brainStarting,
     t,
     draftId,
     controller,
@@ -82,10 +83,16 @@ export function renderChatComposer(screen: ChatScreenModel) {
     state.messages.some((message) => message.role === "assistant");
   return (
     <div className={styles.composerArea}>
-      {disconnected && (
-        <p className={styles.band} data-tone="warn" role="status">
-          {t("workspace.brainUnavailable")}
+      {brainStarting ? (
+        <p className={styles.band} data-tone="info" role="status">
+          {t("workspace.brainStarting")}
         </p>
+      ) : (
+        disconnected && (
+          <p className={styles.band} data-tone="warn" role="status">
+            {t("workspace.brainUnavailable")}
+          </p>
+        )
       )}
       <SubscriptionAuthNotice
         bot={state.bot}

@@ -15,7 +15,7 @@ import { type ConnectedChatProps, useChatScreenModel } from "./screen/chat-scree
 import { renderConnectedChat } from "./screen/connected-chat-view.tsx";
 
 export function ChatScreen() {
-  const { peer } = useRpc();
+  const { peer, state } = useRpc();
   const { view, closeWorkspace } = useNavigation();
   const groupScope = useRef({ peer, revision: 0 });
   if (groupScope.current.peer !== peer)
@@ -35,6 +35,7 @@ export function ChatScreen() {
               key={JSON.stringify(target)}
               peer={retainedPeer.current}
               disconnected={!peer}
+              brainStarting={state === "starting" || state === "restarting"}
               target={target}
               visible={view.name === "chat"}
             />
