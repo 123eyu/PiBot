@@ -1,6 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
-import { lstatSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import type {
   BrainRedactor,
@@ -53,6 +51,7 @@ import {
 import { type MemoryToolInput, noteValue, parseMemoryInput } from "./memory-input.ts";
 import { type OrganizationProposal, organizationCatalog } from "./memory-organization.ts";
 import { organizationInputs } from "./memory-organization-inputs.ts";
+import { applyProjectFile, projectFileProposal } from "./memory-project-file.ts";
 import { createMemoryReads } from "./memory-reads.ts";
 import { MemoryRecallMetrics } from "./memory-recall-metrics.ts";
 import { undoableMemory } from "./memory-reversal.ts";
@@ -128,34 +127,21 @@ export class MemoryService {
     return new MemoryProjectsRepo(this.db).ensure(String(row.path));
   }
 
+  /**
+   * Project facts are written to the folder's AGENTS.md, so they are always a reviewable
+   * proposal with the exact diff; nothing in the background changes a user's project file.
+   */
   projectProposal(conversationId: string, text: string) {
     const project = this.projectForConversation(conversationId);
-    if (!project) return undefined;
-    const path = join(project.path, "AGENTS.md");
-    let before = "";
-    try {
-      before = readFileSync(path, "utf8");
-    } catch (error) {
-      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
-    }
-    const hash = before ? createHash("sha256").update(before).digest("hex") : "";
-    const open = "<!-- pibot:notes -->";
-    const close = "<!-- /pibot:notes -->";
-    const section = `${open}\n## Pi Bot 记下的项目背景\n\n${text}\n${close}`;
-    const start = before.indexOf(open);
-    const end = before.indexOf(close);
-    const content =
-      start >= 0 && end > start
-        ? `${before.slice(0, start)}${section}${before.slice(end + close.length)}`
-        : `${before}${before && !before.endsWith("\n") ? "\n" : ""}${section}\n`;
-    const old = start >= 0 && end > start ? before.slice(start, end + close.length) : "";
-    const diff = [
-      "--- AGENTS.md",
-      "+++ AGENTS.md",
-      ...(old ? old.split("\n").map((line) => `-${line}`) : []),
-      ...section.split("\n").map((line) => `+${line}`),
-    ].join("\n");
-    return { path, content, diff, hash, name: basename(dirname(path)) };
+    return project
+      ? projectFileProposal(join(project.path, "AGENTS.md"), this.redactor.redact(text))
+      : undefined;
+  }
+
+  /** Same card for a run that already knows its canonical project folder. */
+  projectProposalForPath(projectPath: string, text: string) {
+    // Same redaction as the stored note: the diff goes into a file other tools and people read.
+    return projectFileProposal(join(projectPath, "AGENTS.md"), this.redactor.redact(text));
   }
 
   /** Project ids come from the run's canonical folder; only writes create the project row. */
@@ -482,6 +468,8 @@ export class MemoryService {
     // ask mode holds them; facts about the user from a group still ask.
     const ask =
       alwaysPropose ||
+      // A note that also edits AGENTS.md waits for the owner's confirmation in every mode.
+      !!projectMeta ||
       (((!!groupId && scope !== "project") || bot.memoryMode === "ask") && !automatic);
     const result = this.write(() =>
       transaction(this.db, () => {
@@ -613,6 +601,45 @@ export class MemoryService {
     return undoableMemory(this.db, botId, this.repo, this.undo, this.redactor);
   }
 
+  /**
+   * A Bot that saves a correction itself (memory_add during the turn) leaves its card on the
+   * text-less step message before the words, where it faded before the reply was read, and the
+   * later correction extraction then found nothing new. The turn's own notes move under the
+   * reply instead and are returned for its "noted" receipt, so one card shows with its undo.
+   */
+  anchorRunNotes(botId: string, replyId: string) {
+    this.active(botId);
+    const rows = this.db
+      .prepare(
+        `SELECT p.id AS proposalId, p.status, p.resolved_memory_id AS memoryId, p.text
+        FROM scoped_memory_proposals p
+        JOIN messages source ON source.id=p.message_id
+        JOIN messages reply ON reply.id=? AND reply.run_id IS NOT NULL AND reply.run_id=source.run_id
+          AND reply.conversation_id=source.conversation_id
+        WHERE p.bot_id=? AND p.status IN ('pending','accepted') AND p.action IN ('add','update')
+          AND p.scope IN ('bot','user','project')
+        ORDER BY p.created_at, p.rowid LIMIT 5`,
+      )
+      .all(replyId, botId)
+      .map((row) => ({
+        proposalId: String(row.proposalId),
+        status: String(row.status),
+        memoryId: row.memoryId == null ? null : String(row.memoryId),
+        text: String(row.text),
+      }));
+    if (!rows.length) return [];
+    transaction(this.db, () => {
+      const move = this.db.prepare(
+        "UPDATE scoped_memory_proposals SET message_id=? WHERE id=? AND bot_id=?",
+      );
+      for (const row of rows) move.run(replyId, row.proposalId, botId);
+    });
+    this.changed(botId, "proposed", undefined, rows[0]?.proposalId);
+    return rows.flatMap((row) =>
+      row.status === "accepted" && row.memoryId ? [{ id: row.memoryId, text: row.text }] : [],
+    );
+  }
+
   update(
     botId: string,
     id: string,
@@ -677,39 +704,16 @@ export class MemoryService {
     if (!proposal) throw new RpcError(-32602, "Unknown proposal");
     if (
       accept &&
+      proposal.status === "pending" &&
       proposal.projectPath &&
       proposal.projectDiff &&
-      proposal.projectExpectedHash !== null
+      proposal.projectExpectedHash
     ) {
       // The user's confirm on this card is the approval for the write. The file is small and
       // resolve() is synchronous for every proposal kind, so the sync API keeps one code path.
       if (basename(proposal.projectPath) !== "AGENTS.md")
         throw new RpcError(-32011, "memory_project_target_invalid");
-      let current = "";
-      try {
-        // A symlinked AGENTS.md could point outside the project folder; refuse rather than follow.
-        if (lstatSync(proposal.projectPath).isSymbolicLink())
-          throw new RpcError(-32011, "memory_project_target_invalid");
-        current = readFileSync(proposal.projectPath, "utf8");
-      } catch (error) {
-        if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) throw error;
-      }
-      const hash = current ? createHash("sha256").update(current).digest("hex") : "";
-      if (hash !== proposal.projectExpectedHash)
-        throw new RpcError(-32011, "memory_project_file_changed");
-      const section = proposal.projectDiff
-        .split("\n")
-        .filter((line) => line.startsWith("+"))
-        .map((line) => line.slice(1))
-        .join("\n");
-      const marker = "<!-- pibot:notes -->";
-      const close = "<!-- /pibot:notes -->";
-      const next = current.includes(marker)
-        ? current.replace(new RegExp(`${marker}[\\s\\S]*?${close}`), section)
-        : `${current}${current && !current.endsWith("\n") ? "\n" : ""}${section}\n`;
-      const temp = `${proposal.projectPath}.${randomUUID()}.tmp`;
-      writeFileSync(temp, next, { mode: 0o600 });
-      renameSync(temp, proposal.projectPath);
+      applyProjectFile(proposal.projectPath, proposal.projectDiff, proposal.projectExpectedHash);
       this.audit(
         { scope: "project", ownerId: proposal.ownerId ?? proposal.botId },
         proposal.botId,
@@ -892,7 +896,11 @@ export class MemoryService {
       if (!candidate.id || !this.repoFor(owner).get(botId, candidate.id))
         throw new TypeError("candidate_target_missing");
     }
-    const automatic = bot.memoryMode === "auto" && (!groupId || candidate.scope !== "user");
+    const automatic =
+      bot.memoryMode === "auto" &&
+      (!groupId || candidate.scope !== "user") &&
+      // Project facts become the AGENTS.md card; the background never applies them itself.
+      candidate.scope !== "project";
     const input = candidateInput(candidate);
     const projectMeta =
       candidate.scope === "project" ? this.projectProposal(messageId, candidate.text) : undefined;

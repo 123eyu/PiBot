@@ -29,7 +29,7 @@ export function applyExtractionCandidates(
   draft: unknown,
   groupSourceIds?: readonly string[],
   groupSourceTexts?: Readonly<Record<string, string>>,
-  receipt?: { replyId: string; notes: { id: string; text: string }[] },
+  receipt?: { replyId: string; notes: { id: string; text: string }[]; noted?: ReadonlySet<string> },
 ) {
   const parsed = parseExtractionDraft(draft);
   const citing = new Map<string, number>();
@@ -55,6 +55,11 @@ export function applyExtractionCandidates(
         : scopedCandidate(raw, mainBot);
     if (candidate !== raw)
       counts.reasons.candidate_rescoped_bot = (counts.reasons.candidate_rescoped_bot ?? 0) + 1;
+    // The Bot saved this note itself in the same turn and its receipt is already shown.
+    if (candidate.action === "update" && candidate.id && receipt?.noted?.has(candidate.id)) {
+      counts.reasons.candidate_duplicate = (counts.reasons.candidate_duplicate ?? 0) + 1;
+      continue;
+    }
     try {
       const sourceId = row.groupId ? candidate.sourceMessageId : messageId;
       if (

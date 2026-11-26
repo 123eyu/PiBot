@@ -43,6 +43,8 @@ export class MemoryNoticesController {
   private unsubscribe?: () => void;
   private timer?: ReturnType<typeof setTimeout>;
   private seenNotices = new Set<string>();
+  /** Where each notice was last shown; the brain moves a turn's own note under its reply. */
+  private anchors = new Map<string, string | null>();
   constructor(
     private readonly peer: NoticePeer,
     private readonly botId: string,
@@ -65,6 +67,7 @@ export class MemoryNoticesController {
       this.active = true;
       this.lifetime++;
       this.seenNotices.clear();
+      this.anchors.clear();
       this.patch({
         profile: undefined,
         feedback: undefined,
@@ -102,6 +105,13 @@ export class MemoryNoticesController {
           ),
         );
         for (const proposal of profile.undoable ?? []) {
+          const anchor = this.anchors.get(proposal.id);
+          this.anchors.set(proposal.id, proposal.messageId);
+          // Moved under the finished reply: show it there once more, even if it faded above.
+          if (anchor !== undefined && anchor !== proposal.messageId) {
+            dismissed.delete(proposal.id);
+            continue;
+          }
           if (this.seenNotices.has(proposal.id)) continue;
           this.seenNotices.add(proposal.id);
           // The durable proposal timestamp suppresses old notices after topic/app restart.
@@ -109,6 +119,7 @@ export class MemoryNoticesController {
           if (Date.now() - Date.parse(proposal.createdAt) >= AUTO_NOTICE_MS)
             dismissed.add(proposal.id);
         }
+        for (const id of this.anchors.keys()) if (!ids.has(id)) this.anchors.delete(id);
         this.seenNotices = ids;
         this.noticeStorage?.write(dismissed);
         this.patch({ profile, dismissed });

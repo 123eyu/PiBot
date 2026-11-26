@@ -1,10 +1,13 @@
 // Settles extraction candidates, coverage, diagnostics and the optional chat receipt.
+
+import { memoryNoted } from "@pibot/protocol-base";
 import {
   AuditRepo,
   type BackgroundTaskHealthRepo,
   MemoryDreamRepo,
   type MemoryExtraction,
   type MemoryExtractionsRepo,
+  MessagesRepo,
 } from "@pibot/storage";
 import { recordCorrectionReceipt } from "./memory-correction-receipt.ts";
 import type { ExtractionSource } from "./memory-extraction.ts";
@@ -20,7 +23,14 @@ export function settleExtraction(
   result: { draft: unknown; tokens: number; costUsd?: number },
   replyId?: string,
 ) {
-  const receipt = replyId ? { replyId, notes: [] as { id: string; text: string }[] } : undefined;
+  const reply = replyId ? new MessagesRepo(deps.db).get(replyId) : undefined;
+  const receipt = replyId
+    ? {
+        replyId,
+        notes: [] as { id: string; text: string }[],
+        noted: new Set(((reply && memoryNoted(reply.usage)) ?? []).map((note) => note.id)),
+      }
+    : undefined;
   const counts = applyExtractionCandidates(
     deps.memory,
     row,
