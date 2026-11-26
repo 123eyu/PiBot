@@ -15,7 +15,9 @@ On this page:
 
 ## Install
 
-The phone app is currently available as an Android package (APK) from the [download page](https://pibot.space/en/download/). The desktop app updates itself; on the phone, download and install the new APK to update. An iOS version isn't available for download yet. After installing it, open Pi Bot and start pairing from the first-launch screen.
+Download the Android app package (APK) from the [official download page](https://pibot.space/en/download/). After installation, open Pi Bot and pair it from the first-launch screen. An iOS version isn’t available for download yet.
+
+To update, download the new APK from the same page, open the file on your phone, and confirm in the Android installer. An official update signed with the same key keeps your chats and pairings when installed over your existing copy. Leave Pi Bot installed while updating.
 
 ## Turn on remote access on the computer
 

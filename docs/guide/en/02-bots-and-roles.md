@@ -103,7 +103,9 @@ Ways to add memory:
 
 - Tell a Bot "remember that I prefer…".
 - In a memory list click **+ Add**, write the memory and pick a category (About you, Work, How to work, Other).
-- Turn on **Extract memories from conversations**: when a topic winds down, the Bot pulls preferences and agreements out of it into memory.
+- Turn on **Extract memories from conversations**. Pi Bot schedules extraction when you switch topics, after about 30 minutes without new messages, or after a group plan or routine with input from you finishes. Pending extraction is saved when you quit and can resume when you next open Pi Bot.
+
+You can also correct a Bot directly, for example by saying “Put the conclusion first in future reports.” With extraction on and **Remember** selected, Pi Bot prioritizes corrections and lasting preferences it recognizes. Once saved, **Remembered** appears under the original reply, where you can choose **Undo**. If the model is busy, this may take longer. With **Ask first**, you get a suggestion to confirm.
 
 **When it learns something new** can be **Remember** or **Ask first**. With Ask first, the Bot asks you before it writes a memory. **Sort into place** in About you uses the model to move memories that belong to one Bot's work back to that Bot; the move proposals appear in the Inbox for you to confirm one by one.
 
