@@ -39,7 +39,7 @@ import { createModelCatalogCache } from "../models/model-catalog-cache.ts";
 import { type CatalogSnapshot, withOpenRouterCatalog } from "../models/openrouter-catalog.ts";
 import { createAuxiliaryModelSelector } from "./auxiliary-model.ts";
 import { CacheDiagnosticsMemory } from "./cache-diagnostic.ts";
-import { loadPiSdk } from "./pi-sdk.ts";
+import { loadPiSdk, warmPiSdkCompileCache } from "./pi-sdk.ts";
 import { createAuxiliaryOperations } from "./runtime-parts/runtime-auxiliary.ts";
 import { createCompactionOperations } from "./runtime-parts/runtime-compaction.ts";
 import { createImagesOperations } from "./runtime-parts/runtime-images.ts";
@@ -163,6 +163,9 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
   async function createRuntime(snapshot?: CatalogSnapshot) {
     let settleAuth = async () => {};
     sanitizeBrainEnv(process.env, dataDir);
+    await warmPiSdkCompileCache().catch(() => {
+      // Compile-cache warmup is an optimization. The main-thread import remains the source of truth.
+    });
     const pi = await sdk();
     const custom = configs();
     const runtime = await pi.ModelRuntime.create({
@@ -377,7 +380,7 @@ export function createAgentRuntime(deps: AgentRuntimeDeps): AgentRuntime {
     deferSdk: context.deferSdk,
     preloadSdk: async () => {
       sanitizeBrainEnv(process.env, context.dataDir);
-      await loadPiSdk();
+      await warmPiSdkCompileCache();
     },
     listImageModels: images.listImageModels,
     generateImage: images.generateImage,
