@@ -651,6 +651,7 @@ export async function generateRun(
       ...(local
         ? {
             requestObserver: {
+              metrics: local.budgets.observer(toolContext).metrics,
               beforeRequest: (request) => {
                 if (
                   request.kind === "response" &&

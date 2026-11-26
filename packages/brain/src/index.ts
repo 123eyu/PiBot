@@ -1,3 +1,4 @@
+// Compose and start the platform-independent brain kernel.
 import { mkdir } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -227,6 +228,8 @@ export async function startBrain(opts: {
    * with and without the code-navigation tools. Removing a tool never grants another one.
    */
   hiddenTools?: readonly string[];
+  /** Optional content-free model receipts for the headless evaluation host. */
+  modelRequest?: LocalDependencies["modelRequest"];
   dev?: boolean;
   interactiveAttached?: boolean;
   backgroundControlIdle?: () => boolean;
@@ -750,6 +753,7 @@ export async function startBrain(opts: {
       resourcesDir: opts.resourcesDir,
       platform: opts.platform as "darwin" | "linux" | "win32",
       hiddenTools: opts.hiddenTools,
+      modelRequest: opts.modelRequest,
       env: executionEnv,
       userHome,
       tempDir,

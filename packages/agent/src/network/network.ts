@@ -1,12 +1,15 @@
+// Keep provider transport, proxying, and diagnostics scoped to the current request.
 import { AsyncLocalStorage } from "node:async_hooks";
 import { isIP } from "node:net";
 import type { Api, Model, Provider, StreamOptions, TranscriptContext } from "@earendil-works/pi-ai";
 import { AssistantMessageEventStream } from "@earendil-works/pi-ai/utils/event-stream";
 import { AgentError, mapAgentError } from "../core/errors.ts";
+import { cacheRequestFields } from "./cache-request-fields.ts";
 
 export interface AgentNetwork {
   enabled(): boolean;
   wrap(provider: Provider): Provider;
+  observeRequest?<T>(record: (fields: string[]) => void, send: () => T): T;
   dispose(): void;
 }
 /**
@@ -45,11 +48,17 @@ export function installAgentNetwork(
     proxyFailure?: "proxy_unavailable" | "proxy_credentials_unavailable" | "proxy_auth_failed";
     response?(response: Response): Promise<void>;
   }>();
+  const requestMetrics = new AsyncLocalStorage<(fields: string[]) => void>();
   let disposed = false;
   const fetch: typeof globalThis.fetch = async (input, init) => {
     if (disposed) throw new AgentError("aborted");
     try {
       const url = new URL(input instanceof Request ? input.url : String(input));
+      const record = requestMetrics.getStore();
+      if (record) {
+        const fields = cacheRequestFields(init?.body);
+        if (fields) record(fields);
+      }
       // Local model servers (Ollama, LM Studio, vLLM) and local MCP servers stay on this machine.
       // A followed redirect would leave loopback without the proxy, so it fails instead.
       if (enabled() && isLoopbackHost(url.hostname)) {
@@ -201,6 +210,7 @@ export function installAgentNetwork(
   }
   return {
     enabled,
+    observeRequest: (record, send) => requestMetrics.run(record, send),
     wrap(provider) {
       const generateImages = provider.generateImages;
       const fetchOnly = Reflect.get(provider, FETCH_ONLY_PROVIDER) === true;

@@ -1,3 +1,4 @@
+// Keep accounting attached to the provider attempt independently of reply segmentation.
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { type AgentError, mapAgentError, transientRequestError } from "../core/errors.ts";
@@ -8,12 +9,16 @@ import type {
   ToolSetSnapshot,
 } from "../core/types.ts";
 
+import type { AgentNetwork } from "../network/network.ts";
+
 const amount = z.number().finite().nonnegative();
-const usageSchema = z.object({
+const tokenUsageSchema = z.object({
   input: amount,
   output: amount,
   cacheRead: amount,
   cacheWrite: amount,
+});
+const usageSchema = tokenUsageSchema.extend({
   totalTokens: amount.optional(),
   // `reported`: the provider billed this total itself (patched pi-ai, OpenRouter's usage.cost).
   cost: z.object({ total: amount, reported: z.boolean().optional() }).optional(),
@@ -34,10 +39,14 @@ export class RequestAccounting {
   private readonly pending = new Set<Promise<void>>();
   private failure?: unknown;
   blocked?: AgentErrorCode;
-  constructor(private readonly observer?: AgentRequestObserver) {}
+  constructor(
+    private readonly observer?: AgentRequestObserver,
+    private readonly observeRequest?: AgentNetwork["observeRequest"],
+  ) {}
   begin(
     model: {
       provider: string;
+      api?: string;
       id: string;
       cost: { input: number; output: number; cacheRead: number; cacheWrite: number };
     },
@@ -63,8 +72,17 @@ export class RequestAccounting {
       this.blocked = mapAgentError(error);
       throw error;
     }
+    const startedAt = performance.now();
     let settled = false;
+    let cacheFields: Set<string> | undefined;
     return {
+      send: <T>(request: () => T): T => {
+        if (!this.observer?.metrics || !this.observeRequest) return request();
+        return this.observeRequest((fields) => {
+          cacheFields ??= new Set();
+          for (const field of fields) cacheFields.add(field);
+        }, request);
+      },
       settle: (
         result?: { stopReason: string; usage?: unknown },
         failure?: { error: unknown; outputObserved: boolean },
@@ -125,6 +143,22 @@ export class RequestAccounting {
                 }
               : {}),
         });
+        if (this.observer?.metrics) {
+          // Custom endpoints can have an unknown (negative) price with valid token counters.
+          const parsed = tokenUsageSchema.safeParse(result?.usage);
+          const reported = parsed.success ? parsed.data : undefined;
+          const tokenUsage =
+            reported && (complete || Object.values(reported).some((value) => value > 0))
+              ? reported
+              : undefined;
+          this.observer.metrics({
+            startedAt,
+            provider: model.provider,
+            api: model.api ?? "unknown",
+            ...(tokenUsage && { usage: tokenUsage }),
+            ...(cacheFields && { cacheFields: [...cacheFields].sort() }),
+          });
+        }
         return unbilled;
       },
     };

@@ -449,6 +449,7 @@ export class LocalService {
     timing.mark("tool_calls_recover");
     this.budgets = new BudgetService({
       db: deps.db,
+      modelRequest: deps.modelRequest,
       redact: (text) => deps.redactor.redact(text),
       changed: (snapshot) => deps.peer.emit("execution.budget.changed", snapshot),
       groupStopped: (groupId) => {

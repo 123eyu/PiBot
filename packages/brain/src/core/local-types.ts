@@ -1,5 +1,12 @@
+// Define the dependencies and scopes of local brain services.
 import type { DatabaseSync } from "node:sqlite";
-import type { AgentRuntime, LocalToolCall, LocalToolResult, PromptContext } from "@pibot/agent";
+import type {
+  AgentRuntime,
+  LocalToolCall,
+  LocalToolResult,
+  ModelRequestMetrics,
+  PromptContext,
+} from "@pibot/agent";
 import type { AliasFileSystem, ExecutionTarget, fetchPage, NetworkProxy } from "@pibot/execution";
 import type { Logger } from "@pibot/observability";
 import type { PolicyResult } from "@pibot/policy";
@@ -294,6 +301,7 @@ export interface CollaborationPort {
   ): Promise<PromptContext>;
 }
 export interface LocalDependencies {
+  modelRequest?(runId: string, request: ModelRequestMetrics): void;
   /** L4 orchestration is composed outside the L3 kernel; the kernel only owns this factory port. */
   orchestration: import("./orchestration.ts").OrchestrationFactory;
   aliasFileSystem?: AliasFileSystem;

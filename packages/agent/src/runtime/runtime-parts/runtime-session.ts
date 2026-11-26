@@ -1,3 +1,4 @@
+// Open and configure a managed pi session for a Bot run.
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { sanitizeBrainEnv } from "../../core/env.ts";
@@ -42,6 +43,7 @@ async function warmSessionFile(path: string, signal?: AbortSignal) {
 
 export function createSessionOperations({
   dataDir,
+  deps,
   checkpointCache,
   cacheDiagnosticsMemory,
   catalog,
@@ -130,7 +132,10 @@ export function createSessionOperations({
         let retryBound = false;
         const additions = opts.localTools ? new SessionAdditions() : undefined;
         const context = opts.context;
-        const accounting = new RequestAccounting(opts.requestObserver);
+        const accounting = new RequestAccounting(
+          opts.requestObserver,
+          deps.network?.observeRequest,
+        );
         const compaction: CompactionState | undefined = opts.localTools
           ? {
               signal: opts.signal,

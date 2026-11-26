@@ -1,3 +1,4 @@
+// Define the SDK-neutral contracts used by the agent and its callers.
 import type {
   AgentErrorCode,
   CustomModel,
@@ -81,6 +82,15 @@ export interface OpenSessionOptions {
   };
 }
 
+export interface ModelRequestMetrics {
+  startedAt: number;
+  provider: string;
+  api: string;
+  usage?: { input: number; output: number; cacheRead: number; cacheWrite: number };
+  /** Omitted when the HTTP request body could not be observed. */
+  cacheFields?: string[];
+}
+
 /** One record for every provider stream, including SDK context compaction. No message content. */
 export interface AgentRequestObserver {
   beforeRequest(input: {
@@ -99,6 +109,7 @@ export interface AgentRequestObserver {
   }): void;
   /** One content-free prompt-cache line per settled conversation request. */
   cacheDiagnostic?(line: CacheDiagnostic): void;
+  metrics?(request: ModelRequestMetrics): void;
 }
 
 /**
