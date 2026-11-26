@@ -76,6 +76,7 @@ export * from "./runs/background-commands.ts";
 export * from "./runs/background-continuations.ts";
 export { BackgroundTaskHealthRepo } from "./runs/background-health.ts";
 export { BrainWakeRepo } from "./runs/brain-wake.ts";
+export { LiveActivityRepo } from "./runs/live-activity.ts";
 export * from "./runs/review-findings.ts";
 export * from "./runs/run-events.ts";
 export * from "./runs/run-receipt.ts";

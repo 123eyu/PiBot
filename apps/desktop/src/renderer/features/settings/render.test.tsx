@@ -117,8 +117,8 @@ describe("welcome and settings static rendering", () => {
       expect(nav).toContain(t("settings.general"));
       expect(nav).toContain(t("settings.models").replaceAll("&", "&amp;"));
       expect(html).toContain(t("setup.close"));
-      // 登录这台电脑时 is a segmented choice; the tray and proxy switches remain.
-      expect(html.match(/role="switch"/g)).toHaveLength(2);
+      // 登录这台电脑时 is a segmented choice; the live island, tray and proxy switches remain.
+      expect(html.match(/role="switch"/g)).toHaveLength(3);
     },
   );
   it("keeps previews in the UI palettes independent of the document theme", () => {

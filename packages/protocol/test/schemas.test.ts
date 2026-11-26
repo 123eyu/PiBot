@@ -4037,6 +4037,23 @@ const eventCases = {
   },
   "runtime.commands": { payload: { paused: "retrying" }, bad: { paused: "paused" } },
   "runtime.activeRuns": { payload: { count: 1 }, bad: { count: -1 } },
+  "runtime.liveActivity": {
+    payload: {
+      items: [
+        {
+          key: `run:${id}`,
+          botId: id,
+          botName: "Pi",
+          avatar: { shape: "blob", color: "violet", eyes: "marks", image: null },
+          kind: "chat",
+          title: "Draft the report",
+          startedAt: date,
+          target: { view: "group", groupId: id },
+        },
+      ],
+    },
+    bad: { items: [{ key: "x", botId: id, kind: "busy" }] },
+  },
   "bots.changed": { payload: { botId: id, reason: "created" }, bad: { unexpected: true } },
   "groups.changed": { payload: { groupId: id, reason: "created" }, bad: { unexpected: true } },
   "group.task": { payload: { task }, bad: { unexpected: true } },

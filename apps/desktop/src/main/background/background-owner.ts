@@ -26,6 +26,7 @@ import { createComputerGuard } from "../computer/computer-guard-adapter.ts";
 import { createComputerHost } from "../computer/computer-host.ts";
 import { createHostCapabilities } from "../host/host-capabilities.ts";
 import { createSecureStorage } from "../host/secure-storage.ts";
+import { createLiveIsland } from "../island/live-island.ts";
 import type { MainStartupTiming } from "../startup-timing.ts";
 import { createUpdateProxy } from "../updates/update-proxy.ts";
 import { isAppUrl, parseAppUrl } from "../window/app-url.ts";
@@ -107,6 +108,16 @@ export async function startBackgroundOwner(options: {
   let language = resolveLanguage("system", systemLocale);
   let settings: Settings | undefined;
   let foreground = false;
+  let island: ReturnType<typeof createLiveIsland> | undefined;
+  // The window whose focus hides the live island. Another client (a second window, the CLI)
+  // leaving must not bring the island over a Pi Bot window that is still in front.
+  let focusedClient: unknown;
+  const islandForeground = (client: unknown, focused: boolean) => {
+    if (focused) focusedClient = client;
+    else if (focusedClient !== client) return;
+    else focusedClient = undefined;
+    island?.foreground(focused);
+  };
   let pendingNavigation: UiNavigation | undefined;
   let preferences = BackgroundPreferencesSchema.parse({});
   let lifecycle: IndependentBackgroundState["lifecycle"] = "starting";
@@ -590,6 +601,7 @@ export async function startBackgroundOwner(options: {
       disconnected: async (client, pid) => {
         providerImport.dismiss(client);
         foreground = false;
+        islandForeground(client, false);
         await clients.disconnected(client, pid);
         syncTray();
       },
@@ -690,15 +702,18 @@ export async function startBackgroundOwner(options: {
             case "detach":
               providerImport.dismiss(client);
               foreground = false;
+              islandForeground(client, false);
               await clients.detach(client, control.stop === true);
               syncTray();
               return state();
             case "focus":
               foreground = true;
+              islandForeground(client, true);
               routineHost?.focused(control.at);
               return null;
             case "blur":
               foreground = false;
+              islandForeground(client, false);
               return null;
             case "ui-ready":
               if (current) await providerImport.present(client, current);
@@ -876,12 +891,29 @@ export async function startBackgroundOwner(options: {
       focusBot: (botId, tab, target) => navigate(target ?? { botId, tab }),
     });
     lifetime.own(() => capabilities?.dispose());
+    // Lives with the brain, like the run indicator, so it also shows with no desktop window.
+    const ownedIsland = createLiveIsland({
+      outputDir: options.outputDir,
+      logger: options.logger,
+      platform: process.platform,
+      env: options.originalEnv,
+      open: (target) => navigate(target),
+    });
+    island = ownedIsland;
+    lifetime.own(() => {
+      island = undefined;
+      ownedIsland.dispose();
+    });
     // macOS keeps the computer driver in the owner so routines can use it after the desktop
     // quits. Nothing native loads until a grant is used.
     // The indicator and stop shortcut live here too, so they work with no desktop window.
     const computerGuard = createComputerGuard({
       logger: options.logger,
       outputDir: options.outputDir,
+      // While stopping, the guard's own reset must not bring the island back for a moment.
+      visibilityChanged: (visible) => {
+        if (!stopped) island?.guardVisible(visible);
+      },
     });
     lifetime.own(() => computerGuard.dispose());
     const computer = createComputerHost({
@@ -945,6 +977,7 @@ export async function startBackgroundOwner(options: {
           const nextLanguage = resolveLanguage(next.language, systemLocale);
           const changed = language !== nextLanguage;
           language = nextLanguage;
+          island?.settings(next, nextLanguage);
           syncTray(changed);
           tray?.refresh();
           server?.broadcast({ kind: "settings", settings: next });
@@ -957,6 +990,7 @@ export async function startBackgroundOwner(options: {
           activeRuns = count;
           tray?.updateActiveRuns(count);
         },
+        onLiveActivity: (value) => island?.activity(value),
         onStartupProgress: (phase) => {
           startupProgressAt = new Date().toISOString();
           startupPhase = phase;

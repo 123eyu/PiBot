@@ -16,6 +16,7 @@ import {
 } from "@pibot/protocol-base/desktop-bridge";
 import { DesktopBackgroundMethods } from "@pibot/routines-contract/desktop-bridge";
 import { contextBridge, ipcRenderer } from "electron";
+import { liveIslandSupport } from "../shared/live-island.ts";
 import { parseStartupLabels } from "../shared/startup-labels.ts";
 import {
   STARTUP_PROGRESS_CHANNEL,
@@ -80,7 +81,7 @@ contextBridge.exposeInMainWorld(
 // MessagePorts are transferable DOM objects, not contextBridge-cloneable values.
 // Install only the subscription in the main world; keep all Electron objects isolated.
 contextBridge.executeInMainWorld({
-  func: (platform: NodeJS.Platform, frameChannel: string) => {
+  func: (platform: NodeJS.Platform, frameChannel: string, liveIsland: string) => {
     let pendingBackground = 0;
     function background(method: string, params?: unknown): Promise<unknown> {
       if (pendingBackground >= 16) return Promise.reject(new Error("background_busy"));
@@ -114,6 +115,7 @@ contextBridge.executeInMainWorld({
     Object.defineProperty(window, "pibot", {
       value: Object.freeze({
         platform,
+        liveIsland,
         restartApp: () => background("app.restart", { action: "restart" }),
         resolveProviderImport: (decision: unknown) =>
           background("desktop.providerImport.resolve", decision),
@@ -225,7 +227,8 @@ contextBridge.executeInMainWorld({
       configurable: false,
     });
   },
-  args: [process.platform, BROWSER_FRAME_CHANNEL],
+  // The same session check the live island's owner makes, so Settings can say why it is off.
+  args: [process.platform, BROWSER_FRAME_CHANNEL, liveIslandSupport(process.platform, process.env)],
 });
 
 let backgroundRequests = 0;

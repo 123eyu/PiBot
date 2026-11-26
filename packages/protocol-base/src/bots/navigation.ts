@@ -22,6 +22,8 @@ export const ShellNavigationSchema = z.discriminatedUnion("view", [
   z.strictObject({ view: z.literal("provider-import"), preview: ProviderImportPreviewSchema }),
   z.strictObject({ view: z.enum(["settings", "about", "updates"]) }),
   z.strictObject({ view: z.literal("new-chat"), botId: IdSchema.optional() }),
+  // A group chat, optionally one task's thread (the live island opens a busy group step).
+  z.strictObject({ view: z.literal("group"), groupId: IdSchema, threadId: IdSchema.optional() }),
   z.strictObject({
     view: z.literal("role-import"),
     kind: z.enum(["role", "group"]),

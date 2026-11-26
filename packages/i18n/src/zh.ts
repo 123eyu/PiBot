@@ -36,6 +36,7 @@ import { foldersZh } from "./sections/folders.ts";
 import { groupZh } from "./sections/group.ts";
 import { independentBackgroundZh } from "./sections/independent-background.ts";
 import { linuxStartupZh } from "./sections/linux-startup.ts";
+import { liveIslandZh } from "./sections/live-island.ts";
 import { memorySettingsZh } from "./sections/memory-settings.ts";
 import { messageActionsZh } from "./sections/message-actions.ts";
 import { networkZh } from "./sections/network.ts";
@@ -378,6 +379,7 @@ export const zhSections = {
   credentialsZh,
   secretZh,
   settingsPagesZh,
+  liveIslandZh,
 } as const;
 
 export const zh = mergeTranslations(zhSections);

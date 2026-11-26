@@ -1,5 +1,6 @@
 export * from "./app/desktop-updates.ts";
 export * from "./app/inbox.ts";
+export * from "./app/live-island.ts";
 export * from "./app/network-proxy.ts";
 export * from "./app/search.ts";
 export * from "./app/settings.ts";

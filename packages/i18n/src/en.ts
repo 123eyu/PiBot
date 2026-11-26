@@ -36,6 +36,7 @@ import { foldersEn } from "./sections/folders.ts";
 import { groupEn } from "./sections/group.ts";
 import { independentBackgroundEn } from "./sections/independent-background.ts";
 import { linuxStartupEn } from "./sections/linux-startup.ts";
+import { liveIslandEn } from "./sections/live-island.ts";
 import { memorySettingsEn } from "./sections/memory-settings.ts";
 import { messageActionsEn } from "./sections/message-actions.ts";
 import { networkEn } from "./sections/network.ts";
@@ -411,6 +412,7 @@ export const enSections = {
   credentialsEn,
   secretEn,
   settingsPagesEn,
+  liveIslandEn,
 } as const;
 
 export const en = mergeTranslations(enSections) satisfies TranslationTable;

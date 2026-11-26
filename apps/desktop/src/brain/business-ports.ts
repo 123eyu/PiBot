@@ -74,6 +74,8 @@ export function businessPorts(
     "bots.changed",
     "inbox.changed",
     "runtime.activeRuns",
+    // Live island: Bot names, avatars and short titles only.
+    "runtime.liveActivity",
   ]);
   return {
     post(raw) {

@@ -7,6 +7,7 @@ import {
   OutsideCommandPatternsSchema,
 } from "../execution/sandbox-block.ts";
 import { DefaultModelSchema } from "../providers/providers.ts";
+import { LiveIslandContentSchema, LiveIslandKindSchema } from "./live-island.ts";
 
 export { DesktopStateSchema } from "./desktop-state.ts";
 
@@ -51,6 +52,20 @@ export const SettingsSchema = z.strictObject({
   theme: z.enum(["system", "light", "dark"]),
   /** Optional so a brain or settings row written before the option still parses. */
   chatFontSize: ChatFontSizeSchema.optional(),
+  /** Live island (desktop only). All optional so rows written before it still parse. */
+  liveIsland: z.boolean().optional(),
+  liveIslandContent: LiveIslandContentSchema.optional(),
+  /**
+   * Ignored: the island now shows only while Pi Bot is not in front. Kept so a row written by a
+   * development build that still offered "always" parses.
+   */
+  liveIslandWhen: z.enum(["always", "background"]).optional(),
+  /** Which kinds of work appear; an empty list shows nothing. */
+  liveIslandKinds: z
+    .array(LiveIslandKindSchema)
+    .max(4)
+    .refine((kinds) => new Set(kinds).size === kinds.length)
+    .optional(),
   onboardingCompleted: z.boolean(),
   openAtLogin: z.boolean(),
   showTrayIcon: z.boolean(),

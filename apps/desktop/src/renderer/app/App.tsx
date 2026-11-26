@@ -131,6 +131,13 @@ function Routes() {
             version: navigation.version,
           }),
         );
+      else if (navigation.view === "group")
+        // The live island: a busy group, opened on the task thread the step runs in.
+        navigate({
+          name: "chat",
+          groupId: navigation.groupId,
+          ...(navigation.threadId ? { threadId: navigation.threadId } : {}),
+        });
       else if ("botId" in navigation && navigation.botId)
         navigate({ name: "chat", botId: navigation.botId, draftId: crypto.randomUUID() });
       else showDialog(() => newChatDialog("bot"));

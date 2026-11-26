@@ -327,6 +327,7 @@ export const EventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("runtime.health"),
   eventSchema("runtime.commands"),
   eventSchema("runtime.activeRuns"),
+  eventSchema("runtime.liveActivity"),
   eventSchema("continuations.pending"),
   eventSchema("computer.step"),
   eventSchema("computer.state"),

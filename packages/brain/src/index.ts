@@ -43,6 +43,7 @@ import {
   BrainWakeRepo,
   type InboxSource,
   KEPT_QUEUED,
+  LiveActivityRepo,
   openDatabase,
   RunEventsRepo,
   RunsRepo,
@@ -87,6 +88,7 @@ import { registerUserQuestionRpc } from "./runtime/questions/user-questions.ts";
 import { createActiveRunStatus } from "./runtime/queue/active-runs.ts";
 import { resumeApproval } from "./runtime/queue/approval-resume.ts";
 import { BrainSleep } from "./runtime/queue/brain-sleep.ts";
+import { createLiveActivity } from "./runtime/queue/live-activity.ts";
 import { reconcileSessionTails, snapshotSessionTails } from "./runtime/queue/session-tail.ts";
 import { registerReceiptRpc } from "./runtime/receipts/run-receipt.ts";
 import { registerAgentReviewRpc } from "./runtime/review/agent-review-rpc.ts";
@@ -730,15 +732,25 @@ export async function startBrain(opts: {
     const activeRuns = createActiveRunStatus(new RunsRepo(db), (count) =>
       rpcPeer.emit("runtime.activeRuns", { count }),
     );
-    const offActiveRuns = opts.port.onClose?.(() => activeRuns.dispose());
+    const liveActivity = createLiveActivity(
+      new LiveActivityRepo(db),
+      (value) => rpcPeer.emit("runtime.liveActivity", value),
+      () => logger.warn(JSON.stringify({ module: "live-island", event: "read_failed" })),
+    );
+    const offActiveRuns = opts.port.onClose?.(() => {
+      activeRuns.dispose();
+      liveActivity.dispose();
+    });
     const peer: typeof rpcPeer = {
       ...rpcPeer,
       emit(event, payload) {
         rpcPeer.emit(event, payload);
         activeRuns.changed(event);
+        liveActivity.changed(event);
       },
       dispose() {
         activeRuns.dispose();
+        liveActivity.dispose();
         offActiveRuns?.();
         rpcPeer.dispose();
       },
@@ -1043,6 +1055,7 @@ export async function startBrain(opts: {
     sdk.deferSdk?.(2000);
     startupDiagnostics?.ready();
     activeRuns.refresh();
+    liveActivity.refresh();
     logger.info("Brain ready");
     timing.report(logger);
     maintenance = deferredMaintenance(logger, sdk.preloadSdk);

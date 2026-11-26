@@ -617,18 +617,22 @@ async function runGuiClient(
     failed: () => options.logger.warn("GUI business channel unavailable"),
   });
   if (rendererWaiting) business.ready();
-  window.on("focus", () => {
+  const focused = () => {
     if (!quitting) {
       pendingFocus = new Date().toISOString();
       void sendFocus().catch(() => options.logger.warn("GUI focus delivery unavailable"));
     }
-  });
+  };
+  window.on("focus", focused);
   window.on("blur", () => {
     if (!quitting)
       void connection
         .control({ type: "blur" })
         .catch(() => options.logger.warn("GUI blur delivery unavailable"));
   });
+  // A window focused before attach fired its "focus" too early; the owner (live island, "is the
+  // user here") would otherwise think it is in the background until the next focus change.
+  if (!window.isDestroyed() && window.isFocused()) focused();
   let active = 0;
   const request = z.strictObject({ method: z.string(), params: z.unknown().optional() });
   ipcMain.handle("pibot:background", async (event, value: unknown) => {

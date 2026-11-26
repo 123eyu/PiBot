@@ -184,6 +184,7 @@ export function startBrainHost(options: BrainHostOptions) {
   const statuses = new EventBuffer(Events);
   let state: EventPayloads["brain.status"]["state"] = "starting";
   let activeRunCount = 0;
+  let liveActivity: EventPayloads["runtime.liveActivity"] = { items: [] };
   let child: Electron.UtilityProcess | undefined;
   let host: ReturnType<typeof registerHostRpc> | undefined;
   let pendingPort: MessagePortMain | undefined;
@@ -225,6 +226,7 @@ export function startBrainHost(options: BrainHostOptions) {
   const status = (next: typeof state, reason?: "database_newer_than_app") => {
     state = next;
     options.onActiveRuns?.(next === "ready" ? activeRunCount : 0);
+    options.onLiveActivity?.(next === "ready" ? liveActivity : { items: [] });
     options.onStatus?.(next, reason);
     if (rendererReady && options.window && !options.window.isDestroyed()) {
       options.window.webContents.send("pibot:status", statuses.append("brain.status", { state }));
@@ -253,6 +255,8 @@ export function startBrainHost(options: BrainHostOptions) {
   const disposePorts = () => {
     activeRunCount = 0;
     options.onActiveRuns?.(0);
+    liveActivity = { items: [] };
+    options.onLiveActivity?.(liveActivity);
     acpOff?.();
     acpOff = undefined;
     acpMainPort?.close();
@@ -311,6 +315,11 @@ export function startBrainHost(options: BrainHostOptions) {
       if (stopped || replacing || owner !== epoch || state === "failed") return;
       activeRunCount = count;
       if (state === "ready") options.onActiveRuns?.(count);
+    });
+    mainPeer.on("runtime.liveActivity", (value) => {
+      if (stopped || replacing || owner !== epoch || state === "failed") return;
+      liveActivity = value;
+      if (state === "ready") options.onLiveActivity?.(value);
     });
     pendingPort = business.port1;
     if (options.business) {

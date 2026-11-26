@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useStartupDisplay } from "../../app/startup-display.tsx";
 import { LoginStartRow } from "../background/LoginStartRow.tsx";
 import { BackgroundLimit } from "./BackgroundLimit.tsx";
+import { LiveIslandSettings } from "./LiveIslandSettings.tsx";
 import { NetworkProxySettings } from "./network-proxy.tsx";
 import { requirePeer, SetupError } from "./operations.ts";
 
@@ -47,6 +48,7 @@ export function GeneralSettings() {
   return (
     <SettingsPage>
       <TaskStatus task={task} />
+      <LiveIslandSettings disabled={disabled} change={change} />
       <SettingsSection title={t("settings.languageTheme")}>
         <SettingsRow icon="globe" tone="blue" label={t("language.label")} note={t("language.note")}>
           <SegmentedControl

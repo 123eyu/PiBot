@@ -134,6 +134,18 @@ The avatar menu switches language and appearance (Light / Dark / System) directl
 
 When you close the window, Pi Bot keeps running in the background (routines keep running), and you can reopen it from the tray (Windows / Linux) or menu bar (macOS). To quit completely, use **Quit completely (routines stop too)** in the tray menu. In Settings › General › Startup you choose what happens when you sign in to the computer (Don't start / Open window / Background only) and whether to show the tray icon.
 
+### Live island
+
+When Pi Bot is not in front (you switched to another app, minimised or closed its window), a small pill appears at the top centre of the screen while Bots work, with each busy Bot's avatar, name, what it is doing and for how long. When several Bots are busy, flip through them with the up/down arrows or the mouse wheel / trackpad; click to open that chat, group task, routine or the card waiting for you. It shows only names and short titles (plan step, group task, routine name, approval card title), never message text or file contents.
+
+In Settings › General › Live island you can:
+
+- turn the island on or off (on by default);
+- under **Display**, choose **Avatar and task** or **Avatars only** (smaller; expands when you point at it);
+- under **Show**, tick what it shows: Direct chats, Group task steps, Routines, Waiting for you (all on by default).
+
+It goes away when you come back to the Pi Bot window. While a Bot uses the computer, the computer-use bar takes the top of the screen and the island steps aside. The live island is desktop only (macOS, Windows, Linux on X11); the phone app doesn't have it. Wayland sessions on Linux can't keep a small window at the top of the screen, and Settings says so.
+
 ## Next steps
 
 - Create more Bots: [2 · Bots and roles](02-bots-and-roles.md)
