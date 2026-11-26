@@ -28,6 +28,7 @@ import { botHooksZh } from "./sections/bot-hooks.ts";
 import { capabilitiesZh } from "./sections/capabilities.ts";
 import { chatZh } from "./sections/chat.ts";
 import { commandAccessZh } from "./sections/command-access.ts";
+import { conversationImportZh } from "./sections/conversation-import.ts";
 import { draftsZh } from "./sections/drafts.ts";
 import { executionZh } from "./sections/execution.ts";
 import { filePreviewZh } from "./sections/file-preview.ts";
@@ -327,6 +328,7 @@ export const zhSections = {
   agentReviewZh,
   managedResourcesZh,
   commandAccessZh,
+  conversationImportZh,
   panelsZh,
   topicWorkplaceZh,
   yoloZh,

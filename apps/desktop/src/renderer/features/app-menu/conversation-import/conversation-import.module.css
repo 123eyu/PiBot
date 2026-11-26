@@ -1,0 +1,125 @@
+.intro {
+  margin: 0 0 18px;
+  color: var(--text2);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.sources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-inline-size: 0;
+  padding: 0;
+  margin: 24px 0;
+  border: 0;
+  --page-c: var(--avatar-orange);
+}
+.card {
+  min-inline-size: 0;
+  margin: 0 0 18px;
+  padding: 14px;
+  border: 1px solid var(--b1);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
+}
+.card p {
+  margin: 0 0 8px;
+}
+.controlRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.selectRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.selectRow select {
+  max-width: min(44vw, 275px);
+  padding: 5px 8px;
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+}
+.section,
+.check {
+  padding: 10px 0;
+}
+.card > .section + .section {
+  border-top: 1px solid var(--b1);
+}
+.check {
+  display: flex;
+  align-items: start;
+  gap: 10px;
+}
+.check input {
+  margin: 3px 0 0;
+  accent-color: var(--accent);
+  flex: none;
+}
+.card small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text2);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.reviewText,
+.before p {
+  white-space: pre-wrap;
+}
+.before {
+  margin: 6px 0;
+}
+.before summary {
+  cursor: pointer;
+}
+.before p,
+.diff {
+  max-height: 190px;
+  overflow: auto;
+  margin: 8px 0 0;
+  padding: 10px;
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  background: var(--side);
+  color: var(--text);
+}
+.diff pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.path {
+  margin-top: 10px;
+  color: var(--text2);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+.error {
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .sources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 440px) {
+  .sources {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

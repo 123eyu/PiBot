@@ -7,9 +7,11 @@ import { AppDialog } from "./AppDialog.tsx";
 import { AboutPanel, FeedbackPanel, openWebsite } from "./AppPanels.tsx";
 import { AvatarUpload } from "./AvatarUpload.tsx";
 import styles from "./app-menu.module.css";
+import { ConversationImportDialog } from "./conversation-import/ConversationImportDialog.tsx";
 import { UpdatesPanel } from "./UpdatesPanel.tsx";
 
 type Panel = "profile" | "about" | "feedback" | "updates";
+type MenuPanel = Panel | "conversation-import";
 /** One colour per destination, shared by the menu tile and its dialog's mark. */
 const marks: Record<Panel, { icon: IconName; tone: Exclude<Tone, "neutral" | "red"> }> = {
   profile: { icon: "user", tone: "violet" },
@@ -22,9 +24,9 @@ export function AppMenu() {
     { peer } = useRpc(),
     { openSettings } = useNavigation();
   const [menu, setMenu] = useState<{ opener: HTMLElement; x: number; y: number }>(),
-    [panel, setPanel] = useState<Panel>(),
+    [panel, setPanel] = useState<MenuPanel>(),
     [failed, setFailed] = useState(false);
-  const show = (next: Panel) => {
+  const show = (next: MenuPanel) => {
     setMenu(undefined);
     setPanel(next);
   };
@@ -124,6 +126,15 @@ export function AppMenu() {
             {t("appMenu.website")}
           </Button>
           <AboutYouMenuItem close={() => setMenu(undefined)} />
+          <Button
+            variant="ghost"
+            role="menuitem"
+            disabled={!peer}
+            onClick={() => show("conversation-import")}
+          >
+            <IconTile icon="download" tone="teal" size="sm" />
+            {t("conversationImport.title")}
+          </Button>
           <Button variant="ghost" role="menuitem" onClick={() => show("about")}>
             <IconTile icon="info" tone="violet" size="sm" />
             {t("appMenu.about")}
@@ -144,7 +155,11 @@ export function AppMenu() {
           )}
         </MenuPopover>
       )}
-      {panel && (
+      <ConversationImportDialog
+        open={panel === "conversation-import"}
+        close={() => setPanel(undefined)}
+      />
+      {panel && panel !== "conversation-import" && (
         <AppDialog
           title={t(`appMenu.${panel}`)}
           mark={panel === "profile" ? undefined : marks[panel]}

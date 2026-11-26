@@ -56,6 +56,8 @@ export const ImportStatusSchema = ImportCountsSchema.extend({
   importId: IdSchema,
   source: ImportSourceSchema,
   state: z.enum(["running", "completed", "cancelled", "failed", "undoing", "undone"]),
+  cleanup: z.enum(["discarding", "undoing"]).optional(),
+  cleanupBlocked: z.literal(true).optional(),
   removed: ImportCountsSchema.optional(),
   memories: count.optional(),
   persona: z.literal(true).optional(),

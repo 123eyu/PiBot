@@ -5,6 +5,7 @@ import { useState } from "react";
 import { providerIdentity } from "../../setup/operations.ts";
 import modelStyles from "../models.module.css";
 import { modelCountText } from "./model-count.ts";
+import { ProviderTile } from "./ProviderTile.tsx";
 import {
   groupedProviderCatalog,
   providerGroups as groups,
@@ -54,46 +55,44 @@ export function ProviderCatalog({
         : group === "all" || provider.group === group),
   );
   const renderProvider = (provider: Provider, saved = false) => (
-    <button
+    <ProviderTile
       key={providerIdentity(provider)}
-      type="button"
-      className={`${modelStyles.tile} ${saved ? modelStyles.configuredTile : ""}`}
-      aria-pressed={providerIdentity(provider) === selection}
-      data-add={provider.id === "new-custom" || undefined}
+      selected={providerIdentity(provider) === selection}
+      add={provider.id === "new-custom"}
+      saved={saved}
       title={provider.unavailableReason ? t(`errors.${provider.unavailableReason}`) : undefined}
       disabled={disabled || !provider.available}
       onClick={(event) => onSelect(provider, event.currentTarget)}
-    >
-      <span aria-hidden="true" className={modelStyles.monogram} data-group={provider.group}>
-        {providerMonogram(provider.id, provider.name)}
-      </span>
-      <span className={modelStyles.tileText}>
-        <strong>
+      group={provider.group}
+      monogram={providerMonogram(provider.id, provider.name)}
+      name={
+        <>
           {provider.name}
           {saved && provider.auth !== "custom" && providerFamily(provider.id)
             ? ` · ${t(`models.region.${providerFamily(provider.id)?.variants.find(([id]) => id === provider.id)?.[1] ?? "global"}`)}`
             : ""}
-        </strong>
-        <span className={modelStyles.tileNote}>
-          {!provider.available
-            ? t(
-                provider.unavailableReason
-                  ? `errors.${provider.unavailableReason}`
-                  : "common.comingSoon",
-              )
-            : saved
-              ? provider.auth === "oauth"
-                ? t("auth.state.connected")
-                : provider.keyHint === undefined
-                  ? t("setup.saved")
-                  : t("models.keySaved", { hint: provider.keyHint })
-              : `${t(`models.auth.${provider.auth}`)} · ${provider.available ? modelCountText(provider, t) : t("common.comingSoon")}`}
-        </span>
-      </span>
+        </>
+      }
+      note={
+        !provider.available
+          ? t(
+              provider.unavailableReason
+                ? `errors.${provider.unavailableReason}`
+                : "common.comingSoon",
+            )
+          : saved
+            ? provider.auth === "oauth"
+              ? t("auth.state.connected")
+              : provider.keyHint === undefined
+                ? t("setup.saved")
+                : t("models.keySaved", { hint: provider.keyHint })
+            : `${t(`models.auth.${provider.auth}`)} · ${provider.available ? modelCountText(provider, t) : t("common.comingSoon")}`
+      }
+    >
       {!saved && provider.configured && (
         <span role="img" className={modelStyles.configuredDot} aria-label={t("setup.saved")} />
       )}
-    </button>
+    </ProviderTile>
   );
   return (
     <div className={modelStyles.modelsList}>

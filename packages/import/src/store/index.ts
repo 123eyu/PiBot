@@ -49,8 +49,7 @@ export class ImportStore {
     const row = this.db
       .prepare(`SELECT id AS importId, source,
         CASE cleanup_phase WHEN 'undoing' THEN 'undoing' WHEN 'discarding' THEN 'running'
-          ELSE state END AS state, topics, messages,
-        CASE WHEN cleanup_phase='discarding' THEN NULL ELSE reason END AS reason,
+          ELSE state END AS state, topics, messages, reason, cleanup_phase,
         removed_topics, removed_messages, added_memories,
         EXISTS(SELECT 1 FROM import_personas WHERE import_id=import_jobs.id) AS applied_persona,
         (SELECT state FROM import_project_files WHERE import_id=import_jobs.id) AS project_file
@@ -63,17 +62,19 @@ export class ImportStore {
       added_memories,
       applied_persona,
       project_file,
+      cleanup_phase,
       ...status
     } = row;
     return ImportStatusSchema.parse({
       ...status,
+      ...(cleanup_phase ? { cleanup: cleanup_phase } : {}),
       ...(added_memories ? { memories: added_memories } : {}),
       ...(applied_persona ? { persona: true } : {}),
       ...(project_file === "pending" && status.state === "completed"
         ? { projectFile: "AGENTS.md" }
         : {}),
       ...(project_file === "kept" ? { keptProjectFile: "AGENTS.md" } : {}),
-      ...(status.state === "undoing" || status.state === "undone"
+      ...(cleanup_phase || status.state === "undone"
         ? { removed: { topics: removed_topics, messages: removed_messages } }
         : {}),
     });
@@ -167,12 +168,6 @@ export class ImportStore {
       .prepare(`UPDATE import_jobs SET state='failed',reason='interrupted',
       cleanup_phase='discarding' WHERE state='running'`)
       .run();
-  }
-
-  cleaning(id: string) {
-    return !!this.db
-      .prepare("SELECT 1 FROM import_jobs WHERE id=? AND cleanup_phase IS NOT NULL")
-      .get(id);
   }
 
   nextCleanup(after = 0) {

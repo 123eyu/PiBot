@@ -14,7 +14,7 @@ export function AppDialog({
   children,
 }: {
   title: string;
-  kind?: "about-you" | "provider-import";
+  kind?: "about-you" | "provider-import" | "conversation-import";
   /** The dialog's coloured mark; its tone also washes the top of the dialog. */
   mark?: { icon: IconName; tone: Exclude<Tone, "neutral" | "red"> };
   busy?: boolean;

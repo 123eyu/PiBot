@@ -75,6 +75,7 @@ export function renderChatHistory(screen: ChatScreenModel) {
     t,
     controller,
     state,
+    topic,
     timelineDay,
     starters,
     workplaces,
@@ -175,16 +176,22 @@ export function renderChatHistory(screen: ChatScreenModel) {
           {!state.loading && !state.historyError && state.messages.length === 0 && (
             <section className={styles.empty}>
               <BotAvatar bot={state.bot} size={88} label={name} />
-              <h1>{t("chat.hello", { name })}</h1>
-              <p>{t("chat.empty")}</p>
-              <StarterCards
-                items={starters.length ? starters : suggestions.map((key) => t(key))}
-                disabled={busy}
-                onPick={(text) => {
-                  editText(text);
-                  textarea.current?.focus();
-                }}
-              />
+              {topic.readOnly ? (
+                <p>{t("conversationImport.emptyTopic")}</p>
+              ) : !topic.locked ? (
+                <>
+                  <h1>{t("chat.hello", { name })}</h1>
+                  <p>{t("chat.empty")}</p>
+                  <StarterCards
+                    items={starters.length ? starters : suggestions.map((key) => t(key))}
+                    disabled={busy}
+                    onPick={(text) => {
+                      editText(text);
+                      textarea.current?.focus();
+                    }}
+                  />
+                </>
+              ) : null}
             </section>
           )}
           {state.messages.map((message, index) => (
@@ -198,7 +205,7 @@ export function renderChatHistory(screen: ChatScreenModel) {
               />
               <ChatMessage
                 message={message}
-                preview={!state.historyReady}
+                preview={!state.historyReady || topic.locked}
                 highlighted={messageFocus.highlighted?.messageId === message.id}
                 focusToolCallId={
                   messageFocus.highlighted?.messageId === message.id
@@ -216,7 +223,7 @@ export function renderChatHistory(screen: ChatScreenModel) {
                 retry={retries.get(message.id)?.text}
                 retryAttachments={retries.get(message.id)?.ids}
                 onRetry={send}
-                userFooter={userFooter(message)}
+                userFooter={topic.locked ? undefined : userFooter(message)}
                 footer={
                   <MessageExecutionCards
                     message={message}
@@ -237,7 +244,8 @@ export function renderChatHistory(screen: ChatScreenModel) {
             </Fragment>
           ))}
           {/* A role Bot's starters stay offered until the user has written once. */}
-          {!state.loading &&
+          {!topic.locked &&
+            !state.loading &&
             starters.length > 0 &&
             state.messages.length > 0 &&
             !state.hasMore &&

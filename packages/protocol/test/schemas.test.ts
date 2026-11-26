@@ -1224,6 +1224,12 @@ const methodCases = {
     badParams: { unexpected: true },
     badResult: { unexpected: true },
   },
+  "topics.metadata": {
+    params: { botId: id, topicId: id },
+    result: { title: "Imported topic", importSource: "claude", readOnly: true },
+    badParams: { botId: id, topicId: "invalid" },
+    badResult: { readOnly: true, piSessionFile: "/tmp/session.jsonl" },
+  },
   "topics.list": {
     params: { botId: id, query: "Topic" },
     result: [{ ...conversation, messageCount: 2, isCurrent: true }],

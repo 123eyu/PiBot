@@ -21,6 +21,18 @@ export class ImportCleanup {
     return !this.work;
   }
 
+  status(id: string): ImportStatus | undefined {
+    const status = this.store.get(id);
+    if (
+      status?.cleanup &&
+      (!this.work ||
+        (this.blocked.has(id) && !this.retries.has(id)) ||
+        this.store.projects.hasDependents(id))
+    )
+      return { ...status, cleanupBlocked: true };
+    return status;
+  }
+
   wake(retryId?: string) {
     if (this.signal.aborted) return;
     if (retryId) this.retries.add(retryId);
@@ -65,21 +77,25 @@ export class ImportCleanup {
           cursor = next.cursor;
           continue;
         }
+        let page: ReturnType<ImportStore["cleanupPage"]>;
         try {
           await this.restore(id, this.signal);
+          if (this.signal.aborted) return;
+          page = this.store.cleanupPage(id);
         } catch {
           if (this.signal.aborted) return;
           // A fresh explicit retry can ask again; unrelated imports never repeat a refused card.
           this.blocked.add(id);
           this.failed();
+          const status = this.status(id);
+          if (status) this.publish(status);
           cursor = next.cursor;
           continue;
         }
-        if (this.signal.aborted) return;
-        const { status, done } = this.store.cleanupPage(id);
+        const { status, done } = page;
         progressed = true;
         if (done) cursor = next.cursor;
-        if (done || (status.state === "undoing" && performance.now() - last >= 200)) {
+        if (done || performance.now() - last >= 200) {
           this.publish(status);
           last = done ? -Infinity : performance.now();
         }

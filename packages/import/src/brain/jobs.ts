@@ -167,7 +167,7 @@ export class ImportJobs {
     if (existing) {
       if (this.store.target(importId) !== botId)
         throw new RpcError(RpcErrorCodes.invalidParams, "import_target");
-      return existing;
+      return this.status(importId);
     }
     if (this.active || this.undoReservation || this.reviews.busy() || this.store.unfinished())
       throw new RpcError(RpcErrorCodes.invalidParams, "import_busy");
@@ -246,14 +246,15 @@ export class ImportJobs {
   }
 
   status(importId: string) {
-    const status = this.store.get(importId);
+    const status = this.cleanup.status(importId);
     if (!status) throw new RpcError(RpcErrorCodes.invalidParams, "import_unknown");
     return status;
   }
 
   async cancel(importId: string) {
     const status = this.status(importId);
-    if (status.state !== "running" || this.active?.importId !== importId) return status;
+    if (status.state !== "running" || status.cleanup || this.active?.importId !== importId)
+      return status;
     this.active.controller.abort();
     return this.active.done;
   }
@@ -268,9 +269,9 @@ export class ImportJobs {
     try {
       const status = this.status(importId);
       if (status.state === "undone") return status;
-      if (status.state === "undoing" || this.store.cleaning(importId)) {
+      if (status.cleanup) {
         void this.cleanup.wake(importId);
-        return status;
+        return this.status(importId);
       }
       if (this.active) throw new RpcError(RpcErrorCodes.invalidParams, "import_busy");
       if (status.state !== "completed")

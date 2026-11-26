@@ -120,8 +120,10 @@ export async function runImport(opts: RunOptions) {
       state === "cancelled" ? null : deadline.aborted ? "timeout" : failureReason(error);
     if (reason === "internal") opts.logger.error("import_job_failed");
     store.discard(id, state, reason);
+    const discarding = store.get(id);
+    if (discarding) opts.progress(discarding);
     await opts.cleanup.wake();
-    const status = store.get(id);
+    const status = opts.cleanup.status(id);
     if (!status) throw new Error("import_job_missing");
     return { status, change: undefined };
   }

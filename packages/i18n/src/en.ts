@@ -28,6 +28,7 @@ import { botHooksEn } from "./sections/bot-hooks.ts";
 import { capabilitiesEn } from "./sections/capabilities.ts";
 import { chatEn } from "./sections/chat.ts";
 import { commandAccessEn } from "./sections/command-access.ts";
+import { conversationImportEn } from "./sections/conversation-import.ts";
 import { draftsEn } from "./sections/drafts.ts";
 import { executionEn } from "./sections/execution.ts";
 import { filePreviewEn } from "./sections/file-preview.ts";
@@ -360,6 +361,7 @@ export const enSections = {
   agentReviewEn,
   managedResourcesEn,
   commandAccessEn,
+  conversationImportEn,
   panelsEn,
   topicWorkplaceEn,
   yoloEn,
