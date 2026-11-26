@@ -1,3 +1,4 @@
+// Define the policy inputs and filesystem facts used at authorization boundaries.
 import type {
   ApprovalFact,
   BotPermissionOverrides,
@@ -163,6 +164,8 @@ export interface FileSystem {
   windowsReadEntries?: typeof import("../paths/windows-read-tree.ts").windowsReadEntries;
 }
 export interface PathContext {
+  windowsSystemDrive?: string;
+  windowsSystemTrees?: readonly string[];
   platform: Platform;
   home: string;
   /** Host credentials/home protection is independent of the `~` expansion base. */
@@ -376,6 +379,8 @@ export interface PolicyResult {
   editorSessionShape?: string;
 }
 export interface PolicyOptions {
+  windowsSystemDrive?: string;
+  windowsSystemTrees?: readonly string[];
   platform: Platform;
   userHome: string;
   fs?: FileSystem;

@@ -40,6 +40,7 @@ export function windowsObfuscatedCommand(command: string) {
     parsed.tooLong ||
     parsed.unclosed ||
     command.includes("`") ||
+    /(?:^|[\s"'=;(])[a-z]:(?![\\/])/i.test(command) ||
     dynamicExecution.test(command) ||
     encodedShellArgument(command) ||
     cmdExpansion.test(command) ||

@@ -5,6 +5,8 @@ import {
   createLocalExecutionTarget,
   type ExecutionTarget,
   sensitiveReadBoundary,
+  windowsSystemDrive,
+  windowsSystemTrees,
 } from "@pibot/execution";
 import { createPolicy, type Policy, type PolicyRequest } from "@pibot/policy";
 import { RpcError, RpcErrorCodes } from "@pibot/protocol-base";
@@ -522,6 +524,12 @@ export class LocalService {
     this.policy ??= createPolicy({
       platform: this.deps.platform,
       userHome: this.deps.userHome,
+      ...(this.deps.platform === "win32"
+        ? {
+            windowsSystemDrive: windowsSystemDrive(this.deps.env),
+            windowsSystemTrees: windowsSystemTrees(this.deps.env),
+          }
+        : {}),
       resourcesDir: this.deps.resourcesDir,
     }).then((policy) => {
       if (this.shutdown.signal.aborted) {
