@@ -2,8 +2,8 @@
 import type { DatabaseSync } from "node:sqlite";
 import type { MemoryDraftRequest, MemoryDraftUsage } from "@pibot/agent";
 import type { BrainRedactor } from "@pibot/brain/kit";
+import type { Message } from "@pibot/protocol-base";
 import {
-  AuditRepo,
   BackgroundTaskHealthRepo,
   BotsRepo,
   correctionTopic,
@@ -11,14 +11,16 @@ import {
   type MemoryExtractionsRepo,
   memoryMaintenanceUsage,
   SettingsRepo,
+  transaction,
 } from "@pibot/storage";
+import { correctionBody, correctionSource, ordinarySource } from "./memory-correction.ts";
 import {
   type ExtractionSource,
   extractionPrompt,
-  extractionSource,
   groupExtractionInstruction,
 } from "./memory-extraction.ts";
-import { applyExtractionCandidates, extractionErrorCode } from "./memory-extraction-result.ts";
+import { extractionErrorCode } from "./memory-extraction-result.ts";
+import { settleExtraction } from "./memory-extraction-settlement.ts";
 import type { MemoryService } from "./memory-service.ts";
 
 interface Model {
@@ -31,7 +33,8 @@ export interface MemoryExtractionAttemptDeps {
   logger: { warn(message: string): void; info?(message: string): void };
   memory: MemoryService;
   healthChanged?(): void;
-  isBotIdle(botId: string): boolean;
+  isBotIdle(botId: string, correction?: boolean): boolean;
+  publishReply?(message: Message, botId: string): void;
   isPaused(): boolean;
   draftMemories?: (
     request: MemoryDraftRequest,
@@ -115,11 +118,20 @@ export class MemoryExtractionAttempt {
       skip(automated, this.repo.watermark(row.conversationId)?.messageId);
       return;
     }
-    if (
-      row.reason === "correction" &&
-      (!row.sourceMessageId ||
-        !correctionTopic(this.deps.db, row.conversationId, row.sourceMessageId))
-    ) {
+    const urgent = row.reason === "correction";
+    const correction =
+      urgent &&
+      row.sourceMessageId &&
+      correctionTopic(this.deps.db, row.conversationId, row.sourceMessageId)
+        ? correctionSource(
+            this.deps.db,
+            row.conversationId,
+            row.sourceMessageId,
+            row.botId,
+            row.groupId,
+          )
+        : undefined;
+    if (urgent && !correction) {
       skip("correction_source_unavailable");
       return;
     }
@@ -132,18 +144,7 @@ export class MemoryExtractionAttempt {
       skip("already_covered");
       return;
     }
-    const prior = this.deps.db
-      .prepare(
-        `SELECT coverage_message_id AS id FROM memory_extractions WHERE conversation_id=? AND status='done' AND coverage_message_id IS NOT NULL ORDER BY finished_at DESC LIMIT 1`,
-      )
-      .get(row.conversationId);
-    const source = extractionSource(
-      this.deps.db,
-      row.conversationId,
-      prior?.id == null ? null : String(prior.id),
-      12_000,
-      row.groupId ?? undefined,
-    );
+    const source = correction ?? ordinarySource(this.deps.db, row);
     if (!source) {
       skip("no_new_human_content");
       return;
@@ -158,7 +159,7 @@ export class MemoryExtractionAttempt {
     }
     const result = await this.draft(row, source, model, draftMemories, signal);
     signal.throwIfAborted();
-    if (!this.deps.isBotIdle(row.botId)) {
+    if (!this.deps.isBotIdle(row.botId, urgent)) {
       this.repo.defer(row, "bot_busy");
       return;
     }
@@ -166,11 +167,55 @@ export class MemoryExtractionAttempt {
       skip("extraction_disabled_or_scope_changed");
       return;
     }
-    if (this.repo.watermark(row.conversationId)?.messageId !== source.watermarkId) {
-      this.repo.defer(row, "source_changed");
-      return;
+    this.finish(row, source, result, correction);
+  }
+  private finish(
+    row: MemoryExtraction,
+    source: ExtractionSource,
+    result: { draft: unknown; tokens: number; costUsd?: number },
+    correction?: ReturnType<typeof correctionSource>,
+  ) {
+    if (correction) {
+      const current = correctionSource(
+        this.deps.db,
+        row.conversationId,
+        correction.subjectMessageId,
+        row.botId,
+        row.groupId,
+      );
+      if (current?.replyId !== correction.replyId || current.text !== correction.text) {
+        this.repo.defer(row, "source_changed");
+        return;
+      }
+      const message = transaction(this.deps.db, () =>
+        settleExtraction(
+          this.deps,
+          this.repo,
+          this.health,
+          row,
+          source,
+          result,
+          correction.replyId,
+        ),
+      );
+      if (message) this.publishReply(message, row.botId);
+    } else {
+      if (this.repo.watermark(row.conversationId)?.messageId !== source.watermarkId) {
+        this.repo.defer(row, "source_changed");
+        return;
+      }
+      settleExtraction(this.deps, this.repo, this.health, row, source, result);
     }
-    this.apply(row, source, result);
+  }
+  private publishReply(message: Message, botId: string) {
+    try {
+      this.deps.publishReply?.(message, botId);
+    } catch {
+      // The receipt is already durable and can be recovered by reading history.
+      this.deps.logger.warn(
+        JSON.stringify({ module: "memory", reasonCode: "memory_receipt_publish_failed" }),
+      );
+    }
   }
   private draft(
     row: MemoryExtraction,
@@ -179,13 +224,12 @@ export class MemoryExtractionAttempt {
     draftMemories: NonNullable<MemoryExtractionAttemptDeps["draftMemories"]>,
     signal: AbortSignal,
   ) {
-    const text = this.deps.redactor.redact(
-      extractionPrompt(
-        this.deps.memory.extractionCatalog(row.botId, row.groupId),
-        source.text,
-        source.truncated,
-      ),
-    );
+    const catalog = this.deps.memory.extractionCatalog(row.botId, row.groupId);
+    const redact = (value: string) => this.deps.redactor.redact(value);
+    const text =
+      row.reason === "correction"
+        ? correctionBody(redact(source.text), redact(catalog))
+        : redact(extractionPrompt(catalog, source.text, source.truncated));
     const used = memoryMaintenanceUsage(this.deps.db, dayStart());
     const limit = this.limit();
     const draft = (chosen: Model) =>
@@ -216,58 +260,6 @@ export class MemoryExtractionAttempt {
       return draft({ provider: fallback.provider, id: fallback.id });
     });
   }
-  private apply(
-    row: MemoryExtraction,
-    source: ExtractionSource,
-    result: { draft: unknown; tokens: number; costUsd?: number },
-  ) {
-    const counts = applyExtractionCandidates(
-      this.deps.memory,
-      row,
-      source.subjectMessageId,
-      result.draft,
-      source.groupSourceIds,
-      source.groupSourceTexts,
-    );
-    this.repo.diagnostics(row.id, counts);
-    const accepted = counts.applied + counts.proposed;
-    this.deps.logger.info?.(
-      JSON.stringify({
-        module: "memory",
-        reasonCode: "extraction_result",
-        botId: row.botId,
-        extractionId: row.id,
-        ...counts,
-      }),
-    );
-    this.audit(row, source.messageCount, accepted);
-    const failed = counts.raw && !accepted && !counts.reasons.candidate_duplicate;
-    this.repo.finish(row.id, {
-      status: failed ? "failed" : "done",
-      coverageMessageId: source.watermarkId,
-      tokens: result.tokens,
-      costUsd: result.costUsd,
-      candidates: accepted,
-      error: !counts.raw
-        ? "no_candidates"
-        : !counts.valid
-          ? "candidates_invalid"
-          : !accepted
-            ? "candidates_not_applied"
-            : null,
-    });
-    // Wanted repeated zero results noticed, but "nothing worth remembering" is the normal
-    // outcome of short task chats (run a command, make a page): as a card it told users to check
-    // their models and keys for a working job (v0.0.2 test, 2026-11-14). It stays in the log line
-    // above; only invalid or unapplied candidates, a real fault, count against health.
-    if (failed)
-      this.health.fail(
-        "memory_extraction",
-        row.botId,
-        !counts.valid ? "candidates_invalid" : "candidates_not_applied",
-      );
-    else this.health.recover("memory_extraction", row.botId);
-  }
   private failed(row: MemoryExtraction, signal: AbortSignal, error: unknown) {
     const code = extractionErrorCode(error);
     if (signal.aborted) {
@@ -288,20 +280,5 @@ export class MemoryExtractionAttempt {
     );
     this.health.fail("memory_extraction", row.botId, code);
     this.repo.finish(row.id, { status: "failed", error: code });
-  }
-  private audit(row: MemoryExtraction, messages: number, applied: number) {
-    new AuditRepo(this.deps.db, this.deps.redactor).append({
-      botId: row.botId,
-      kind: "memory.changed",
-      summary: "Memory extracted automatically / 自动提炼记忆",
-      detail: {
-        actor: "automatic",
-        reasonCode: "memory_extracted",
-        conversationId: row.conversationId,
-        messageCount: Math.min(messages, 50),
-        ...(row.groupId ? { groupId: row.groupId } : {}),
-        revision: applied,
-      },
-    });
   }
 }

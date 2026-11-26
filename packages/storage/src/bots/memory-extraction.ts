@@ -267,11 +267,32 @@ export class MemoryExtractionsRepo {
       );
   }
 
+  pendingCorrection(options?: {
+    botId: string;
+    destinationConversationId: string | undefined;
+    since: string;
+  }) {
+    const match = this.db
+      .prepare(
+        `SELECT status FROM memory_extractions WHERE reason='correction'
+        AND status IN ('queued','running') AND error IS NOT 'budget_exhausted'
+        ${options ? "AND bot_id=? AND conversation_id IS NOT ? AND created_at>=?" : ""}
+        ORDER BY CASE status WHEN 'running' THEN 0 ELSE 1 END LIMIT 1`,
+      )
+      .get(
+        ...(options
+          ? [options.botId, options.destinationConversationId ?? null, options.since]
+          : []),
+      );
+    const status = match?.status;
+    return status === "queued" || status === "running" ? status : undefined;
+  }
+
   covered(conversationId: string, messageId: string) {
     return !!this.db
       .prepare(
         `SELECT 1 FROM memory_extractions WHERE conversation_id=? AND status='done'
-        AND coverage_message_id=?`,
+        AND reason<>'correction' AND coverage_message_id=?`,
       )
       .get(conversationId, messageId);
   }

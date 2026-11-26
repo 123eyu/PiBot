@@ -56,6 +56,11 @@ export interface GroupMemoryPort {
 export interface MemoryExtractionPort {
   boundary(conversationId: string): void;
   correction(conversationId: string, sourceMessageId: string): void;
+  waitForCorrection(
+    botId: string,
+    destinationConversationId: string | undefined,
+    signal: AbortSignal,
+  ): Promise<void>;
   pause(): void;
   saveOnExit(): Promise<void>;
   resume(): void;

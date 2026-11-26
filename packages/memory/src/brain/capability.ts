@@ -49,7 +49,18 @@ export function memoryCapability(): BrainCapability {
         memory,
         healthChanged,
         isIdle: () => organization.idle(),
-        isBotIdle: (botId) => ctx.chat.queue.isBotIdle(botId),
+        isBotIdle: (botId, correction) => ctx.chat.queue.isBotIdle(botId, correction),
+        onAvailable: (listener) => ctx.chat.queue.onAvailable(listener),
+        publishReply: (message, botId) => {
+          if (!message.runId) return;
+          ctx.peer.emit("chat.message", {
+            botId,
+            conversationId: message.conversationId,
+            runId: message.runId,
+            messageId: message.id,
+            message,
+          });
+        },
         onBotWork: (listener) => ctx.chat.queue.onBotWork(listener),
         draftMemories: ctx.agent.draftMemories?.bind(ctx.agent),
       });

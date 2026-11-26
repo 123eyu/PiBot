@@ -1,3 +1,4 @@
+// Defines persisted chat messages and their compatible usage fields.
 import { z } from "zod";
 import { AbsolutePathSchema, CanonicalTimeSchema } from "../core/boundaries.ts";
 import { AgentErrorCodeSchema } from "../core/errors.ts";
@@ -9,6 +10,15 @@ import {
 } from "../core/routine-triggers.ts";
 import { ToolCallRecordSchema } from "../execution/tool-calls.ts";
 import { AttachmentSchema, MAX_REPLY_ATTACHMENTS } from "./attachments.ts";
+
+export const MemoryNotedSchema = z
+  .array(z.strictObject({ id: IdSchema, text: z.string().min(1).max(500) }))
+  .max(5);
+
+export function memoryNoted(usage: Message["usage"]) {
+  if (!usage || typeof usage !== "object" || Array.isArray(usage)) return undefined;
+  return MemoryNotedSchema.safeParse(usage.memoryNoted).data;
+}
 
 export const MessageSchema = z.strictObject({
   botId: IdSchema.nullable().optional(),

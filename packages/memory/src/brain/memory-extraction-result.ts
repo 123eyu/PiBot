@@ -1,3 +1,4 @@
+// Validates model candidates and keeps extraction writes in the memory service.
 import type { MemoryExtraction } from "@pibot/storage";
 import { type ExtractionCandidate, parseExtractionDraft } from "./memory-extraction.ts";
 import type { MemoryService } from "./memory-service.ts";
@@ -26,6 +27,7 @@ export function applyExtractionCandidates(
   draft: unknown,
   groupSourceIds?: readonly string[],
   groupSourceTexts?: Readonly<Record<string, string>>,
+  receipt?: { replyId: string; notes: { id: string; text: string }[] },
 ) {
   const parsed = parseExtractionDraft(draft);
   const citing = new Map<string, number>();
@@ -55,15 +57,19 @@ export function applyExtractionCandidates(
       const source = row.groupId && sourceId ? groupSourceTexts?.[sourceId] : undefined;
       const value = memory.applyExtraction(
         row.botId,
-        sourceId ?? messageId,
+        receipt?.replyId ?? sourceId ?? messageId,
         source && citing.get(sourceId ?? "") === 1
           ? { ...candidate, text: keepIdentifiers(candidate.text, source) }
           : candidate,
         row.groupId,
       );
       const code = value.memory ? "candidate_applied" : "candidate_proposed";
-      if (value.memory) counts.applied++;
-      else counts.proposed++;
+      if (value.memory) {
+        counts.applied++;
+        receipt?.notes.push({ id: value.memory.id, text: value.memory.text });
+      } else {
+        counts.proposed++;
+      }
       counts.reasons[code] = (counts.reasons[code] ?? 0) + 1;
     } catch (error) {
       const code = candidateErrorCode(error);

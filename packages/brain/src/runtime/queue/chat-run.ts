@@ -1,3 +1,4 @@
+// Owns a chat run from model dispatch to the committed reply and terminal event.
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
@@ -1432,6 +1433,11 @@ export async function generateRun(
               result.calledTools,
             );
     });
+    // Queue before publishing done so a new topic can wait for an already visible correction.
+    if (result.stopReason === "stop" && !run.executionTaskId && !run.routine && !run.threadId) {
+      const sourceId = runs.get(run.runId)?.userMessageId;
+      if (sourceId) deps.local?.memoryExtraction?.correction(conversationId, sourceId);
+    }
     replies.publishUpdates(updates);
     deps.peer.emit("inbox.changed", {});
     completed?.();
