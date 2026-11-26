@@ -277,8 +277,8 @@ describe("database and migrations", () => {
       "worktree_allocations",
     ]);
     const versions = db.prepare("SELECT * FROM schema_migrations").all();
-    expect(versions).toHaveLength(179);
-    expect(versions.at(-1)?.version).toBe(182);
+    expect(versions).toHaveLength(181);
+    expect(versions.at(-1)?.version).toBe(183);
     expect(versions[0]?.version).toBe(1);
     expect(String(versions[0]?.applied_at)).toMatch(/Z$/);
     const bot = new BotsRepo(db).ensureMainBot();
