@@ -1,5 +1,14 @@
-import type { LiveRunActivity } from "@pibot/client-core";
-import { type Approval, answeredOnPhone, type Message } from "@pibot/protocol";
+import {
+  type LiveRunActivity,
+  type ReplyReceiptPosition,
+  replyReceiptPositions,
+} from "@pibot/client-core";
+import {
+  type Approval,
+  answeredOnPhone,
+  attachmentContinuationOf,
+  type Message,
+} from "@pibot/protocol";
 import { useRouter } from "expo-router";
 import {
   memo,
@@ -61,6 +70,7 @@ interface RowProps {
   last: boolean;
   /** Some reply of the run wrote files (the changes card sits on the last one). */
   turnWrote: boolean;
+  receipt?: ReplyReceiptPosition;
   /** The line above this message: the phone's own replies start, or the computer's resume. */
   divider?: "phone" | "back";
   actions: RefObject<RowActions>;
@@ -118,12 +128,15 @@ const ThreadRow = memo(
     continued,
     last,
     turnWrote,
+    receipt,
     divider,
     actions,
   }: RowProps) {
     const t = useText();
     const question = messageQuestion(message);
-    const settled = last && settledRun(message);
+    const receiptMessageId = receipt ? receipt.messageId : message.id;
+    const settled =
+      last && !!receiptMessageId && settledRun(message) && settledRun(receipt?.message ?? message);
     return (
       <View style={{ gap: 16, marginTop: continued ? -8 : 0 }}>
         {divider && (
@@ -156,11 +169,21 @@ const ThreadRow = memo(
           <RunChangesCard
             runId={message.runId}
             target={changes}
-            footer={<RunReceiptCard runId={message.runId} messageId={message.id} embedded />}
-            fallback={<RunReceiptCard runId={message.runId} messageId={message.id} />}
+            footer={
+              <RunReceiptCard
+                runId={message.runId}
+                messageId={receiptMessageId ?? undefined}
+                embedded
+              />
+            }
+            fallback={
+              <RunReceiptCard runId={message.runId} messageId={receiptMessageId ?? undefined} />
+            }
           />
         ) : (
-          settled && <RunReceiptCard runId={message.runId} messageId={message.id} />
+          settled && (
+            <RunReceiptCard runId={message.runId} messageId={receiptMessageId ?? undefined} />
+          )
         )}
         {group && <GroupExecutionMessageFact message={message} />}
       </View>
@@ -180,6 +203,12 @@ const ThreadRow = memo(
     a.continued === b.continued &&
     a.last === b.last &&
     a.turnWrote === b.turnWrote &&
+    a.receipt?.messageId === b.receipt?.messageId &&
+    (a.receipt?.message === b.receipt?.message ||
+      (a.receipt?.message === a.message && b.receipt?.message === b.message) ||
+      (!!a.receipt?.message &&
+        !!b.receipt?.message &&
+        sameMessage(a.receipt.message, b.receipt.message))) &&
     a.divider === b.divider &&
     a.actions === b.actions,
 );
@@ -292,6 +321,7 @@ export function ChatThread({
   }, [chat.messages, lateKey]);
   const changes = useMemo(() => page.scope && changesTarget(page.scope), [page.scope]);
   const turns = useMemo(() => turnPositions(chat.messages), [chat.messages]);
+  const receipts = useMemo(() => replyReceiptPositions(chat.messages), [chat.messages]);
   const stretches = useMemo(() => phoneStretches(chat.messages), [chat.messages]);
   const actions = useRef<RowActions>({ open: () => {}, retry: () => {}, answer: () => {} });
   actions.current = {
@@ -384,6 +414,7 @@ export function ChatThread({
         continued={!!turn?.continued}
         last={turn?.last ?? true}
         turnWrote={!!turn?.wrote}
+        receipt={receipts.get(message.id)}
         divider={stretches.get(message.id)}
         actions={actions}
       />
@@ -392,7 +423,7 @@ export function ChatThread({
   // Between 已送达 and the reply's first words (seconds with a slow model) nothing showed
   // that the Bot had started. While the run is on and the newest message is still the user's,
   // the Bot's typing bubble stands in; the streaming reply takes its place.
-  const latest = chat.messages.at(-1);
+  const latest = chat.messages.findLast((message) => !attachmentContinuationOf(message));
   const typing =
     page.kind === "bot" &&
     page.online &&

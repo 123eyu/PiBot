@@ -1,3 +1,4 @@
+import { attachmentContinuationOf } from "@pibot/protocol";
 import { FolderPicker } from "@pibot/renderer-kit";
 import { Button, Card, IconButton } from "@pibot/ui";
 import { ExecutionPanel } from "../../execution/ExecutionPanel.tsx";
@@ -26,7 +27,9 @@ import type { ChatScreenModel } from "./chat-screen-model.ts";
 const compactionFailures = new Set(["compaction_failed", "compaction_timeout", "context_overflow"]);
 
 function compactionFailure(messages: ChatScreenModel["state"]["messages"]): string | undefined {
-  const last = messages.findLast((message) => message.role === "assistant");
+  const last = messages.findLast(
+    (message) => message.role === "assistant" && !attachmentContinuationOf(message),
+  );
   return last?.errorCode && compactionFailures.has(last.errorCode) ? last.id : undefined;
 }
 

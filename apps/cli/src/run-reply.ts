@@ -1,5 +1,11 @@
 // Reassemble persisted assistant bubbles belonging to one headless run.
-import type { Events, Message, Methods, Peer } from "@pibot/protocol";
+import {
+  attachmentContinuationOf,
+  type Events,
+  type Message,
+  type Methods,
+  type Peer,
+} from "@pibot/protocol";
 
 export type Receipt = { runId: string; conversationId?: string; assistantMessageId: string };
 type Client = Peer<typeof Methods, typeof Events>;
@@ -27,7 +33,12 @@ export async function committedReply(
     const anchor = rows.findIndex((message) => message.id === receipt.assistantMessageId);
     const bubbles = rows
       .slice(Math.max(0, anchor))
-      .filter((message) => message.role === "assistant" && message.runId === receipt.runId);
+      .filter(
+        (message) =>
+          message.role === "assistant" &&
+          message.runId === receipt.runId &&
+          !attachmentContinuationOf(message),
+      );
     if (!terminal && bubbles.length) {
       terminal = bubbles.at(-1);
       const usage = terminal?.usage;

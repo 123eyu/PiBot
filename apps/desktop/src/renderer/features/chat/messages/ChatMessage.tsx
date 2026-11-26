@@ -86,6 +86,7 @@ interface ChatMessageProps {
     attachments?: { messageId: string; attachments: Message["attachments"] }[];
     /** The user message that started this run (从这里重来 on a Bot reply retries from it). */
     origin?: Message;
+    receipt?: { messageId: string | null; message?: Message };
   };
 }
 
@@ -140,23 +141,25 @@ export const ChatMessage = memo(function ChatMessage({
   // changed files and the receipt together.
   const turnFiles = !preview && !!turn && !heading && !imageActor?.groupId;
   const endCard = turnFiles && !!turn?.last;
+  const receiptMessageId = turn?.receipt ? turn.receipt.messageId : message.id;
+  const receiptMessage = turn?.receipt?.message ?? message;
   const background = useBackgroundRun(message.botId ?? botId, runId);
   // An agent turn's own figures; parsed once so the memoised receipt keeps its props stable.
-  const agentFacts = useMemo(() => agentTurnFacts(message.usage), [message.usage]);
+  const agentFacts = useMemo(() => agentTurnFacts(receiptMessage.usage), [receiptMessage.usage]);
   // The run's work receipt, merged into the turn's changed-files card when there is one.
   const receipt = useCallback(
     (embedded: boolean) =>
-      runId ? (
+      runId && receiptMessageId ? (
         <RunReceipt
           runId={runId}
-          messageId={message.id}
+          messageId={receiptMessageId}
           embedded={embedded || endCard}
           files={!embedded}
           agent={agentFacts}
           onStoppedChange={onReceiptStoppedChange}
         />
       ) : null,
-    [runId, message.id, agentFacts, onReceiptStoppedChange, endCard],
+    [runId, receiptMessageId, agentFacts, onReceiptStoppedChange, endCard],
   );
   if (silentWake(message)) return null;
   // The restart notice is one model-facing message whose content also lists command ids;
@@ -412,14 +415,14 @@ export const ChatMessage = memo(function ChatMessage({
               ))}
               <TurnCard
                 bare
-                message={turn?.tools ? { ...message, tools: turn.tools } : message}
+                message={turn?.tools ? { ...receiptMessage, tools: turn.tools } : receiptMessage}
                 activity={activity}
                 receipt={runId ? receipt : undefined}
               />
             </div>
           ) : (
             <TurnCard
-              message={turn?.tools ? { ...message, tools: turn.tools } : message}
+              message={turn?.tools ? { ...receiptMessage, tools: turn.tools } : receiptMessage}
               activity={activity}
               receipt={runId ? receipt : undefined}
             />

@@ -2,6 +2,7 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
+  attachmentContinuationOf,
   ImageDeliverySchema,
   type KernelMethodResults,
   MessageSchema,
@@ -597,11 +598,13 @@ export class MessagesRepo {
       conversation.kind === "dm"
         ? `dm:${String(conversation.bot_id)}`
         : `group:${String(conversation.group_id)}`;
-    if (!conversation.internal_task_id)
+    const deliveryPage = attachmentContinuationOf(message);
+    if (!conversation.internal_task_id && !deliveryPage)
       new SidebarRepo(this.db).activity(key, markUnread ?? message.role !== "user");
     if (
       message.runId &&
       message.status !== "streaming" &&
+      !deliveryPage &&
       this.db
         .prepare("SELECT 1 FROM runs WHERE id=? AND conversation_id=?")
         .get(message.runId, message.conversationId)

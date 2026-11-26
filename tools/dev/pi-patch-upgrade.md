@@ -5,7 +5,7 @@ Pi Bot applies three upgrade-related patches. The `pi-coding-agent` patch is **a
 
 | Package | What the patch adds |
 |---|---|
-| `@earendil-works/pi-coding-agent` | `dist/sdk.js` + `.d.ts` (headless SDK entry without `modes/*`), `dist/version.js` + `.d.ts`, `dist/truncate.js` + `.d.ts`, generated `dist/context-helpers.js` + `.d.ts`, and the four matching `exports` keys |
+| `@earendil-works/pi-coding-agent` | `dist/sdk.js` + `.d.ts` (headless SDK entry without `modes/*`), `dist/version.js` + `.d.ts`, `dist/truncate.js` + `.d.ts`, generated `dist/context-helpers.js` and `dist/async-session.js` with their declarations, and the five matching `exports` keys |
 | `@earendil-works/pi-ai` | OAuth GET/state check, Pi Bot callback page, and the `./env-api-keys` export |
 | `@google/genai` | Preserve errors carried by successful HTTP streams for every CJS/ESM/browser entry |
 
@@ -29,9 +29,18 @@ Pi Bot applies three upgrade-related patches. The `pi-coding-agent` patch is **a
 If upstream ships a headless entry, switch
 `packages/agent/src/runtime/pi-sdk.ts` to it and drop the patch.
 
-An add-only async session-open helper was considered and not added: a 50 MB session opens in about a
-third of a second, so parsing is not where sessions stall. If it is ever needed, prefer an upstream
-constructor that accepts parsed entries and a persistence path, and port it with every pi upgrade.
+The `./async-session` entry reads saved JSONL in batches and yields between parsing batches. It
+uses the pinned SDK constructor with preloaded entries and the original persistence path. Before
+changing the generator's source hash for an SDK upgrade, verify the parser, constructor signature,
+and migration behavior against the new packaged SDK.
+
+```sh
+node packages/agent/scripts/pi-async-session.ts --source packages/agent/node_modules/@earendil-works/pi-coding-agent --output .pibot-dev/async-session.js
+```
+
+Compare the generated files with the patched package. Recheck truncated and malformed JSONL,
+missing and legacy sessions, cancellation, and large-session callback timing. A single very large
+JSON record and SDK migration/indexing can still run synchronously.
 
 版本窄入口不得重导出 `config.js`（它会在环境清理前读包路径配置）。升级时 `dist/version.js` 常量必须与锁定依赖的 package.json.version 相同，d.ts 保持 string；同时核对 diff 不含 deleted file mode、重命名或任何原有代码删除，不能只数以减号开头的内容行。
 

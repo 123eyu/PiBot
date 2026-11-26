@@ -1,4 +1,4 @@
-import { emptyActivity } from "@pibot/client-core";
+import { emptyActivity, replyReceiptPositions } from "@pibot/client-core";
 import { BotAvatar } from "@pibot/renderer-kit";
 import { Button, Card } from "@pibot/ui";
 import { type ComponentProps, Fragment } from "react";
@@ -30,6 +30,7 @@ type TurnPosition = NonNullable<ComponentProps<typeof ChatMessage>["turn"]>;
  */
 function turnPositions(list: readonly HistoryMessage[]) {
   const result = new Map<string, TurnPosition>();
+  const receipts = replyReceiptPositions(list);
   const sameRun = (a?: HistoryMessage, b?: HistoryMessage) =>
     !!a &&
     !!b &&
@@ -59,6 +60,7 @@ function turnPositions(list: readonly HistoryMessage[]) {
       continued: sameRun(list[index - 1], message),
       last,
       origin: origins.get(message.runId),
+      receipt: receipts.get(message.id),
       ...(last
         ? {
             tools: tools.get(message.runId) ?? message.tools,

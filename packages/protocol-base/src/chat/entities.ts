@@ -20,6 +20,22 @@ export function memoryNoted(usage: Message["usage"]) {
   return MemoryNotedSchema.safeParse(usage.memoryNoted).data;
 }
 
+/** A file-delivery page keeps the original reply as the run's semantic/receipt owner. */
+export function attachmentContinuationOf(message: Message): string | undefined {
+  if (
+    message.role !== "assistant" ||
+    message.status !== "done" ||
+    message.content !== "" ||
+    !message.runId ||
+    !message.usage ||
+    typeof message.usage !== "object" ||
+    Array.isArray(message.usage)
+  )
+    return undefined;
+  const parsed = IdSchema.safeParse(message.usage.attachmentContinuationOf);
+  return parsed.success && parsed.data !== message.id ? parsed.data : undefined;
+}
+
 export const MessageSchema = z.strictObject({
   botId: IdSchema.nullable().optional(),
   routineTrigger: z
