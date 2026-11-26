@@ -36,8 +36,9 @@ export async function startMain(options: {
   const { dataDir, version, dev, background, embedded, originalEnv, prelaunch, signal, bootstrap } =
     options;
   const redactor = createRedactor();
+  const logsDir = join(dataDir, background ? "host-logs" : "gui-logs");
   const logger = createLogger({
-    dir: join(dataDir, background ? "host-logs" : "gui-logs"),
+    dir: logsDir,
     redactor,
     dev,
   });
@@ -290,8 +291,10 @@ export async function startMain(options: {
       );
       // The old text told a fresh install to "quit the old version", which is wrong for
       // the common slow-start timeout; name the actual reason and let the user retry.
-      const failureKey = (failure: string): TranslationKey =>
-        failure === "database_newer_than_app"
+      const failureKey = (failure: string): TranslationKey => {
+        if (failure === "background_windows_security_security_rejected_listener_missing")
+          return "background.startupWindowsListenerUnverified";
+        return failure === "database_newer_than_app"
           ? "startup.newerData"
           : failure.startsWith("background_windows_security_timeout")
             ? "background.startupSecurityTimeout"
@@ -309,6 +312,7 @@ export async function startMain(options: {
                     failure === "background_socket_path_too_long"
                     ? "background.startupDataFolderPathTooLong"
                     : "background.startupFailed";
+      };
       // showErrorBox blocks the main thread until it is dismissed, so a failed GUI startup could
       // not handle SIGTERM and had to be force-quit. The async box keeps the process
       // responsive; closing it exits and "retry" starts a fresh process.
@@ -319,6 +323,7 @@ export async function startMain(options: {
           // The folder is named only in this local dialog, never in the log line above.
           message: t(failureKey(code), {
             folder: dataDir,
+            logsFolder: logsDir,
             max: DATA_DIR_SOCKET_BUDGET_BYTES,
           }),
           buttons: [t("background.startupRetry"), t("background.startupQuit")],
