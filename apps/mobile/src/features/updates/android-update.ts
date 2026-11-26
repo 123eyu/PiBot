@@ -63,32 +63,52 @@ export function isNewerUpdate(update: AndroidUpdate) {
   return update.versionCode > installed;
 }
 
+export function removeCachedUpdate() {
+  const file = new File(Paths.cache, CACHE_NAME);
+  if (file.exists) file.delete();
+}
+
 export async function downloadAndroidUpdate(
   update: AndroidUpdate,
   onProgress: (fraction: number) => void,
-  signal?: AbortSignal,
+  signal: AbortSignal,
 ) {
+  signal.throwIfAborted();
   if (update.productionFeed) assertOfficialUrl(update.url);
   else assertDevelopmentUrl(update.url);
   const destination = new File(Paths.cache, CACHE_NAME);
-  destination.delete();
+  removeCachedUpdate();
   const task = FileSystem.createDownloadResumable(update.url, destination.uri, {}, (progress) =>
-    onProgress(progress.totalBytesWritten / Math.max(progress.totalBytesExpectedToWrite, 1)),
+    onProgress(
+      Math.min(1, progress.totalBytesWritten / Math.max(progress.totalBytesExpectedToWrite, 1)),
+    ),
   );
-  const abort = () => void task.cancelAsync();
-  signal?.addEventListener("abort", abort, { once: true });
+  let stopping: Promise<void> | undefined;
+  const stop = () => {
+    stopping ??= task.cancelAsync().catch(() => {
+      // The native task may already have finished. Its download promise owns the drain.
+    });
+  };
+  const timeout = setTimeout(stop, 30 * 60_000);
+  signal.addEventListener("abort", stop, { once: true });
   try {
-    await task.downloadAsync();
-    const size = destination.size;
-    const hash = await pibotAndroid?.sha256File(destination.uri);
-    if (size !== update.size || hash !== update.sha256) throw new Error("update_integrity_failed");
-    return destination.uri;
-  } catch (error) {
-    destination.delete();
-    throw error;
+    const result = await task.downloadAsync();
+    signal.throwIfAborted();
+    if (stopping || !result || result.status !== 200) throw new Error("update_download_failed");
   } finally {
-    signal?.removeEventListener("abort", abort);
+    clearTimeout(timeout);
+    signal.removeEventListener("abort", stop);
+    // Legacy Expo leaves its progress subscription attached when downloadAsync settles.
+    stop();
+    await stopping;
   }
+  signal.throwIfAborted();
+  const size = destination.size;
+  const hash = await pibotAndroid?.sha256File(destination.uri);
+  signal.throwIfAborted();
+  if (size !== update.size || hash !== update.sha256.toLowerCase())
+    throw new Error("update_integrity_failed");
+  return destination.uri;
 }
 
 export async function installAndroidUpdate(uri: string) {

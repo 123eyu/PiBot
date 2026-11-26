@@ -1,3 +1,5 @@
+/** Paired-device and phone-settings text is kept in both supported languages. */
+
 // Devices tab and pairing.
 export const devicesZh = {
   deviceOnline: "在线",
@@ -101,6 +103,7 @@ export const devicesZh = {
   updateVerifyFailedHint: "下载的文件和官网记录不一致，已删除，没有安装",
   updateCancel: "取消",
   updateRetry: "重试",
+  updateCheck: "检查更新",
   updateInstall: "下载并安装",
   updateOpenSettings: "去设置",
   updateUnknownSources: "需要允许安装",
@@ -247,6 +250,7 @@ export const devicesEn: Record<keyof typeof devicesZh, string> = {
     "The downloaded file did not match the website record. It was deleted and not installed",
   updateCancel: "Cancel",
   updateRetry: "Retry",
+  updateCheck: "Check for updates",
   updateInstall: "Download and install",
   updateOpenSettings: "Open settings",
   updateUnknownSources: "Allow installation",

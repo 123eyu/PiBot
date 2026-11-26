@@ -1,3 +1,5 @@
+/** The Devices tab manages paired computers and phone settings. */
+
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
@@ -19,7 +21,8 @@ import { TabHeader } from "../../ui/headers.tsx";
 import { SettingRow } from "../../ui/rows.tsx";
 import { Sheet, SheetText, SheetTitle } from "../../ui/sheet.tsx";
 import { useTabBarInset } from "../../ui/tab-bar.tsx";
-import { AndroidUpdateCard, useAndroidUpdate } from "../updates/AndroidUpdateCard.tsx";
+import { AndroidUpdateCard } from "../updates/AndroidUpdateCard.tsx";
+import { useAndroidUpdate } from "../updates/AndroidUpdateProvider.tsx";
 import { DisplaySettings } from "./DisplaySettings.tsx";
 import { LinkCard } from "./LinkCard.tsx";
 import { useBackgroundLimits } from "./use-background-limits.ts";
@@ -230,6 +233,17 @@ export function DevicesScreen() {
             </>
           )}
         </ListCard>
+        {Platform.OS === "android" && (
+          <ListCard style={{ marginTop: 10 }}>
+            <SettingRow
+              icon="download"
+              title={t("updateCheck")}
+              chevron={false}
+              disabled={androidUpdate.checkDisabled}
+              onPress={() => void androidUpdate.check()}
+            />
+          </ListCard>
+        )}
         <AndroidUpdateCard update={androidUpdate} />
         {/* A count would only grow with every reload of the same list; the fact is what matters. */}
         {devices.skipped > 0 && <FootNote text={t("skippedItems")} />}
