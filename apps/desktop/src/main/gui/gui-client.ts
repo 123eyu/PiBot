@@ -7,6 +7,9 @@ import {
   type BackgroundWire,
   IndependentBackgroundMethods,
   IndependentBackgroundStateSchema,
+  PROVIDER_IMPORT_RESOLVE,
+  ProviderImportDecisionSchema,
+  ProviderImportResultSchema,
   RpcError,
   RpcErrorCodes,
   SettingsSchema,
@@ -31,6 +34,7 @@ import { startAppUpdates } from "../updates/update-bridge.ts";
 import { installAppMenu } from "../window/app-menu.ts";
 import { registerAppRestart } from "../window/app-restart.ts";
 import { isAppUrl, parseAppUrl } from "../window/app-url.ts";
+import type { ProviderLinkInbox } from "../window/provider-link-inbox.ts";
 import { readSystemLocale } from "../window/system-locale.ts";
 import { notifyBackground } from "../window/tray.ts";
 import { createEarlyWindow, type EarlyWindow } from "./early-window.ts";
@@ -49,6 +53,7 @@ export async function startGuiClient(options: {
   /** The window process-entry created before importing this module. */
   early?: EarlyWindow;
   systemLocale?: Promise<string>;
+  providerLinks?: ProviderLinkInbox;
 }) {
   const controller = new AbortController();
   const startup: { signal: AbortSignal; onQuit?: (event: Electron.Event) => void } = {
@@ -636,6 +641,13 @@ async function runGuiClient(
     active++;
     try {
       const { method, params } = request.parse(value);
+      if (method === PROVIDER_IMPORT_RESOLVE) {
+        const decision = ProviderImportDecisionSchema.parse(params);
+        if (decision.botIds !== null && (!window.isVisible() || !window.isFocused() || quitting))
+          return { ok: false, code: RpcErrorCodes.closed, message: "provider_import_unfocused" };
+        const result = await connection.control({ type: "provider-import-decide", decision });
+        return { ok: true, result: ProviderImportResultSchema.parse(result) };
+      }
       if (Object.hasOwn(IndependentBackgroundMethods, method)) {
         const name = method as keyof typeof IndependentBackgroundMethods;
         const schema = IndependentBackgroundMethods[name];
@@ -731,6 +743,24 @@ async function runGuiClient(
         .control({ type: "navigate", target })
         .catch(() => options.logger.warn("GUI app URL navigation unavailable"));
     else if (new URL(url).hostname === "import") options.logger.warn("Invalid role import URL");
+  });
+  const stopProviderLinks = options.providerLinks?.subscribe((intent) => {
+    if (quitting) return;
+    open();
+    void connection
+      .control({ type: "provider-import", intent })
+      .catch(() => options.logger.warn("Provider import link unavailable"));
+  });
+  const dismissProviderImport = () => {
+    void connection
+      .control({ type: "provider-import-dismiss" })
+      .catch(() => options.logger.warn("Provider import review cleanup unavailable"));
+  };
+  window.on("hide", dismissProviderImport);
+  window.webContents.on("did-navigate", dismissProviderImport);
+  window.once("closed", () => {
+    stopProviderLinks?.();
+    dismissProviderImport();
   });
   // Closes the GUI before draining the independent owner. Hiding alone can leave a compositor
   // frame visible while ports retire.

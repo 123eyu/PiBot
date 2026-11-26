@@ -2,7 +2,11 @@
 import { resolve } from "node:path";
 import type { Provider } from "@earendil-works/pi-ai";
 import type { ModelRuntime } from "@earendil-works/pi-coding-agent";
-import { CustomProviderFetchSchema } from "@pibot/protocol-base";
+import {
+  CustomProviderFetchSchema,
+  IMPORTED_MAGPIE_PREFIX,
+  importedMagpieRoute,
+} from "@pibot/protocol-base";
 import {
   CHATGPT_CODEX_PROVIDER,
   CHATGPT_PLAN_PROVIDER,
@@ -116,7 +120,11 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
     }
     if (deps.auth?.mode(id) === "oauth") throw new AgentError("subscription_unsupported");
     if (deps.auth?.mode(id) === "cloud") return;
-    const key = await deps.getApiKey(id);
+    const saved = await deps.getApiKey(id);
+    const magpie = id.startsWith(IMPORTED_MAGPIE_PREFIX)
+      ? deps.customProviders().find((config) => config.id === id)
+      : undefined;
+    const key = saved ?? (magpie && importedMagpieRoute(magpie) ? "magpie-pibot" : undefined);
     if (key !== undefined) {
       assertSupportedCredential(key);
       assertSafeSecretValue(key);
@@ -308,7 +316,9 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
           auth: {
             apiKey: literalAuth(
               true,
-              () => deps.hasApiKey(config.id),
+              () =>
+                deps.hasApiKey(config.id) ||
+                (config.id.startsWith(IMPORTED_MAGPIE_PREFIX) && importedMagpieRoute(config)),
               true,
               config.id === MAGPIE_PROVIDER.id
                 ? { authorization: `Bearer ${MAGPIE_PROVIDER.attribution}` }

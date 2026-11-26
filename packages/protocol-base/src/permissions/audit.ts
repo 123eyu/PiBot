@@ -74,6 +74,7 @@ export const AuditKindSchema = z.enum([
   "grant.revoked",
   "policy.denied",
   "oauth.changed",
+  "provider.imported",
   "network.changed",
   "permissions.changed",
   "search.sent",

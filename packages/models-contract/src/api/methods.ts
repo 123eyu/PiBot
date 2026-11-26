@@ -13,6 +13,10 @@ import {
   LoginStepSchema,
   ModelInfoSchema,
   ProviderAuthStateSchema,
+  ProviderImportDecisionSchema,
+  ProviderImportIntentSchema,
+  ProviderImportPreviewSchema,
+  ProviderImportResultSchema,
   ProviderSchema,
   ResolvedCustomModelSchema,
   SafeSecretSchema,
@@ -88,6 +92,14 @@ export const ModelHealthReasonSchema = z.enum([
 ]);
 
 export const ModelProviderMethods = {
+  "providerImport.stage": {
+    params: ProviderImportIntentSchema,
+    result: ProviderImportPreviewSchema,
+  },
+  "providerImport.resolve": {
+    params: ProviderImportDecisionSchema,
+    result: ProviderImportResultSchema,
+  },
   ...ProviderMethods,
   ...AuthMethods,
   "models.health": {

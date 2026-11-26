@@ -2432,6 +2432,18 @@ const methodCases = {
     badParams: { defaultModel: { provider: "openai", id: "test-model", thinkingLevel: "extreme" } },
     badResult: { ...settings, openAtLogin: 1 },
   },
+  "providerImport.stage": {
+    params: { status: "refused" },
+    result: { status: "refused" },
+    badParams: { status: "review" },
+    badResult: { status: "refused", key: "fake-key" },
+  },
+  "providerImport.resolve": {
+    params: { id, botIds: null },
+    result: { ok: true },
+    badParams: { id, botIds: [] },
+    badResult: { ok: false },
+  },
   "providers.list": {
     params: undefined,
     result: [provider],

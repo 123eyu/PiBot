@@ -3,6 +3,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { isIP } from "node:net";
 import type { Api, Model, Provider, StreamOptions, TranscriptContext } from "@earendil-works/pi-ai";
 import { AssistantMessageEventStream } from "@earendil-works/pi-ai/utils/event-stream";
+import { IMPORTED_PROVIDER_PREFIX, parseProviderImportEndpoint } from "@pibot/protocol-base";
 import { MAGPIE_PROVIDER, magpieBaseUrl, magpiePort } from "@pibot/protocol-base/provider-catalog";
 import { AgentError, mapAgentError } from "../core/errors.ts";
 import { cacheRequestFields } from "./cache-request-fields.ts";
@@ -46,7 +47,7 @@ export function installAgentNetwork(
   const ownership = Symbol.for("pibot.agent.network");
   if (Reflect.get(original, ownership)) throw new AgentError("internal");
   const scope = new AsyncLocalStorage<{
-    magpieOrigin?: string;
+    pinnedOrigin?: string;
     proxyFailure?: "proxy_unavailable" | "proxy_credentials_unavailable" | "proxy_auth_failed";
     response?(response: Response): Promise<void>;
   }>();
@@ -56,6 +57,9 @@ export function installAgentNetwork(
     if (disposed) throw new AgentError("aborted");
     try {
       const url = new URL(input instanceof Request ? input.url : String(input));
+      const pinnedOrigin = scope.getStore()?.pinnedOrigin;
+      if (pinnedOrigin && (url.origin !== pinnedOrigin || url.username || url.password))
+        throw new AgentError("provider_error");
       const record = requestMetrics.getStore();
       if (record) {
         const fields = cacheRequestFields(init?.body);
@@ -63,10 +67,7 @@ export function installAgentNetwork(
       }
       // Local model servers (Ollama, LM Studio, vLLM) and local MCP servers stay on this machine.
       // A followed redirect would leave loopback without the proxy, so it fails instead.
-      const magpieOrigin = scope.getStore()?.magpieOrigin;
-      if (magpieOrigin && (url.origin !== magpieOrigin || url.username || url.password))
-        throw new AgentError("provider_error");
-      if (magpieOrigin || (enabled() && isLoopbackHost(url.hostname))) {
+      if ((pinnedOrigin || enabled()) && isLoopbackHost(url.hostname)) {
         const response = await original(input, {
           ...init,
           redirect: init?.redirect === "manual" ? "manual" : "error",
@@ -76,7 +77,10 @@ export function installAgentNetwork(
       }
       // pi's fixed Codex refresh endpoint omits a redirect policy; never forward the refresh token.
       const oauthRefresh = url.hostname === "auth.openai.com" && url.pathname === "/oauth/token";
-      const response = await transport(input, oauthRefresh ? { ...init, redirect: "error" } : init);
+      const response = await transport(
+        input,
+        oauthRefresh || pinnedOrigin ? { ...init, redirect: "error" } : init,
+      );
       await scope.getStore()?.response?.(response);
       return response;
     } catch (error) {
@@ -145,12 +149,19 @@ export function installAgentNetwork(
         base !== new URL(magpieBaseUrl(80)).href
       )
         throw new AgentError("provider_error");
+      const imported = model.provider.startsWith(IMPORTED_PROVIDER_PREFIX);
+      const pinnedOrigin = magpie
+        ? new URL(model.baseUrl).origin
+        : imported
+          ? parseProviderImportEndpoint(model.baseUrl)?.origin
+          : undefined;
+      if (imported && !pinnedOrigin) throw new AgentError("provider_error");
       const state: {
-        magpieOrigin?: string;
+        pinnedOrigin?: string;
         proxyFailure?: "proxy_unavailable" | "proxy_credentials_unavailable" | "proxy_auth_failed";
         response?(response: Response): Promise<void>;
       } = {
-        ...(magpie ? { magpieOrigin: new URL(model.baseUrl).origin } : {}),
+        pinnedOrigin,
         // SDKs can flatten HTTP errors before onResponse runs. Forward only Retry-After,
         // scoped to this provider attempt; never retain headers or share a process-wide value.
         async response(response) {

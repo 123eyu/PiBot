@@ -118,6 +118,7 @@ const kindGroups: Record<AuditKind, readonly [AuditGroup, ...AuditGroup[]]> = {
   "grant.revoked": ["approval"],
   "policy.denied": ["approval", "send"],
   "oauth.changed": ["identity"],
+  "provider.imported": ["run"],
   "network.changed": ["web"],
   "permissions.changed": ["approval"],
   "search.sent": ["web"],
@@ -602,6 +603,8 @@ export function auditSummary(
     case "grant.created":
     case "grant.revoked":
       return t("audit.describe.permission", { operation });
+    case "provider.imported":
+      return t("audit.providerImport.applied");
     case "oauth.changed":
       return auditAuth(detail, t);
     case "permissions.changed":
@@ -870,6 +873,7 @@ export function auditResult(
       tone: "danger",
     };
   if (
+    entry.kind === "provider.imported" ||
     entry.kind === "file.sent" ||
     entry.kind === "file.written" ||
     entry.kind === "file.read" ||

@@ -9,6 +9,7 @@ import type { prelaunchBackground } from "./background/background-prelaunch.ts";
 import type { prelaunchBrainProcess } from "./brain/brain-process.ts";
 import { monitorMainEventLoop } from "./event-loop-monitor.ts";
 import { createMainStartupTiming } from "./startup-timing.ts";
+import type { ProviderLinkInbox } from "./window/provider-link-inbox.ts";
 
 /** Loaded after app ready; native owner and GUI graphs remain separate dynamic chunks. */
 export async function startMain(options: {
@@ -21,6 +22,7 @@ export async function startMain(options: {
   prelaunch?: ReturnType<typeof prelaunchBackground>;
   compileCache?: Promise<{ status: number; durationMs: number } | undefined>;
   signal: AbortSignal;
+  providerLinks: ProviderLinkInbox;
   bootstrap: {
     entryAtMs: number;
     cacheMs: number;
@@ -139,6 +141,7 @@ export async function startMain(options: {
         prelaunch,
         early,
         systemLocale,
+        providerLinks: options.providerLinks,
       });
       return;
     }
@@ -266,6 +269,7 @@ export async function startMain(options: {
         prelaunchedBrain,
         timing,
         early: preparedOwner,
+        providerLinks: options.providerLinks,
       });
   } catch (error) {
     prelaunch?.dispose();

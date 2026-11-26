@@ -135,6 +135,8 @@ export * from "./permissions/yolo.ts";
 export * from "./providers/auth.ts";
 export * from "./providers/catalog-options.ts";
 export * from "./providers/default-model.ts";
+export * from "./providers/endpoint-version.ts";
+export * from "./providers/import-link.ts";
 export * from "./providers/providers.ts";
 export * from "./providers/retired-models.ts";
 export * from "./providers/thinking.ts";

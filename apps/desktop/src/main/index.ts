@@ -7,6 +7,7 @@ import { resolveDataDir } from "@pibot/storage/data-dir";
 import { app } from "electron";
 import { bundleIdentity, pruneCompileCache } from "../shared/bundle-identity.ts";
 import { linuxPasswordStore } from "./window/linux-password-store.ts";
+import { captureProviderLinks } from "./window/provider-link-inbox.ts";
 
 // Chromium switches, process identity and the role lock must precede every asynchronous import.
 // FeatureList is initialized before per-window renderer arguments can override it.
@@ -94,6 +95,7 @@ if (process.argv.includes("--sandbox-doctor")) {
         | ReturnType<typeof import("./background/background-prelaunch.ts").prelaunchBackground>
         | undefined;
       const lifetime = new AbortController();
+      const providerLinks = captureProviderLinks(process.argv, lifetime.signal);
       const quitGui = () => app.quit();
       if (!background && !embedded) process.on("SIGTERM", quitGui);
       app.once("will-quit", () => {
@@ -168,6 +170,7 @@ if (process.argv.includes("--sandbox-doctor")) {
           embedded,
           originalEnv,
           prelaunch,
+          providerLinks,
           compileCache,
           signal: lifetime.signal,
           bootstrap: {

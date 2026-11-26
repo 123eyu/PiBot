@@ -43,6 +43,7 @@ import { permissionsEn } from "./sections/permissions.ts";
 import { personalTodosEn } from "./sections/personal-todos.ts";
 import { policyExplanationEn } from "./sections/policy-explanation.ts";
 import { providerAuthEn } from "./sections/provider-auth.ts";
+import { providerImportEn } from "./sections/provider-import.ts";
 import { receiptEn } from "./sections/receipt.ts";
 import { runtimeEn } from "./sections/runtime.ts";
 import { settingsPagesEn } from "./sections/settings-pages.ts";
@@ -378,6 +379,7 @@ export const enSections = {
   builtinEn,
   activityEn,
   providerAuthEn,
+  providerImportEn,
   receiptEn,
   computerGuardEn,
   backgroundEn,

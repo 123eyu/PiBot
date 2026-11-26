@@ -110,7 +110,7 @@ export function startBrainProcess(
       value.type === "ui-active" || value.type === "power-snapshot" ? value.type : undefined,
     () => failControl(),
   );
-  const source = new AsyncLocalStorage<"acp" | undefined>();
+  const source = new AsyncLocalStorage<"acp" | "desktop-main" | undefined>();
   const acp = createDesktopAcp(
     utilityPort(acpPort),
     version,

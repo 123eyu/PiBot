@@ -18,7 +18,7 @@ interface StartupContext {
   loopWatch?: { mark(phase: string): void };
   stopping: boolean;
   waitForContent(signal: AbortSignal): Promise<void>;
-  opts?: { requestSource?: () => "acp" | undefined };
+  opts?: { requestSource?: () => "acp" | "desktop-main" | undefined };
   sleep: BrainSleep | undefined;
   interactiveAttached: boolean;
   offlineAllowed: Set<string>;
@@ -78,7 +78,12 @@ export function registerBusinessRpc<K extends keyof typeof KernelMethods>(
   // erased so TypeScript does not expand every RPC payload union inside Promise inference.
   const execute = action as (params: unknown, context: RpcRequestContext) => Promise<unknown>;
   const invoke = async (params: unknown, context: RpcRequestContext): Promise<unknown> => {
-    context = { ...context, source: ctx.opts?.requestSource?.() };
+    const source = ctx.opts?.requestSource?.();
+    context = {
+      ...context,
+      source: source === "acp" ? source : undefined,
+      desktopMain: source === "desktop-main",
+    };
     context.signal.throwIfAborted();
     if (ctx.stopping) throw new RpcError(-32001, "Brain stopping");
     ctx.sleep?.assertAdmission();

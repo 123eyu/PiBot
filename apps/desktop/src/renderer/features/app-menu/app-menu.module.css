@@ -313,6 +313,9 @@
   transition: width 400ms var(--ease-out);
 }
 
+.dialog.dialog[data-app-dialog="provider-import"] {
+  width: min(820px, calc(100vw - 32px));
+}
 .dialog.dialog[data-app-dialog="about-you"] {
   width: min(500px, calc(100vw - 32px));
 }

@@ -2,6 +2,8 @@ import type { KernelMethodParams, KernelMethodResults, KernelMethods } from "@pi
 export interface RpcRequestContext {
   signal: AbortSignal;
   source?: "acp";
+  /** Assigned by the authenticated host port, never by request parameters. */
+  desktopMain?: boolean;
 }
 export type KernelRegisterRpc = <K extends keyof typeof KernelMethods>(
   method: K,

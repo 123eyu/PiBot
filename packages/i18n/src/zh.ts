@@ -43,6 +43,7 @@ import { permissionsZh } from "./sections/permissions.ts";
 import { personalTodosZh } from "./sections/personal-todos.ts";
 import { policyExplanationZh } from "./sections/policy-explanation.ts";
 import { providerAuthZh } from "./sections/provider-auth.ts";
+import { providerImportZh } from "./sections/provider-import.ts";
 import { receiptZh } from "./sections/receipt.ts";
 import { runtimeZh } from "./sections/runtime.ts";
 import { settingsPagesZh } from "./sections/settings-pages.ts";
@@ -345,6 +346,7 @@ export const zhSections = {
   builtinZh,
   activityZh,
   providerAuthZh,
+  providerImportZh,
   receiptZh,
   computerGuardZh,
   backgroundZh,

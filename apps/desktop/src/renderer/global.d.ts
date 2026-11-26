@@ -4,6 +4,7 @@ import type {
   DesktopUpdateAction,
   DesktopUpdateState,
   IndependentBackgroundState,
+  ProviderImportDecision,
 } from "@pibot/protocol";
 
 declare global {
@@ -25,6 +26,7 @@ declare global {
     readonly pibot: {
       readonly platform: NodeJS.Platform;
       restartApp(): Promise<{ status: "requested" }>;
+      resolveProviderImport(decision: ProviderImportDecision): Promise<{ ok: true }>;
       readonly background: {
         state(): Promise<DesktopBackgroundResults["background.state"]>;
         restart(): Promise<DesktopBackgroundResults["background.restart"]>;

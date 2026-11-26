@@ -214,7 +214,7 @@ export async function startBrain(opts: {
   };
   port: Port;
   /** Source is supplied by the trusted composition root, never decoded from RPC JSON. */
-  requestSource?: () => "acp" | undefined;
+  requestSource?: () => "acp" | "desktop-main" | undefined;
   acp?: import("@pibot/protocol-base").AcpAttachmentPort;
   host: BrainHost;
   dataDir: string;

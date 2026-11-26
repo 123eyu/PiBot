@@ -30,6 +30,7 @@ import type { MainStartupTiming } from "../startup-timing.ts";
 import { createUpdateProxy } from "../updates/update-proxy.ts";
 import { isAppUrl, parseAppUrl } from "../window/app-url.ts";
 import { desktopLaunchEnvironment, loginItemSyncEnabled } from "../window/login-item-scope.ts";
+import type { ProviderLinkInbox } from "../window/provider-link-inbox.ts";
 import { readSystemLocale } from "../window/system-locale.ts";
 import { createTray, notifyKeyringRestart, notifyLoginDefault } from "../window/tray.ts";
 import { createBackgroundBrainCycle } from "./background-brain-cycle.ts";
@@ -46,6 +47,7 @@ import { createBackgroundSleepOwner } from "./background-sleep-owner.ts";
 import { createKeyringRecovery, createKeyringSessionGate } from "./keyring-recovery.ts";
 import { watchKeyringSession } from "./keyring-session.ts";
 import { watchMainLoop } from "./main-loop-watch.ts";
+import { createProviderImportReview } from "./provider-import-review.ts";
 import { createWindowsBackgroundSecurity } from "./windows-background-security.ts";
 
 export async function startBackgroundOwner(options: {
@@ -61,6 +63,7 @@ export async function startBackgroundOwner(options: {
   prelaunchedBrain?: ReturnType<typeof prelaunchBrainProcess>;
   /** Claim, Windows security and locale already started beside the role import. */
   early?: EarlyOwnerPreparation;
+  providerLinks?: ProviderLinkInbox;
 }) {
   const updateProxy = createUpdateProxy();
   if (!app.hasSingleInstanceLock()) throw new Error("background_writer_lock_required");
@@ -549,7 +552,12 @@ export async function startBackgroundOwner(options: {
     if (stopped || !childReady || !brain)
       throw new RpcError(RpcErrorCodes.closed, "background_not_ready");
   }
+  const providerImport = createProviderImportReview(open, options.logger);
   await lifetime.initialize(async () => {
+    lifetime.own(() => providerImport.dispose());
+    lifetime.own(
+      options.providerLinks?.subscribe((intent) => providerImport.offer(intent)) ?? (() => {}),
+    );
     lifetime.own(() => storage.dispose());
     lifetime.own(() => recovery.dispose());
     lifetime.own(
@@ -580,6 +588,7 @@ export async function startBackgroundOwner(options: {
           JSON.stringify({ module: "background", event: "request_timeout", method }),
         ),
       disconnected: async (client, pid) => {
+        providerImport.dismiss(client);
         foreground = false;
         await clients.disconnected(client, pid);
         syncTray();
@@ -637,7 +646,9 @@ export async function startBackgroundOwner(options: {
           );
         hostWork++;
         const wake =
-          control.type === "detach" || control.type === "blur"
+          control.type === "detach" ||
+          control.type === "blur" ||
+          control.type === "provider-import-dismiss"
             ? Promise.resolve()
             : ensureWorking("gui");
         void wake.catch(() => {}); // The serialized caller still observes failure; do not leak an early rejection.
@@ -645,7 +656,12 @@ export async function startBackgroundOwner(options: {
           await wake;
           if (stopped) throw new RpcError(RpcErrorCodes.closed, "background_stopping");
           const current = brain;
-          if (!current && control.type !== "detach" && control.type !== "blur")
+          if (
+            !current &&
+            control.type !== "detach" &&
+            control.type !== "blur" &&
+            control.type !== "provider-import-dismiss"
+          )
             throw new RpcError(RpcErrorCodes.closed, "background_not_ready");
           switch (control.type) {
             case "diagnostics":
@@ -672,6 +688,7 @@ export async function startBackgroundOwner(options: {
               if (settings) server?.broadcast({ kind: "settings", settings });
               return state();
             case "detach":
+              providerImport.dismiss(client);
               foreground = false;
               await clients.detach(client, control.stop === true);
               syncTray();
@@ -684,13 +701,24 @@ export async function startBackgroundOwner(options: {
               foreground = false;
               return null;
             case "ui-ready":
+              if (current) await providerImport.present(client, current);
               if (pendingNavigation) {
                 if (!current) throw new Error("background_not_ready");
                 current.navigate(pendingNavigation);
                 pendingNavigation = undefined;
               }
               return null;
+            case "provider-import":
+              providerImport.offer(control.intent, client);
+              return null;
+            case "provider-import-decide":
+              return providerImport.resolve(client, control.decision);
+            case "provider-import-dismiss":
+              providerImport.dismiss(client);
+              return null;
             case "navigate":
+              if ("view" in control.target && control.target.view === "provider-import")
+                throw new RpcError(RpcErrorCodes.invalidParams, "desktop_method_unavailable");
               if (!current) throw new Error("background_not_ready");
               current.navigate(control.target);
               return null;

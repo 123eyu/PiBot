@@ -710,6 +710,12 @@ export function startBrainHost(options: BrainHostOptions) {
         throw new Error("brain_unavailable");
       await mainPeer.call("routines.resumeAll", undefined);
     },
+    stageProviderImport(intent: import("@pibot/protocol").ProviderImportIntent) {
+      return requirePeer().call("providerImport.stage", intent, { timeoutMs: 8_000 });
+    },
+    resolveProviderImport(decision: import("@pibot/protocol").ProviderImportDecision) {
+      return requirePeer().call("providerImport.resolve", decision, { timeoutMs: 22_000 });
+    },
     async diagnostics(signal: AbortSignal) {
       return requirePeer().call("diagnostics.snapshot", undefined, { signal, timeoutMs: 5000 });
     },

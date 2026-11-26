@@ -10,6 +10,9 @@ import {
   DesktopUpdateStateSchema,
   IdSchema,
   IndependentBackgroundMethods,
+  PROVIDER_IMPORT_RESOLVE,
+  ProviderImportDecisionSchema,
+  ProviderImportResultSchema,
 } from "@pibot/protocol-base/desktop-bridge";
 import { DesktopBackgroundMethods } from "@pibot/routines-contract/desktop-bridge";
 import { contextBridge, ipcRenderer } from "electron";
@@ -112,6 +115,8 @@ contextBridge.executeInMainWorld({
       value: Object.freeze({
         platform,
         restartApp: () => background("app.restart", { action: "restart" }),
+        resolveProviderImport: (decision: unknown) =>
+          background("desktop.providerImport.resolve", decision),
         background: Object.freeze({
           state: () => background("background.state"),
           restart: () => background("background.restart"),
@@ -228,6 +233,10 @@ let updateRequests = 0;
 const backgroundMethods = {
   ...DesktopBackgroundMethods,
   ...IndependentBackgroundMethods,
+  [PROVIDER_IMPORT_RESOLVE]: {
+    params: ProviderImportDecisionSchema,
+    result: ProviderImportResultSchema,
+  },
   "app.restart": { params: DesktopRestartRequestSchema, result: DesktopRestartResultSchema },
 };
 window.addEventListener("message", (event) => {
