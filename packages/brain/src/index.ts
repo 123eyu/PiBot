@@ -105,6 +105,7 @@ import { registerAppRpc } from "./runtime/startup/register-app-rpc.ts";
 import { registerCapabilities } from "./runtime/startup/register-capabilities.ts";
 import { registerChatRpc } from "./runtime/startup/register-chat-rpc.ts";
 import { registerHealthRpc } from "./runtime/startup/register-health-rpc.ts";
+import { sdkIdlePreload } from "./runtime/startup/sdk-idle-preload.ts";
 import { createStartupProgress } from "./runtime/startup/startup-progress.ts";
 import { createStartupTiming } from "./runtime/startup/startup-timing.ts";
 import { registerCapabilityRpc } from "./runtime/tools/capabilities/capability-rpc.ts";
@@ -319,6 +320,8 @@ export async function startBrain(opts: {
   let runRetention: RunRetention | undefined;
   let startupDiagnostics: ReturnType<typeof firstRpcDiagnostics> | undefined;
   let loopWatch: ReturnType<typeof watchBrainLoop> | undefined;
+  let sdkPreload: ReturnType<typeof sdkIdlePreload> | undefined;
+  let lastUserActivity = 0;
   let maintenance: ReturnType<typeof deferredMaintenance> | undefined;
   const sessionTailController = new AbortController();
   let sessionTailReconciliation: Promise<void> | undefined;
@@ -389,11 +392,15 @@ export async function startBrain(opts: {
       get loopWatch() {
         return loopWatch;
       },
+      noteUserActivity: () => {
+        lastUserActivity = performance.now();
+      },
       get startupDiagnostics() {
         return startupDiagnostics;
       },
       stopStartupMaintenance: async () => {
         startupDiagnostics?.stop();
+        sdkPreload?.stop();
         await maintenance?.stop();
       },
       waitForSessionRecovery,
@@ -1070,12 +1077,22 @@ export async function startBrain(opts: {
     // A speculative SDK import blocks unrelated navigation while evaluating its module graph.
     // The agent still loads it on demand for model operations.
     maintenance.start(capabilityHandles);
+    // The SDK's main-thread evaluation moves to an idle moment after the worker warm-up.
+    sdkPreload = sdkIdlePreload({
+      logger,
+      warm: sdk.preloadSdk,
+      load: sdk.loadSdkWhenIdle,
+      lastUserActivity: () => lastUserActivity,
+      busy: () => startup.interactiveRequests.size > 0,
+    });
+    sdkPreload.start();
     progress?.stop();
     return createBrainController(startup);
   } catch (error) {
     progress?.stop();
     startupDiagnostics?.stop();
     loopWatch?.stop();
+    sdkPreload?.stop();
     await maintenance?.stop();
     await stopSessionRecovery();
     let drained = false;

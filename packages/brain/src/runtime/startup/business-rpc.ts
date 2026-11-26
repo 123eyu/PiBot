@@ -16,6 +16,8 @@ import type { BrainSleep } from "../queue/brain-sleep.ts";
 interface StartupContext {
   startupDiagnostics?: ReturnType<typeof import("./first-rpcs.ts").firstRpcDiagnostics>;
   loopWatch?: { mark(phase: string): void };
+  /** A request from the user's side (not background scheduling) just arrived. */
+  noteUserActivity?(): void;
   stopping: boolean;
   waitForContent(signal: AbortSignal): Promise<void>;
   opts?: {
@@ -94,6 +96,8 @@ export function registerBusinessRpc<K extends keyof typeof KernelMethods>(
     const finishTiming = ctx.startupDiagnostics?.begin(method);
     // Method names are fixed protocol identifiers; parameters never reach the stall log.
     ctx.loopWatch?.mark(method);
+    if (!ctx.backgroundPrefixes.some((prefix) => method.startsWith(prefix)))
+      ctx.noteUserActivity?.();
     const request = Promise.resolve().then(async () => {
       context.signal.throwIfAborted();
       if (!ctx.interactiveAttached && !ctx.offlineAllowed.has(method))

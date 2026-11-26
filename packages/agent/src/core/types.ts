@@ -575,6 +575,11 @@ export interface ContextEstimate {
 export interface AgentRuntime {
   /** Loads the pi SDK ahead of the first model operation; safe to call repeatedly. */
   preloadSdk?(): Promise<void>;
+  /**
+   * Evaluates the SDK on this thread now (after the startup admission window), so the first model
+   * operation does not; "already_loaded" when something loaded it first.
+   */
+  loadSdkWhenIdle?(): Promise<"loaded" | "already_loaded">;
   /** Reserve a startup window for local RPCs before synchronous SDK evaluation. */
   deferSdk?(milliseconds: number): void;
   compactHistory?(

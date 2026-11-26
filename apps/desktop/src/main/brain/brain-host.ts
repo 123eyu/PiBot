@@ -779,9 +779,7 @@ export function startBrainHost(options: BrainHostOptions) {
       stopped = true;
       // Started now, awaited last: a separate copy removes its own native host manifests before
       // it exits, without holding up the brain's retirement.
-      const browserClosed = userBrowserReady
-        .then((value) => value?.close())
-        .catch(() => undefined);
+      const browserClosed = userBrowserReady.then((value) => value?.close()).catch(() => undefined);
       if (!options.storage) storage.dispose();
       remotePower.end();
       options.routines?.end();

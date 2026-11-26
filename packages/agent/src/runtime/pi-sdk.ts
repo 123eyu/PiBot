@@ -10,9 +10,19 @@ import { Worker } from "node:worker_threads";
  * Callers must sanitize the process environment first (`sanitizeBrainEnv`): the SDK captures
  * auxiliary directories and ambient provider keys at import time.
  */
+let sdkEvaluated = false;
 export function loadPiSdk() {
-  // ESM owns module caching; no mutable cache is shared between runtime instances here.
-  return import("@earendil-works/pi-coding-agent/sdk");
+  // ESM owns module caching; the flag only records that the graph has been evaluated, so an
+  // idle preload can tell it would be a no-op.
+  return import("@earendil-works/pi-coding-agent/sdk").then((sdk) => {
+    sdkEvaluated = true;
+    return sdk;
+  });
+}
+
+/** The SDK's module graph has been evaluated in this process. */
+export function piSdkLoaded() {
+  return sdkEvaluated;
 }
 
 const PI_SDK_SPECIFIER = "@earendil-works/pi-coding-agent/sdk";
