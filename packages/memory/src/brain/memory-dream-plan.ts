@@ -1,5 +1,5 @@
 import { AgentError, type MemoryDraftUsage } from "@pibot/agent";
-import { IdSchema, type Memory, RpcError } from "@pibot/protocol-base";
+import { type Memory, RpcError } from "@pibot/protocol-base";
 import {
   type DreamRun,
   type MemoryDreamRepo,
@@ -33,7 +33,10 @@ type RecallReader = {
 type DreamMemory = MemoryService & RecallReader;
 const unusedMs = 60 * 86_400_000;
 const runTokens = 60_000;
-const dreamChoices = z.object({ projects: z.array(IdSchema).max(10).optional() });
+// Unknown or malformed project picks are ignored one by one, like dropped proposals.
+const dreamChoices = z.object({
+  projects: z.array(z.unknown()).max(50).optional().catch(undefined),
+});
 const dreamInstruction = () => `${organizationInstruction()}
 For a repeatedly documented, reusable procedure, propose a how_to memory only if its supplied
 source evidence spans more than one message, either in one note or across the notes you combine.
@@ -139,6 +142,7 @@ export async function draftDreamOwner(
   const limit = settings.memoryDreamCostUsd ?? 0.05;
   const cost = memoryMaintenanceUsage(deps.db, dayStart());
   let proposals: OrganizationProposal[] = [];
+  let dropped = 0;
   const projectIds = new Set(
     active.filter((note) => note.kind === "project").map((note) => note.id),
   );
@@ -200,13 +204,22 @@ export async function draftDreamOwner(
       repo.usage(run.id, run.tokens + result.tokens, run.costUsd + (result.costUsd ?? 0));
     signal.throwIfAborted();
     const ids = new Set(active.map((note) => note.id));
+    // Only an answer with no usable shape fails the run. A single malformed proposal used to
+    // fail the whole cleanup; every kept proposal still passes the same id, shape and
+    // provenance checks, and dropped ones are counted for the log.
     const draft = parseOrganizationDraft(result.draft, ids);
-    const extra = dreamChoices.safeParse(result.draft);
-    if (draft.dropped || !extra.success || extra.data.projects?.some((id) => !ids.has(id)))
-      throw new TypeError("memory_dream_draft_invalid");
+    const extra = dreamChoices.safeParse(
+      result.draft && typeof result.draft === "object" && !Array.isArray(result.draft)
+        ? result.draft
+        : {},
+    );
+    if (!extra.success) throw new TypeError("memory_dream_draft_invalid");
+    const listed = extra.data.projects ?? [];
+    const picked = listed.filter((id): id is string => typeof id === "string" && ids.has(id));
+    dropped = draft.dropped + listed.length - picked.length;
     proposals = draft.proposals;
     processedFactSequence = factSlice.at(-1)?.seq;
-    for (const id of extra.data.projects ?? []) projectIds.add(id);
+    for (const id of picked.slice(0, 10)) projectIds.add(id);
   }
   const notesById = new Map(active.map((note) => [note.id, note]));
   // A model's new classification does not establish repeat provenance.
@@ -225,6 +238,7 @@ export async function draftDreamOwner(
   return {
     ...dreamPlan(notes, supported, suggestions),
     processedFactSequence,
+    dropped,
     expired: expired.filter((note) => note.scope === "bot"),
     projects: active.filter((note) => note.scope === "bot" && projectIds.has(note.id)).slice(0, 10),
   };

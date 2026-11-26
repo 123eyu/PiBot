@@ -5,7 +5,7 @@ import { z } from "zod";
 import { transaction } from "../database/database.ts";
 
 const select = `id,day,started_at AS startedAt,finished_at AS finishedAt,status,cursor,
-  merged,retired,proposed,tokens,cost_usd AS costUsd,undo_json AS undoJson,undone`;
+  merged,retired,proposed,tokens,MAX(COALESCE(cost_usd,0),0) AS costUsd,undo_json AS undoJson,undone`;
 const scalar = MemoryDreamSummarySchema.omit({ undoable: true }).extend({
   day: z.string(),
   cursor: z.string().nullable(),
@@ -20,6 +20,14 @@ export type DreamRun = NonNullable<ReturnType<MemoryDreamRepo["last"]>>;
 type DreamSourceOwner = { scope: "bot" | "user"; ownerId: string };
 type DreamSourceProgress = DreamSourceOwner & { through: number };
 const factLimit = 24;
+
+/**
+ * Runs stored before unknown prices were handled could hold a negative cost (custom models price
+ * at -1). Reads clamp it so one old row cannot make every later summary fail validation.
+ */
+export function nonNegativeCost(value: number | undefined) {
+  return value !== undefined && Number.isFinite(value) && value > 0 ? value : 0;
+}
 const factAgeMs = 7 * 86_400_000;
 
 export class MemoryDreamRepo {
@@ -167,7 +175,7 @@ export class MemoryDreamRepo {
     this.db
       .prepare(`UPDATE memory_dream_runs SET tokens=?,cost_usd=?
       WHERE id=? AND status='running'`)
-      .run(tokens, costUsd, id);
+      .run(tokens, nonNegativeCost(costUsd), id);
   }
 
   finish(id: string, status: Exclude<DreamRun["status"], "running">, finishedAt: string) {

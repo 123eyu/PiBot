@@ -10,6 +10,7 @@ import type {
 } from "../core/types.ts";
 
 import type { AgentNetwork } from "../network/network.ts";
+import { knownRate } from "./memory-draft.ts";
 
 const amount = z.number().finite().nonnegative();
 const tokenUsageSchema = z.object({
@@ -102,10 +103,10 @@ export class RequestAccounting {
           pricingKnown || usage?.cost?.totalFromProvider === true ? usage?.cost?.total : undefined;
         const partialCost =
           !complete && knownTokens && usage && pricingKnown
-            ? (usage.input * model.cost.input +
-                usage.output * model.cost.output +
-                usage.cacheRead * model.cost.cacheRead +
-                usage.cacheWrite * model.cost.cacheWrite) /
+            ? (usage.input * knownRate(model.cost.input) +
+                usage.output * knownRate(model.cost.output) +
+                usage.cacheRead * knownRate(model.cost.cacheRead) +
+                usage.cacheWrite * knownRate(model.cost.cacheWrite)) /
               1_000_000
             : undefined;
         // Count only tokens the provider actually reported, never estimate unobserved streaming text.

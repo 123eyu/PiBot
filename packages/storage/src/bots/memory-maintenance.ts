@@ -86,7 +86,7 @@ export function memoryMaintenanceUsage(db: DatabaseSync, since: string) {
   const sum = (table: "memory_extractions" | "memory_organizations") =>
     db
       .prepare(
-        `SELECT IFNULL(SUM(tokens),0) AS tokens, IFNULL(SUM(cost_usd),0) AS costUsd
+        `SELECT IFNULL(SUM(tokens),0) AS tokens, IFNULL(SUM(MAX(cost_usd,0)),0) AS costUsd
         FROM ${table} WHERE COALESCE(started_at,created_at)>=?`,
       )
       .get(since);
@@ -96,7 +96,7 @@ export function memoryMaintenanceUsage(db: DatabaseSync, since: string) {
     .prepare("SELECT COALESCE(SUM(tokens),0) AS tokens FROM import_memory_usage WHERE at>=?")
     .get(since);
   const dream = db
-    .prepare(`SELECT IFNULL(SUM(tokens),0) AS tokens, IFNULL(SUM(cost_usd),0) AS costUsd
+    .prepare(`SELECT IFNULL(SUM(tokens),0) AS tokens, IFNULL(SUM(MAX(cost_usd,0)),0) AS costUsd
     FROM memory_dream_runs WHERE started_at>=?`)
     .get(since);
   return {

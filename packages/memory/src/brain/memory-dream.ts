@@ -246,6 +246,14 @@ export class MemoryDream {
     const factOwner = { scope, ownerId: owner };
     if (!manual && !this.enabled()) return false;
     const plan = await draftDreamOwner(this.deps, this.repo, run, botId, factOwner, notes, signal);
+    if (plan.dropped)
+      this.deps.logger.warn(
+        JSON.stringify({
+          module: "memory",
+          reasonCode: "memory_dream_proposals_dropped",
+          count: Math.min(plan.dropped, 100),
+        }),
+      );
     if (!(await this.canContinue(manual, signal))) return false;
     const archives =
       plan.expired.length + plan.merges.reduce((count, group) => count + group.length - 1, 0);

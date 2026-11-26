@@ -53,6 +53,15 @@ interface Usage {
   cost?: { total?: number; totalFromProvider?: boolean };
 }
 
+/**
+ * Custom and unlisted models carry -1 as "price unknown". Multiplying by it produced negative
+ * costs that were stored and then failed every read that requires cost >= 0, so an unknown
+ * rate counts as nothing here; the token budget still bounds those requests.
+ */
+export function knownRate(value: number) {
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
 /** Same accounting as a run: reported cost first, catalog price only when it is known. */
 export function memoryDraftUsage(
   model: { cost: { input: number; output: number; cacheRead: number; cacheWrite: number } },
@@ -66,15 +75,15 @@ export function memoryDraftUsage(
       : 0);
   const reported = usage?.cost?.total;
   if (reported !== undefined && (reported > 0 || usage?.cost?.totalFromProvider)) {
-    return { tokens, costUsd: reported };
+    return { tokens, costUsd: knownRate(reported) };
   }
   const priced = Object.values(model.cost).some((value) => Number.isFinite(value) && value > 0);
   if (!priced || !usage) return { tokens };
   const costUsd =
-    ((usage.input ?? 0) * model.cost.input +
-      (usage.output ?? 0) * model.cost.output +
-      (usage.cacheRead ?? 0) * model.cost.cacheRead +
-      (usage.cacheWrite ?? 0) * model.cost.cacheWrite) /
+    ((usage.input ?? 0) * knownRate(model.cost.input) +
+      (usage.output ?? 0) * knownRate(model.cost.output) +
+      (usage.cacheRead ?? 0) * knownRate(model.cost.cacheRead) +
+      (usage.cacheWrite ?? 0) * knownRate(model.cost.cacheWrite)) /
     1_000_000;
   return { tokens, costUsd };
 }

@@ -4,7 +4,12 @@ import type { AgentRuntime } from "../../core/types.ts";
 import { isLoopbackHost } from "../../network/network.ts";
 import { commitDraftInstruction, parseCommitDraft } from "../commit-draft.ts";
 import { textTokens } from "../context-estimate.ts";
-import { memoryDraftInstruction, memoryDraftUsage, parseMemoryDraft } from "../memory-draft.ts";
+import {
+  knownRate,
+  memoryDraftInstruction,
+  memoryDraftUsage,
+  parseMemoryDraft,
+} from "../memory-draft.ts";
 import { draftLocalMemories } from "../memory-draft-local.ts";
 import { parsePersona, personaInstruction } from "../persona.ts";
 import type { RuntimeContext } from "../runtime.ts";
@@ -209,7 +214,9 @@ export function createAuxiliaryOperations({
         // the full request before dispatch; a lost response must not refund an unknown bill.
         const reserved = {
           tokens: inputTokens + maxTokens,
-          costUsd: (inputTokens * model.cost.input + maxTokens * model.cost.output) / 1_000_000,
+          costUsd:
+            (inputTokens * knownRate(model.cost.input) + maxTokens * knownRate(model.cost.output)) /
+            1_000_000,
           modelProvider: model.provider,
           modelId: model.id,
         };

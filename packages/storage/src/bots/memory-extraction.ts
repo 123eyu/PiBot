@@ -2,6 +2,7 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { transaction } from "../database/database.ts";
+import { nonNegativeCost } from "./memory-dream.ts";
 import { legacyDueTopics, memoryExtractionCadence } from "./memory-extraction-boundaries.ts";
 import { extractionAutomatedReason } from "./memory-extraction-origin.ts";
 
@@ -38,7 +39,7 @@ export interface MemoryExtraction {
 
 const columns = `id, bot_id AS botId, conversation_id AS conversationId, group_id AS groupId,
   status, reason, source_message_id AS sourceMessageId, coverage_message_id AS coverageMessageId, model_provider AS modelProvider,
-  model_id AS modelId, tokens, cost_usd AS costUsd, candidates, error, created_at AS createdAt,
+  model_id AS modelId, tokens, MAX(COALESCE(cost_usd,0),0) AS costUsd, candidates, error, created_at AS createdAt,
   started_at AS startedAt, finished_at AS finishedAt`;
 
 function row(value: Record<string, unknown>): MemoryExtraction {
@@ -177,7 +178,7 @@ export class MemoryExtractionsRepo {
     this.db
       .prepare(`UPDATE memory_extractions SET tokens=?, cost_usd=?, model_provider=?, model_id=?
       WHERE id=? AND status='running'`)
-      .run(usage.tokens, usage.costUsd ?? 0, usage.modelProvider, usage.modelId, id);
+      .run(usage.tokens, nonNegativeCost(usage.costUsd), usage.modelProvider, usage.modelId, id);
   }
 
   diagnostics(
@@ -263,7 +264,7 @@ export class MemoryExtractionsRepo {
         patch.modelProvider ?? null,
         patch.modelId ?? null,
         patch.tokens ?? null,
-        patch.costUsd ?? null,
+        patch.costUsd === undefined ? null : nonNegativeCost(patch.costUsd),
         patch.candidates ?? 0,
         patch.error ?? null,
         new Date().toISOString(),
@@ -340,7 +341,9 @@ export class MemoryExtractionsRepo {
 
   costSince(since: string): number {
     const value = this.db
-      .prepare("SELECT IFNULL(SUM(cost_usd),0) AS cost FROM memory_extractions WHERE started_at>=?")
+      .prepare(
+        "SELECT IFNULL(SUM(MAX(cost_usd,0)),0) AS cost FROM memory_extractions WHERE started_at>=?",
+      )
       .get(since);
     return Number(value?.cost ?? 0);
   }
@@ -350,7 +353,7 @@ export class MemoryExtractionsRepo {
     const value = this.db
       .prepare(
         `SELECT COUNT(*) AS topics, IFNULL(SUM(tokens),0) AS tokens,
-        IFNULL(SUM(cost_usd),0) AS costUsd, IFNULL(SUM(candidates),0) AS candidates
+        IFNULL(SUM(MAX(cost_usd,0)),0) AS costUsd, IFNULL(SUM(candidates),0) AS candidates
         FROM memory_extractions WHERE started_at>=? AND status IN ('done','failed')`,
       )
       .get(since);
