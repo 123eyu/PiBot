@@ -178,6 +178,7 @@ export interface BrainHost {
   };
   /** Skill import picker: a SKILL.md or a .zip; null when the user cancels. */
   skills?: { pickFile(signal: AbortSignal): Promise<string | null> };
+  memoryDreamActivity?(signal: AbortSignal): Promise<KernelHostResults["host.memoryDreamActivity"]>;
   notify?(
     params: KernelHostParams["host.notify"],
     signal?: AbortSignal,

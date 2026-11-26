@@ -254,12 +254,12 @@ export class MemoriesRepo {
       return m;
     });
   }
-  archive(botId: string, id: string, archived: boolean): Memory | undefined {
+  archive(botId: string, id: string, archived: boolean, makeRoom = true): Memory | undefined {
     const prior = this.get(botId, id);
     if (!prior) return undefined;
     const o = this.target(botId);
     return transaction(this.db, () => {
-      if (!archived && prior.archivedAt)
+      if (makeRoom && !archived && prior.archivedAt)
         makeMemoryRoom(this.db, o, botId, prior.id, prior.text, this.redact);
       this.db
         .prepare(
@@ -417,7 +417,11 @@ export class MemoriesRepo {
       return p;
     });
   }
-  resolve(id: string, accept: boolean): { proposal: MemoryProposal; memory: Memory | null } {
+  resolve(
+    id: string,
+    accept: boolean,
+    resolution?: "archive",
+  ): { proposal: MemoryProposal; memory: Memory | null } {
     return transaction(this.db, () => {
       const p = this.proposal(id);
       if (!p) throw new TypeError("Unknown proposal");
@@ -459,7 +463,11 @@ export class MemoriesRepo {
               throw new TypeError(p.scope === "user" ? "memory_conflict" : "group_memory_conflict");
           }
           if (!prior) throw new TypeError("Proposal target no longer exists");
-          if (p.action === "update")
+          if (resolution === "archive") {
+            if (p.scope !== "bot" || p.action !== "update")
+              throw new TypeError("Invalid automatic archive proposal");
+            value = repo.archive(p.botId, prior.id, true) ?? null;
+          } else if (p.action === "update")
             value =
               repo.update(p.botId, prior.id, {
                 text: p.text,

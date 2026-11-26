@@ -66,6 +66,18 @@ import { workspaceMethodCases } from "./fixtures/workspace.ts";
 const id = "00000000-0000-4000-8000-000000000001";
 const computerToken = "A".repeat(43);
 const date = "2026-10-09T00:00:00.000Z";
+const dream = {
+  id,
+  startedAt: date,
+  finishedAt: date,
+  status: "done" as const,
+  merged: 1,
+  retired: 2,
+  proposed: 3,
+  tokens: 100,
+  costUsd: 0,
+  undoable: true,
+};
 const image = { type: "image", data: "iVBORw0KGgo=", mimeType: "image/png" } as const;
 const executionTask = {
   id,
@@ -1715,6 +1727,30 @@ const methodCases = {
     badParams: { unexpected: true },
     badResult: { unexpected: true },
   },
+  "memory.dream.last": {
+    params: {},
+    result: dream,
+    badParams: { botId: id },
+    badResult: { ...dream, retired: -1 },
+  },
+  "memory.dream.run": {
+    params: { ownerInitiated: true },
+    result: dream,
+    badParams: { ownerInitiated: false },
+    badResult: null,
+  },
+  "memory.dream.changes": {
+    params: { id },
+    result: [{ proposalId: id, botName: "Bot", text: "Fixture" }],
+    badParams: {},
+    badResult: [{ proposalId: id }],
+  },
+  "memory.dream.undo": {
+    params: { id },
+    result: { ok: true },
+    badParams: {},
+    badResult: {},
+  },
   "memory.status": {
     params: { botId: id },
     result: { activeCount: 1, archivedCount: 0, unusedCount: 0, needsOrganization: false },
@@ -3308,6 +3344,12 @@ const methodCases = {
   },
 } satisfies Cases<MethodParams, MethodResults>;
 const hostCases = {
+  "host.memoryDreamActivity": {
+    params: {},
+    result: { idleSeconds: 3600, supply: "ac" },
+    badParams: { unknown: true },
+    badResult: { idleSeconds: -1, supply: "ac" },
+  },
   "host.office.render": {
     params: { format: "pptx", data: "AAAA", pages: [1] },
     result: [],
@@ -4000,6 +4042,7 @@ const eventCases = {
     payload: { groupId: id, kind: "memory" },
     bad: { groupId: id, kind: "other" },
   },
+  "memory.dream.finished": { payload: { id }, bad: { unexpected: true } },
   "memory.status.changed": { payload: { botId: id }, bad: { unexpected: true } },
   "memory.sortProgress": { payload: { processed: 0, total: 0, moves: 0 }, bad: { processed: -1 } },
   "memory.changed": {

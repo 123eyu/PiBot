@@ -11,6 +11,7 @@ import { cacheRequestFields } from "./cache-request-fields.ts";
 export interface AgentNetwork {
   enabled(): boolean;
   wrap(provider: Provider): Provider;
+  withLocalModelOrigin?<T>(origin: string, send: () => T): T;
   observeRequest?<T>(record: (fields: string[]) => void, send: () => T): T;
   dispose(): void;
 }
@@ -51,6 +52,7 @@ export function installAgentNetwork(
     proxyFailure?: "proxy_unavailable" | "proxy_credentials_unavailable" | "proxy_auth_failed";
     response?(response: Response): Promise<void>;
   }>();
+  const localModelOrigin = new AsyncLocalStorage<string>();
   const requestMetrics = new AsyncLocalStorage<(fields: string[]) => void>();
   let disposed = false;
   const fetch: typeof globalThis.fetch = async (input, init) => {
@@ -60,6 +62,10 @@ export function installAgentNetwork(
       const pinnedOrigin = scope.getStore()?.pinnedOrigin;
       if (pinnedOrigin && (url.origin !== pinnedOrigin || url.username || url.password))
         throw new AgentError("provider_error");
+      const dreamOrigin = localModelOrigin.getStore();
+      const loopback = isLoopbackHost(url.hostname);
+      if (dreamOrigin && (!loopback || url.origin !== dreamOrigin || url.username || url.password))
+        throw new AgentError("provider_error");
       const record = requestMetrics.getStore();
       if (record) {
         const fields = cacheRequestFields(init?.body);
@@ -67,10 +73,10 @@ export function installAgentNetwork(
       }
       // Local model servers (Ollama, LM Studio, vLLM) and local MCP servers stay on this machine.
       // A followed redirect would leave loopback without the proxy, so it fails instead.
-      if ((pinnedOrigin || enabled()) && isLoopbackHost(url.hostname)) {
+      if (loopback && (dreamOrigin || pinnedOrigin || enabled())) {
         const response = await original(input, {
           ...init,
-          redirect: init?.redirect === "manual" ? "manual" : "error",
+          redirect: !dreamOrigin && init?.redirect === "manual" ? "manual" : "error",
         });
         await scope.getStore()?.response?.(response);
         return response;
@@ -237,6 +243,7 @@ export function installAgentNetwork(
   }
   return {
     enabled,
+    withLocalModelOrigin: (origin, send) => localModelOrigin.run(origin, send),
     observeRequest: (record, send) => requestMetrics.run(record, send),
     wrap(provider) {
       const generateImages = provider.generateImages;
@@ -269,6 +276,8 @@ export function installAgentNetwork(
       disposed = true;
       if (globalThis.fetch === fetch) globalThis.fetch = original;
       scope.disable();
+      localModelOrigin.disable();
+      requestMetrics.disable();
     },
   };
 }

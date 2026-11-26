@@ -325,11 +325,13 @@ export interface SkillDraftRequest {
 export interface MemoryDraftRequest {
   text: string;
   /** Explicit import distillation uses the local-only Ollama transport, with no model fallback. */
-  localOnly?: true;
+  useLocalOllama?: true;
   /** Replaces the extraction instruction; both share the same model and cost path. */
   instruction?: string;
   model: { provider: string; id: string };
   signal: AbortSignal;
+  /** Dream can restrict the selected generation route to a literal loopback endpoint. */
+  localOnly?: true;
   /** Remaining shared background allowance; checked after selecting the actual model. */
   budget?: { tokens: number; costUsd: number };
   /** Includes failed/truncated responses; never contains model text. */

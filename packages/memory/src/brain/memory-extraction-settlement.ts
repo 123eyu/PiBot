@@ -2,6 +2,7 @@
 import {
   AuditRepo,
   type BackgroundTaskHealthRepo,
+  MemoryDreamRepo,
   type MemoryExtraction,
   type MemoryExtractionsRepo,
 } from "@pibot/storage";
@@ -47,6 +48,8 @@ export function settleExtraction(
           ? "candidates_not_applied"
           : null,
   });
+  if (!failed && !replyId)
+    new MemoryDreamRepo(deps.db).recordFacts(row.id, counts.acceptedFactProposalIds);
   // Wanted repeated zero results noticed, but "nothing worth remembering" is the normal
   // outcome of short task chats (run a command, make a page): as a card it told users to check
   // their models and keys for a working job (v0.0.2 test, 2026-11-14). It stays in the log line

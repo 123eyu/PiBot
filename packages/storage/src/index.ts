@@ -1,6 +1,7 @@
 export * from "./bots/bot-cleanup.ts";
 export * from "./bots/bot-hooks.ts";
 export * from "./bots/memory.ts";
+export * from "./bots/memory-dream.ts";
 export * from "./bots/memory-extraction.ts";
 export * from "./bots/memory-maintenance.ts";
 export * from "./bots/memory-maintenance-status.ts";
@@ -10,7 +11,7 @@ export { MemoryProjectsRepo } from "./bots/memory-projects.ts";
 export * from "./bots/memory-recall.ts";
 export * from "./bots/memory-recall-metrics.ts";
 export * from "./bots/memory-scope-moves.ts";
-export { SimilarMemoryError, sameMemoryRevision } from "./bots/memory-search.ts";
+export { normalizeMemory, SimilarMemoryError, sameMemoryRevision } from "./bots/memory-search.ts";
 export * from "./bots/memory-undo.ts";
 export * from "./codemap/code-map.ts";
 export * from "./computer/app-blocklist.ts";

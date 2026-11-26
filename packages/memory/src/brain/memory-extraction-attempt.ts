@@ -210,7 +210,9 @@ export class MemoryExtractionAttempt {
         this.repo.defer(row, "source_changed");
         return;
       }
-      settleExtraction(this.deps, this.repo, this.health, row, source, result);
+      transaction(this.deps.db, () =>
+        settleExtraction(this.deps, this.repo, this.health, row, source, result),
+      );
     }
   }
   private publishReply(message: Message, botId: string) {

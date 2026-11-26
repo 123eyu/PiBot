@@ -31,6 +31,7 @@ import {
   dialog,
   MessageChannelMain,
   type MessagePortMain,
+  powerMonitor,
   powerSaveBlocker,
   shell,
 } from "electron";
@@ -322,6 +323,12 @@ export function startBrainHost(options: BrainHostOptions) {
     hostPort = hostChannel.port1;
     host = registerHostRpc(mainPort(hostChannel.port1), {
       storage,
+      memoryDreamActivity: () => {
+        const idleSeconds = powerMonitor.getSystemIdleTime();
+        return Number.isFinite(idleSeconds) && idleSeconds >= 0
+          ? { idleSeconds, supply: options.routines?.powerSupply() ?? "unknown" }
+          : null;
+      },
       remoteKeepAwake: (enabled) =>
         remotePower.request(owner, {
           mode: enabled ? "always" : "never",

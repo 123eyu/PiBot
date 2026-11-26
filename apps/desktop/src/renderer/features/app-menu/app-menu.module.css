@@ -420,3 +420,40 @@
     transition: none;
   }
 }
+
+.dreamCard.dreamCard {
+  margin-bottom: 10px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--avatar-violet) 12%, var(--card)),
+    var(--card)
+  );
+}
+
+.dreamOptions {
+  margin-top: 8px;
+  color: var(--muted);
+}
+
+.dreamOptions label,
+.dreamSwitch,
+.dreamOptions form {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dreamSwitch,
+.dreamChanges li {
+  padding: 4px 0;
+}
+
+.dreamOptions input[type="number"] {
+  max-width: 6em;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 3px 5px;
+}

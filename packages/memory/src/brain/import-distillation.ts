@@ -62,7 +62,7 @@ export function createImportDistillation(
         const result = await agent.draftMemories({
           text,
           model: { provider: "ollama", id: modelId },
-          localOnly: true,
+          useLocalOllama: true,
           signal,
           budget: { tokens: MAX_TOKENS, costUsd: 0 },
           onUsage: () => {

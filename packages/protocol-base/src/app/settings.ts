@@ -35,6 +35,9 @@ export const SettingsSchema = z.strictObject({
     .optional(),
   backgroundCommandLimitMinutes: z.number().int().min(30).max(1440).optional(),
   /** Hard daily budget for background memory extraction across all Bots. */
+  memoryDreamEnabled: z.boolean().optional(),
+  memoryDreamLocalOnly: z.boolean().optional(),
+  memoryDreamCostUsd: z.number().min(0).max(100).optional(),
   memoryExtractionDailyCostUsd: z.number().min(0).max(100).optional(),
   /**
    * The fallback budget for models without a catalog price (custom providers, local

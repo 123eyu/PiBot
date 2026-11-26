@@ -316,6 +316,7 @@ export const EventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("group.task"),
   eventSchema("group.paused"),
   eventSchema("memory.sortProgress"),
+  eventSchema("memory.dream.finished"),
   eventSchema("memory.changed"),
   eventSchema("memory.status.changed"),
   eventSchema("groups.resources.changed"),
@@ -477,65 +478,28 @@ const AppMethods = {
 } as const;
 // TS7056: the merged literal type is too large to serialize into declarations, so the
 // annotation names each table instead of expanding every method signature.
+// Kernel-owned tables below already inherit their method types from KernelMethods;
+// intersecting a second copy makes TypeScript recursively expand identical Zod schemas.
 export const Methods: // Spread order lets InboxMethods replace the kernel's narrower inbox.list; the
 // intersection must drop it the same way or the two result types conflict.
 Omit<typeof KernelMethods, keyof typeof InboxMethods | keyof typeof AppMethods> &
-  typeof CapabilityMethods &
   typeof EndpointMethods &
   typeof RemoteMethods &
   typeof InboxMethods &
-  typeof ContinuationMethods &
-  typeof PersonalTodoMethods &
   typeof OfficeMethods &
   typeof ImportMethods &
-  typeof PreviewMethods &
-  typeof ChatRecoveryMethods &
-  typeof MessageActionMethods &
-  typeof GroupExecutionMethods &
   typeof ConnectorMethods &
   typeof ConnectorAppMethods &
   typeof ConnectorImportMethods &
   typeof ConnectorActivityMethods &
   typeof DiscoveryMethods &
   typeof KnowledgeMethods &
-  typeof DraftMethods &
-  typeof ExecutionCollectionMethods &
   typeof BrowserDebugMethods &
-  typeof TaskExecutionMethods &
-  typeof ReviewExecutionMethods &
-  typeof DeliveryEvidenceMethods &
   typeof ManagedWorktreeMethods &
   typeof FileCheckpointMethods &
-  typeof ExecutionMethods &
   typeof ImageArtifactMethods &
   typeof ExternalAgentMethods &
-  typeof ChatAdditionMethods &
-  typeof WorkplaceMethods &
-  typeof ApprovalMethods &
-  typeof PermissionMethods &
-  typeof GrantMethods &
-  typeof AuditMethods &
-  typeof RunLogMethods &
-  typeof RunRetentionMethods &
-  typeof FileMethods &
   typeof RoutineMethods &
-  typeof TopicWorkplaceMethods &
-  typeof GroupFileMethods &
-  typeof GroupTopicMethods &
-  typeof RunsRetryMethods &
-  typeof RunsResumeMethods &
-  typeof RunReceiptMethods &
-  typeof RuntimeMethods &
-  typeof BotMethods &
-  typeof TopicMethods &
-  typeof GroupMethods &
-  typeof GroupPlanMethods &
-  typeof ChatMethods &
-  typeof ConversationRetryMethods &
-  typeof MemoryMethods &
-  typeof InboxCountMethods &
-  typeof SidebarMethods &
-  typeof SearchMethods &
   typeof ModelProviderMethods &
   typeof TeamMethods &
   typeof ComputerMethods &
@@ -544,21 +508,13 @@ Omit<typeof KernelMethods, keyof typeof InboxMethods | keyof typeof AppMethods> 
   typeof SkillMethods &
   typeof SkillLinkMethods &
   typeof WorkflowMethods &
-  typeof GroupResourceMethods &
   typeof TeachMethods &
   typeof ChangesMethods &
-  typeof ChatNoticeMethods &
   typeof CredentialMethods &
   typeof UserSecretMethods &
-  typeof BackgroundCommandMethods &
-  typeof YoloMethods &
   typeof GoogleCompatMethods &
   typeof BuiltinMethods &
   typeof RoleCatalogMethods &
-  typeof AutoCheckMethods &
-  typeof BotHooksMethods &
-  typeof AppProfileMethods &
-  typeof ExternalImageMethods &
   typeof AppMethods = {
   ...KernelMethods,
   ...CapabilityMethods,
@@ -696,6 +652,15 @@ export const HostMethods = {
   },
   // One SKILL.md (its folder's skill) or a .zip; brain reads and checks the file itself.
   "host.skills.pickFile": { params: noParams, result: AbsolutePathSchema.nullable() },
+  "host.memoryDreamActivity": {
+    params: noParams,
+    result: z
+      .strictObject({
+        idleSeconds: z.number().nonnegative(),
+        supply: z.enum(["ac", "battery", "unknown"]),
+      })
+      .nullable(),
+  },
   "host.notify": {
     params: z.strictObject({
       title: z.string().trim().min(1).max(200),

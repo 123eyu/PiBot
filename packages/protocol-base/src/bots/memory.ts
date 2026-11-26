@@ -177,7 +177,40 @@ export const MemoryMaintenanceStatusSchema = z.strictObject({
 });
 export type MemoryMaintenanceStatus = z.infer<typeof MemoryMaintenanceStatusSchema>;
 
+export const MemoryDreamSummarySchema = z.strictObject({
+  id: IdSchema,
+  startedAt: time,
+  finishedAt: time.nullable(),
+  status: z.enum(["running", "done", "limited", "interrupted", "failed"]),
+  merged: z.number().int().nonnegative(),
+  retired: z.number().int().nonnegative(),
+  proposed: z.number().int().nonnegative(),
+  tokens: z.number().int().nonnegative(),
+  costUsd: z.number().nonnegative(),
+  undoable: z.boolean(),
+});
+export type MemoryDreamSummary = z.infer<typeof MemoryDreamSummarySchema>;
+
 export const MemoryMethods = {
+  "memory.dream.last": { params: z.strictObject({}), result: MemoryDreamSummarySchema.nullable() },
+  "memory.dream.run": {
+    params: z.strictObject({ ownerInitiated: z.literal(true) }),
+    result: MemoryDreamSummarySchema,
+    timeoutMs: 330_000,
+  },
+  "memory.dream.changes": {
+    params: z.strictObject({ id: IdSchema }),
+    result: z
+      .array(
+        z.strictObject({
+          proposalId: IdSchema,
+          botName: z.string().max(1000),
+          text: z.string().max(8000),
+        }),
+      )
+      .max(100),
+  },
+  "memory.dream.undo": { params: z.strictObject({ id: IdSchema }), result: ok },
   "memory.sortIntoPlace": {
     timeoutMs: 330_000,
     params: z.strictObject({ ownerInitiated: z.literal(true), runId: IdSchema }),
@@ -296,6 +329,7 @@ export const MemoryMethods = {
   },
 } as const;
 export const MemoryEvents = {
+  "memory.dream.finished": z.strictObject({ id: IdSchema }),
   "memory.status.changed": z.strictObject({ botId: IdSchema }),
   "memory.sortProgress": z.strictObject({
     processed: z.number().int().nonnegative(),

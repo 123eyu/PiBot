@@ -803,7 +803,9 @@ export class MemoryService {
     if (!sameMemoryRevision(current, snapshot.after))
       throw new RpcError(-32011, "Memory changed since this operation");
     if (snapshot.before) {
-      if (current)
+      if (current && current.archivedAt !== snapshot.before.archivedAt)
+        repo.archive(proposal.botId, targetId, !!snapshot.before.archivedAt, false);
+      else if (current)
         repo.update(proposal.botId, targetId, {
           text: snapshot.before.text,
           category: snapshot.before.category,
@@ -923,6 +925,155 @@ export class MemoryService {
         );
   }
 
+  /** Dream may retire existing Bot notes, keeping the exact before/after undo trail. */
+  dreamArchive(
+    botId: string,
+    expected: readonly Memory[],
+    reason: "expired" | "merged",
+    survivor?: Memory,
+  ) {
+    this.active(botId);
+    const owner = { scope: "bot", ownerId: botId } as const;
+    const repo = this.repoFor(owner);
+    return transaction(this.db, () => {
+      for (const note of survivor ? [survivor, ...expected] : expected) {
+        const current = repo.get(botId, note.id);
+        if (!current || current.archivedAt || !sameMemoryRevision(current, note))
+          throw new RpcError(-32011, "memory_conflict");
+      }
+      return expected.map((note) => {
+        const proposal = repo.propose(
+          botId,
+          note.text,
+          null,
+          { action: "update", memoryId: note.id },
+          note.category,
+        );
+        const result = repo.resolve(proposal.id, true, "archive");
+        if (!result.memory) throw new Error("dream_archive_missing");
+        this.undo.set(botId, proposal.id, note, result.memory);
+        new AuditRepo(this.db, this.redactor).append({
+          botId,
+          kind: "memory.changed",
+          summary: "Dream archived a Bot memory / Dream 归档 Bot 记忆",
+          detail: {
+            actor: "automatic",
+            reasonCode: `memory_dream_${reason}`,
+            memoryScope: "bot",
+            memoryOwnerId: botId,
+            memoryId: note.id,
+            memoryProposalId: proposal.id,
+          },
+        });
+        return { botId, proposalId: proposal.id };
+      });
+    });
+  }
+
+  dreamCurrent(
+    botId: string,
+    scope: "user" | "bot",
+    ownerId: string,
+    expected: (Memory | undefined)[],
+  ) {
+    const repo = this.repoFor({ scope, ownerId });
+    return expected.every(
+      (note) => note && sameMemoryRevision(repo.get(botId, note.id) ?? null, note),
+    );
+  }
+
+  dreamProject(botId: string, note: Memory) {
+    if (
+      note.scope !== "bot" ||
+      note.ownerId !== botId ||
+      (note.sources?.length ?? 0) > 20 ||
+      !this.dreamCurrent(botId, "bot", botId, [note])
+    )
+      return false;
+    const ids = new Set([
+      note.sourceMessageId,
+      ...(note.sources ?? [])
+        .filter((source) => source.botId === botId)
+        .map((source) => source.messageId),
+    ]);
+    const lookup = this.db.prepare(`SELECT f.path FROM messages m
+      JOIN conversations c ON c.id=m.conversation_id
+      JOIN working_folders f ON f.id=c.workplace_folder_id AND f.bot_id=c.bot_id
+      WHERE m.id=? AND m.status='done' AND c.bot_id=? AND c.kind='dm'
+      AND m.import_id IS NULL AND c.import_id IS NULL AND c.internal_task_id IS NULL
+      AND f.location='local' AND f.hidden_at IS NULL`);
+    const folders = new Map<string, string>();
+    for (const id of ids) {
+      if (!id) continue;
+      const row = lookup.get(id, botId);
+      if (typeof row?.path === "string") folders.set(row.path, id);
+    }
+    // The owner confirms a copy into the source project's database-backed memory.
+    if (folders.size !== 1) return false;
+    const [entry] = folders;
+    if (!entry) return false;
+    const [path, sourceId] = entry;
+    const ownerId = new MemoryProjectsRepo(this.db).ensure(path).id;
+    if (
+      this.repoFor({ scope: "project", ownerId }).similar(botId, note.text) ||
+      this.db
+        .prepare(`SELECT 1 FROM scoped_memory_proposals
+          WHERE scope='project' AND owner_id=? AND action='add' AND status='pending' AND text=? LIMIT 1`)
+        .get(ownerId, this.redactor.redact(note.text))
+    )
+      return false;
+    this.execute(
+      botId,
+      sourceId,
+      {
+        tool: "memory_add",
+        args: {
+          scope: "project",
+          text: note.text,
+          category: "work",
+          why: note.why ?? undefined,
+          how: note.how ?? undefined,
+        },
+      },
+      false,
+      undefined,
+      undefined,
+      undefined,
+      ownerId,
+      true,
+    );
+    return true;
+  }
+
+  dreamChange(botId: string, proposalId: string) {
+    return this.undo.get(botId, proposalId)?.before?.text;
+  }
+
+  dreamUndo(botId: string, proposalId: string) {
+    this.active(botId);
+    const owner = { scope: "bot", ownerId: botId } as const;
+    const repo = this.repoFor(owner);
+    const proposal = repo.proposal(proposalId);
+    const snapshot = this.undo.get(botId, proposalId);
+    if (
+      !proposal ||
+      proposal.botId !== botId ||
+      proposal.scope !== "bot" ||
+      proposal.ownerId !== botId ||
+      proposal.status !== "accepted" ||
+      !snapshot?.before ||
+      snapshot.before.archivedAt ||
+      !snapshot.after?.archivedAt
+    )
+      throw new RpcError(-32011, "memory_conflict");
+    this.undoOne(proposal, repo);
+    this.audit(owner, botId, "memory_dream_undo", proposal.memoryId ?? undefined, proposalId);
+  }
+
+  dreamChanged(botId: string) {
+    this.changed(botId, "updated", undefined, undefined, { scope: "bot", ownerId: botId });
+  }
+
   /** The notes one owner would be organized over, plus the ids a reply may refer to. */
   organizationCatalog(botId: string, scope: "user" | "bot", ownerId: string) {
     this.active(botId);
@@ -942,12 +1093,22 @@ export class MemoryService {
     scope: "user" | "bot",
     ownerId: string,
     proposal: OrganizationProposal,
+    skipPending = false,
   ) {
     this.active(botId);
     const owner = this.owner(botId, scope, scope === "bot" ? botId : undefined);
     if (owner.ownerId !== ownerId) throw new RpcError(-32602, "Invalid memory owner");
     let created = 0;
     for (const input of organizationInputs(scope, proposal)) {
+      if (
+        skipPending &&
+        input.tool !== "memory_add" &&
+        this.db
+          .prepare(`SELECT 1 FROM scoped_memory_proposals
+            WHERE scope=? AND owner_id=? AND memory_id=? AND status='pending' LIMIT 1`)
+          .get(scope, ownerId, input.args.id)
+      )
+        continue;
       try {
         // Nine positional flags would be unreadable at the call site, so the intent is spelled
         // out here: no run, not automatic, and always a proposal.

@@ -232,6 +232,7 @@ export const KernelEventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("group.task"),
   eventSchema("group.paused"),
   eventSchema("memory.sortProgress"),
+  eventSchema("memory.dream.finished"),
   eventSchema("memory.changed"),
   eventSchema("memory.status.changed"),
   eventSchema("groups.resources.changed"),
@@ -467,6 +468,15 @@ export const KernelHostMethods = {
     result: AbsolutePathSchema.nullable(),
   },
   "host.skills.pickFile": { params: noParams, result: AbsolutePathSchema.nullable() },
+  "host.memoryDreamActivity": {
+    params: noParams,
+    result: z
+      .strictObject({
+        idleSeconds: z.number().nonnegative(),
+        supply: z.enum(["ac", "battery", "unknown"]),
+      })
+      .nullable(),
+  },
   "host.notify": {
     params: z.strictObject({
       title: z.string().trim().min(1).max(200),

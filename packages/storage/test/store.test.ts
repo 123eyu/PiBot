@@ -189,6 +189,9 @@ describe("database and migrations", () => {
       "managed_worktrees",
       "memories",
       "memory_aliases",
+      "memory_dream_runs",
+      "memory_dream_source_facts",
+      "memory_dream_source_watermarks",
       "memory_extractions",
       "memory_fts",
       "memory_fts_config",
@@ -270,8 +273,8 @@ describe("database and migrations", () => {
       "worktree_allocations",
     ]);
     const versions = db.prepare("SELECT * FROM schema_migrations").all();
-    expect(versions).toHaveLength(177);
-    expect(versions.at(-1)?.version).toBe(179);
+    expect(versions).toHaveLength(178);
+    expect(versions.at(-1)?.version).toBe(180);
     expect(versions[0]?.version).toBe(1);
     expect(String(versions[0]?.applied_at)).toMatch(/Z$/);
     const bot = new BotsRepo(db).ensureMainBot();

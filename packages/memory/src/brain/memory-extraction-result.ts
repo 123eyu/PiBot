@@ -42,6 +42,7 @@ export function applyExtractionCandidates(
     applied: 0,
     proposed: 0,
     reasons: {} as Record<string, number>,
+    acceptedFactProposalIds: [] as string[],
   };
   if (parsed.dropped) counts.reasons.candidate_invalid = parsed.dropped;
   const mainBot = memory.active(row.botId).isMain;
@@ -74,6 +75,13 @@ export function applyExtractionCandidates(
       const code = value.memory ? "candidate_applied" : "candidate_proposed";
       if (value.memory) {
         counts.applied++;
+        if (
+          !receipt &&
+          !row.groupId &&
+          value.proposal.status === "accepted" &&
+          (value.memory.scope === "bot" || value.memory.scope === "user")
+        )
+          counts.acceptedFactProposalIds.push(value.proposal.id);
         receipt?.notes.push({ id: value.memory.id, text: value.memory.text });
       } else {
         counts.proposed++;

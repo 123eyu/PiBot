@@ -19,6 +19,7 @@ export interface OrganizationDeps {
   healthChanged?(): void;
   statusChanged?(botId: string): void;
   isIdle(): boolean;
+  automatic?(): boolean;
   draftMemories?: (request: MemoryDraftRequest) => Promise<{
     draft: unknown;
     tokens: number;
@@ -178,7 +179,8 @@ export class MemoryOrganizationQueue {
   }
 
   private async drain() {
-    if (this.busy || this.stopped || !this.deps.isIdle()) return;
+    if (this.busy || this.stopped || this.deps.automatic?.() === false || !this.deps.isIdle())
+      return;
     this.busy = true;
     this.controller = new AbortController();
     try {

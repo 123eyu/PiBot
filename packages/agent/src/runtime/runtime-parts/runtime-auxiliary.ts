@@ -1,6 +1,7 @@
 // Executes bounded model requests for work outside the chat turn.
 import { AgentError, mapAgentError } from "../../core/errors.ts";
 import type { AgentRuntime } from "../../core/types.ts";
+import { isLoopbackHost } from "../../network/network.ts";
 import { commitDraftInstruction, parseCommitDraft } from "../commit-draft.ts";
 import { textTokens } from "../context-estimate.ts";
 import { memoryDraftInstruction, memoryDraftUsage, parseMemoryDraft } from "../memory-draft.ts";
@@ -8,6 +9,19 @@ import { draftLocalMemories } from "../memory-draft-local.ts";
 import { parsePersona, personaInstruction } from "../persona.ts";
 import type { RuntimeContext } from "../runtime.ts";
 import { parseSkillDraft, skillDraftInstruction } from "../skill-draft.ts";
+
+function localOrigin(model: { api: string; baseUrl: string }) {
+  // The OpenAI-compatible transport uses the guarded global fetch. Some native/cloud SDKs
+  // have their own networking stack, so their local-looking endpoints are refused.
+  if (model.api !== "openai-completions" || !URL.canParse(model.baseUrl)) return undefined;
+  const url = new URL(model.baseUrl);
+  return isLoopbackHost(url.hostname) &&
+    ["http:", "https:"].includes(url.protocol) &&
+    !url.username &&
+    !url.password
+    ? url.origin
+    : undefined;
+}
 
 // Keep malformed memory JSON distinct from a failed model request without carrying raw text.
 class InvalidMemoryDraft extends SyntaxError {
@@ -19,6 +33,7 @@ class InvalidMemoryDraft extends SyntaxError {
 export function createAuxiliaryOperations({
   auxiliaryModel,
   buildRuntime,
+  deps,
 }: RuntimeContext): Pick<
   AgentRuntime,
   "transformMessage" | "generatePersona" | "draftCommitMessage" | "draftSkill" | "draftMemories"
@@ -162,7 +177,7 @@ export function createAuxiliaryOperations({
       const signal = AbortSignal.any([request.signal, AbortSignal.timeout(120_000)]);
       try {
         signal.throwIfAborted();
-        if (request.localOnly) return await draftLocalMemories(request, signal);
+        if (request.useLocalOllama) return await draftLocalMemories(request, signal);
         const { runtime } = await buildRuntime();
         const instruction = request.instruction ?? memoryDraftInstruction();
         const inputTokens = textTokens(request.text) + textTokens(instruction) + 64;
@@ -173,14 +188,19 @@ export function createAuxiliaryOperations({
           "memory",
           signal,
           (candidate) =>
+            (!request.localOnly || !!localOrigin(candidate)) &&
             inputTokens +
               Math.min(
                 candidate.thinkingLevelMap?.off === null ? 3072 : 2048,
                 candidate.maxTokens,
               ) <
-            candidate.contextWindow,
+              candidate.contextWindow,
         );
         signal.throwIfAborted();
+        const origin = request.localOnly ? localOrigin(model) : undefined;
+        const network = deps.network;
+        if (request.localOnly && (!origin || !network?.withLocalModelOrigin))
+          throw new AgentError("no_model");
         const mandatoryThinking = model.reasoning && model.thinkingLevelMap?.off === null;
         const maxTokens = Math.min(mandatoryThinking ? 3072 : 2048, model.maxTokens);
         if (inputTokens + maxTokens >= model.contextWindow)
@@ -199,24 +219,28 @@ export function createAuxiliaryOperations({
         )
           throw new AgentError("budget_exhausted");
         request.onUsage?.(reserved);
-        const result = await runtime.completeSimple(
-          model,
-          {
-            systemPrompt: instruction,
-            messages: [{ role: "user", content: request.text, timestamp: Date.now() }],
-          },
-          {
-            maxTokens,
-            maxRetries: 0,
-            timeoutMs: 120_000,
-            // Providers that cannot disable thinking share this explicit allowance with the
-            // answer. The full 3072-token ceiling is included in the reservation above.
-            ...(mandatoryThinking
-              ? { reasoning: "minimal" as const, thinkingBudgets: { minimal: 1024 } }
-              : {}),
-            signal,
-          },
-        );
+        const complete = () =>
+          runtime.completeSimple(
+            model,
+            {
+              systemPrompt: instruction,
+              messages: [{ role: "user", content: request.text, timestamp: Date.now() }],
+            },
+            {
+              maxTokens,
+              maxRetries: 0,
+              timeoutMs: 120_000,
+              // Providers that cannot disable thinking share this explicit allowance with the
+              // answer. The full 3072-token ceiling is included in the reservation above.
+              ...(mandatoryThinking
+                ? { reasoning: "minimal" as const, thinkingBudgets: { minimal: 1024 } }
+                : {}),
+              signal,
+            },
+          );
+        const result = await (origin && network?.withLocalModelOrigin
+          ? network.withLocalModelOrigin(origin, complete)
+          : complete());
         const receipt = memoryDraftUsage(model, result.usage);
         const settled = { ...reserved, ...(receipt.tokens > 0 ? receipt : {}) };
         request.onUsage?.(settled);

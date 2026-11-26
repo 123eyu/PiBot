@@ -80,7 +80,7 @@ export function makeMemoryRoom(
 
 /**
  * Extraction and organization draw on one daily budget, so the cap is checked
- * against both tables. Counting only one of them would let the other double the real spend.
+ * across all maintenance workers so every run contributes to the shared limits.
  */
 export function memoryMaintenanceUsage(db: DatabaseSync, since: string) {
   const sum = (table: "memory_extractions" | "memory_organizations") =>
@@ -95,12 +95,20 @@ export function memoryMaintenanceUsage(db: DatabaseSync, since: string) {
   const imported = db
     .prepare("SELECT COALESCE(SUM(tokens),0) AS tokens FROM import_memory_usage WHERE at>=?")
     .get(since);
+  const dream = db
+    .prepare(`SELECT IFNULL(SUM(tokens),0) AS tokens, IFNULL(SUM(cost_usd),0) AS costUsd
+    FROM memory_dream_runs WHERE started_at>=?`)
+    .get(since);
   return {
     tokens:
       Number(extraction?.tokens ?? 0) +
       Number(organization?.tokens ?? 0) +
-      Number(imported?.tokens ?? 0),
-    costUsd: Number(extraction?.costUsd ?? 0) + Number(organization?.costUsd ?? 0),
+      Number(imported?.tokens ?? 0) +
+      Number(dream?.tokens ?? 0),
+    costUsd:
+      Number(extraction?.costUsd ?? 0) +
+      Number(organization?.costUsd ?? 0) +
+      Number(dream?.costUsd ?? 0),
   };
 }
 
