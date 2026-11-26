@@ -31,6 +31,8 @@ const preview = ImportCountsSchema.extend({
   source: ImportSourceSchema,
   from: z.iso.datetime().nullable(),
   through: z.iso.datetime().nullable(),
+  projectNotes: count.optional(),
+  skippedRecords: count.optional(),
   exportDetails: ExportDetailsSchema.optional(),
 });
 export type ImportPreview = z.infer<typeof preview>;
@@ -41,7 +43,16 @@ export const ImportStatusSchema = ImportCountsSchema.extend({
   state: z.enum(["running", "completed", "cancelled", "failed", "undoing", "undone"]),
   removed: ImportCountsSchema.optional(),
   reason: z
-    .enum(["source_changed", "format", "timeout", "target", "limit", "interrupted", "internal"])
+    .enum([
+      "source_changed",
+      "format",
+      "timeout",
+      "target",
+      "limit",
+      "interrupted",
+      "internal",
+      "unsupported",
+    ])
     .nullable(),
 });
 export type ImportStatus = z.infer<typeof ImportStatusSchema>;

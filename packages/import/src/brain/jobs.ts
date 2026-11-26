@@ -1,5 +1,6 @@
 // A single job owner keeps preview authorizations, progress, and cancellation consistent.
 import { randomUUID } from "node:crypto";
+import { join } from "node:path";
 import { setImmediate as yieldToLoop } from "node:timers/promises";
 import type { CapabilityContext } from "@pibot/brain/kit";
 import type {
@@ -14,6 +15,8 @@ import { adapters, ImportFailure, type ImportInput } from "./adapter.ts";
 import { ImportCleanup } from "./cleanup.ts";
 import { exportAdapter } from "./exports/index.ts";
 import { fixtureAdapter } from "./fixture.ts";
+import { configRootFor, isLocalSource, supportsLocalSources } from "./local/locations.ts";
+import { readProjectNote } from "./local/text.ts";
 import { summarize, writeRecords } from "./records.ts";
 import { selectedInput } from "./source.ts";
 
@@ -75,6 +78,8 @@ export class ImportJobs {
 
   async detect(source: ImportSource, caller: AbortSignal) {
     const signal = AbortSignal.any([caller, this.closing.signal, AbortSignal.timeout(PREVIEW_MS)]);
+    if (isLocalSource(source) && !supportsLocalSources(this.ctx.local.deps.platform))
+      return { available: false };
     for await (const available of this.adapters[source].detect(signal)) {
       signal.throwIfAborted();
       return { available: available && !!this.ctx.host.pickFile };
@@ -101,11 +106,19 @@ export class ImportJobs {
     try {
       if (!(await this.detect(source, signal)).available)
         throw new RpcError(RpcErrorCodes.unsupported, "import_source_unsupported");
-      const path = await this.ctx.host.pickFile?.(signal);
+      const path = await this.ctx.host.pickFile?.(signal, this.pickerOptions(source));
       signal.throwIfAborted();
       if (!path) return null;
-      const input = await selectedInput(this.ctx.local.deps, path, signal);
-      const summary = await summarize(this.adapters[source], input, signal);
+      const input = await selectedInput(this.ctx.local.deps, path, signal, source);
+      const summary = input.projectNote
+        ? await readProjectNote(input, signal).then(() => ({
+            topics: 0,
+            messages: 0,
+            from: null,
+            through: null,
+            projectNotes: 1,
+          }))
+        : await summarize(this.adapters[source], input, signal);
       const preview = { importId: randomUUID(), source, ...summary };
       signal.throwIfAborted();
       this.selection = { preview, input, expiresAt: Date.now() + PREVIEW_VALID_MS };
@@ -117,10 +130,22 @@ export class ImportJobs {
       signal.throwIfAborted();
       const reason = failureReason(error);
       if (reason === "internal") throw error;
-      if (reason === "format" && (source === "chatgpt" || source === "claude"))
-        throw new RpcError(RpcErrorCodes.invalidParams, `import_format_${source}`);
+      if (reason === "unsupported")
+        throw new RpcError(RpcErrorCodes.unsupported, "import_source_unsupported");
+      if (reason === "format" && source !== "fixture")
+        throw new RpcError(
+          RpcErrorCodes.invalidParams,
+          `import_format_${source.replace("-", "_")}`,
+        );
       throw new RpcError(RpcErrorCodes.invalidParams, `import_${reason}`);
     }
+  }
+
+  private pickerOptions(source: ImportSource) {
+    const { platform, userHome } = this.ctx.local.deps;
+    if (!isLocalSource(source) || !supportsLocalSources(platform)) return undefined;
+    const subdirectory = source === "codex" ? "sessions" : "projects";
+    return { defaultPath: join(configRootFor(source, platform, userHome), subdirectory) };
   }
 
   start(importId: string, botId: string) {
@@ -138,6 +163,10 @@ export class ImportJobs {
     const selection = this.selection;
     if (!selection || selection.preview.importId !== importId || Date.now() > selection.expiresAt)
       throw new RpcError(RpcErrorCodes.invalidParams, "import_preview_expired");
+    if (selection.input.projectNote)
+      throw new RpcError(RpcErrorCodes.unsupported, "import_project_notes_pending");
+    if (selection.preview.source === "gemini" && selection.preview.topics === 0)
+      throw new RpcError(RpcErrorCodes.invalidParams, "import_format_gemini");
     this.store.create(importId, selection.preview.source, botId);
     this.selection = undefined;
     const controller = new AbortController();

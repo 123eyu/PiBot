@@ -40,6 +40,7 @@ class Summary {
 export async function summarize(adapter: ImportAdapter, input: ImportInput, signal: AbortSignal) {
   const summary = new Summary();
   let pending = 0;
+  let skippedRecords = 0;
   let exportDetails: ExportDetails | undefined;
   for await (const record of adapter.preview(input, signal)) {
     signal.throwIfAborted();
@@ -49,6 +50,8 @@ export async function summarize(adapter: ImportAdapter, input: ImportInput, sign
       const { kind: _kind, ...details } = parsed.data;
       if (exportDetails) throw new ImportFailure("format");
       exportDetails = details;
+    } else if (parsed.data.kind === "skipped") {
+      skippedRecords++;
     } else {
       summary.include(parsed.data);
     }
@@ -59,6 +62,7 @@ export async function summarize(adapter: ImportAdapter, input: ImportInput, sign
     ...summary.counts,
     from: summary.from,
     through: summary.through,
+    ...(skippedRecords ? { skippedRecords } : {}),
     ...(exportDetails ? { exportDetails } : {}),
   };
 }

@@ -1,6 +1,8 @@
 // Adapters yield bounded records rather than exposing provider-specific objects to storage.
 import { ExportDetailsSchema, type ImportSource } from "@pibot/import-contract";
 import { z } from "zod";
+import { geminiAdapter } from "./local/gemini.ts";
+import { transcriptAdapter } from "./local/transcript.ts";
 
 const time = z.iso.datetime({ offset: true }).transform((value) => new Date(value).toISOString());
 export const ImportTopicSchema = z.strictObject({
@@ -25,6 +27,7 @@ const exportSummary = ExportDetailsSchema.extend({ kind: z.literal("exportSummar
 export const PreviewRecordSchema = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("topic"), createdAt: time, updatedAt: time }),
   z.strictObject({ kind: z.literal("message"), createdAt: time }),
+  z.strictObject({ kind: z.literal("skipped") }),
   exportSummary,
 ]);
 export type PreviewRecord = z.input<typeof PreviewRecordSchema>;
@@ -36,6 +39,8 @@ export interface ImportFile {
 
 export interface ImportInput {
   (signal: AbortSignal): AsyncIterable<Buffer>;
+  modifiedAt?: string;
+  projectNote?: true;
   file?(signal: AbortSignal): AsyncIterable<ImportFile>;
 }
 
@@ -47,7 +52,7 @@ export interface ImportAdapter {
 }
 
 export class ImportFailure extends Error {
-  constructor(readonly reason: "source_changed" | "format" | "target" | "limit") {
+  constructor(readonly reason: "source_changed" | "format" | "target" | "limit" | "unsupported") {
     super(reason);
   }
 }
@@ -57,25 +62,13 @@ export function adapters(
   chatgpt: ImportAdapter,
   claude: ImportAdapter,
 ): Record<ImportSource, ImportAdapter> {
-  const unsupported: ImportAdapter = {
-    async *detect(signal) {
-      signal.throwIfAborted();
-      yield false;
-    },
-    preview() {
-      throw new ImportFailure("format");
-    },
-    read() {
-      throw new ImportFailure("format");
-    },
-  };
   return {
     fixture,
     chatgpt,
     claude,
-    "claude-code": unsupported,
-    codex: unsupported,
-    cursor: unsupported,
-    gemini: unsupported,
+    "claude-code": transcriptAdapter("claude-code"),
+    codex: transcriptAdapter("codex"),
+    cursor: transcriptAdapter("cursor"),
+    gemini: geminiAdapter,
   };
 }
