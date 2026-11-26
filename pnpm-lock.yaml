@@ -165,7 +165,7 @@ settings:
 patchedDependencies:
   '@anthropic-ai/sandbox-runtime@0.0.81': b30ed35336aede795bedd4e651cc54d3c93b818bd38dd5051c778daae26a9f12
   '@earendil-works/pi-ai@1.6.0': a057829c03b50bf159f00e3235c547dce15482cef944cc9e6d7faeb61e2552cd
-  '@earendil-works/pi-coding-agent@1.6.0': b6c61ed47733bae0a1bcd9e90080701e15fcd43cd2c6fe97da633cffb1f2e469
+  '@earendil-works/pi-coding-agent@1.6.0': 4dad690feecc6ac92f6b4e3f96b4559634fed99bdde9a9be02f8cf7bdb2df35f
   '@google/genai@2.32.0': f6fe117a0e486668b90609e51a236c3e3bba235323bbe4070346fa9d832dc5ac
   react-native-webrtc@155.0.1: 27113f8e7a6de1306d9235b43dd257cb22e07d63bbe0b85c9bbe25fef00d34cc
 
@@ -235,7 +235,7 @@ importers:
         version: 1.6.0(patch_hash=a057829c03b50bf159f00e3235c547dce15482cef944cc9e6d7faeb61e2552cd)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(undici@8.10.2)(ws@8.22.0)(zod@4.6.5)
       '@earendil-works/pi-coding-agent':
         specifier: 1.6.0
-        version: 1.6.0(patch_hash=b6c61ed47733bae0a1bcd9e90080701e15fcd43cd2c6fe97da633cffb1f2e469)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(ws@8.22.0)(zod@4.6.5)
+        version: 1.6.0(patch_hash=4dad690feecc6ac92f6b4e3f96b4559634fed99bdde9a9be02f8cf7bdb2df35f)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(ws@8.22.0)(zod@4.6.5)
       '@google/genai':
         specifier: 2.32.0
         version: 2.32.0(patch_hash=f6fe117a0e486668b90609e51a236c3e3bba235323bbe4070346fa9d832dc5ac)(supports-color@7.2.0)
@@ -809,7 +809,7 @@ importers:
         version: 1.6.0(patch_hash=a057829c03b50bf159f00e3235c547dce15482cef944cc9e6d7faeb61e2552cd)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(undici@8.12.4)(ws@8.22.0)(zod@4.6.5)
       '@earendil-works/pi-coding-agent':
         specifier: 1.6.0
-        version: 1.6.0(patch_hash=b6c61ed47733bae0a1bcd9e90080701e15fcd43cd2c6fe97da633cffb1f2e469)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(ws@8.22.0)(zod@4.6.5)
+        version: 1.6.0(patch_hash=4dad690feecc6ac92f6b4e3f96b4559634fed99bdde9a9be02f8cf7bdb2df35f)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(ws@8.22.0)(zod@4.6.5)
       '@google/genai':
         specifier: 2.32.0
         version: 2.32.0(patch_hash=f6fe117a0e486668b90609e51a236c3e3bba235323bbe4070346fa9d832dc5ac)(supports-color@7.2.0)
@@ -10025,7 +10025,7 @@ snapshots:
     dependencies:
       quickjs-wasi: 3.6.2
 
-  '@earendil-works/pi-coding-agent@1.6.0(patch_hash=b6c61ed47733bae0a1bcd9e90080701e15fcd43cd2c6fe97da633cffb1f2e469)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(ws@8.22.0)(zod@4.6.5)':
+  '@earendil-works/pi-coding-agent@1.6.0(patch_hash=4dad690feecc6ac92f6b4e3f96b4559634fed99bdde9a9be02f8cf7bdb2df35f)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(ws@8.22.0)(zod@4.6.5)':
     dependencies:
       '@earendil-works/pi-agent-core': 1.6.0(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(undici@8.12.4)(ws@8.22.0)(zod@4.6.5)
       '@earendil-works/pi-ai': 1.6.0(patch_hash=a057829c03b50bf159f00e3235c547dce15482cef944cc9e6d7faeb61e2552cd)(@aws-sdk/credential-provider-node@3.972.84)(@smithy/signature-v4@5.7.4)(google-auth-library@10.9.1(supports-color@7.2.0))(supports-color@7.2.0)(undici@8.12.4)(ws@8.22.0)(zod@4.6.5)
