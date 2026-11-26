@@ -1,4 +1,4 @@
-/** Settings for selecting the user's browser and showing extension health. */
+// Lets users choose the browser route and check the extension connection.
 import type { BrowserExtensionStatusSchema } from "@pibot/protocol";
 import {
   SettingsPage,
@@ -31,21 +31,33 @@ export function BrowserSettings() {
   const [status, setStatus] = useState<BrowserExtensionStatus>();
   useEffect(() => {
     if (!peer) return;
-    let active = true;
-    void peer
-      .call("browserExtension.status", {})
-      .then((value) => {
-        if (active) setStatus(value);
-      })
-      // An unavailable status leaves the rows disabled; the changed event fills them later.
-      .catch(() => {
-        if (active) setStatus(undefined);
-      });
+    let pending: AbortController | undefined;
+    const refresh = () => {
+      pending?.abort();
+      const request = new AbortController();
+      pending = request;
+      const signal = AbortSignal.any([request.signal, AbortSignal.timeout(5_000)]);
+      void peer
+        .call("browserExtension.status", {}, { signal })
+        .then((value) => {
+          if (!request.signal.aborted) setStatus(value);
+        })
+        .catch(() => {
+          // Leave the last status visible during a temporary failure.
+        });
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
     return () => {
-      active = false;
+      window.removeEventListener("focus", refresh);
+      pending?.abort();
     };
   }, [peer]);
   useRpcEvent("browserExtension.changed", setStatus);
+  useRpcEvent("settings.changed", ({ browserExtensionPreference }) => {
+    if (!browserExtensionPreference) return;
+    setStatus((current) => current && { ...current, preference: browserExtensionPreference });
+  });
   const disabled = !peer || task.busy || !status;
   const change = (preference: "user" | "bot") => {
     if (!peer) return;
@@ -75,7 +87,11 @@ export function BrowserSettings() {
           icon="plug"
           tone="teal"
           label={t("settings.browserExtension")}
-          note={extensionLabel}
+          note={
+            status?.defaultBrowser?.id === "edge" && extension !== "connected"
+              ? t("settings.browserExtensionStatus.edgeNotListed")
+              : extensionLabel
+          }
           dot={STATUS_TONES[extension]}
         />
         <SettingsRow icon="shield" tone="violet" label={t("settings.browserPreference")}>

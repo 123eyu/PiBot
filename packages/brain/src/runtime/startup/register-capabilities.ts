@@ -1,3 +1,4 @@
+// Supplies the runtime ports and shared services used by brain capabilities.
 import {
   type createPeer,
   type EventTable,
@@ -180,8 +181,6 @@ export async function registerCapabilities(ctx: StartupContext) {
           background: ctx.capabilities.background,
           googleCompat: { enabled: (scope) => ctx.capabilities.googleCompat.enabled(scope) },
           userBrowser: {
-            // v0.0.3 (maintainers 2026-11-19): the extension is still in store review, so the Bot browser
-            // is the default and the user's own browser is an opt-in in Settings › Browser.
             preferred: () => new SettingsRepo(ctx.db).get().browserExtensionPreference === "user",
           },
           privateNetwork: ctx.capabilities.privateNetwork,

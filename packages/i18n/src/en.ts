@@ -1,3 +1,4 @@
+// Assembles the English strings for the shared interface.
 import { botBrowserEn, browserDebugEn } from "@pibot/browser-contract/i18n";
 import {
   computerGuardEn,
@@ -241,7 +242,8 @@ const common = {
   "settings.browserUnknown": "Unknown",
   "settings.browserExtension": "Pi Bot extension",
   "settings.browserExtensionStatus.connected": "Connected",
-  "settings.browserExtensionStatus.installed": "Installed but not connected",
+  "settings.browserExtensionStatus.installed": "Disconnected (previously connected)",
+  "settings.browserExtensionStatus.edgeNotListed": "Not yet listed in Microsoft Edge Add-ons",
   "settings.browserExtensionStatus.not_installed": "Not installed",
   "settings.browserExtensionStatus.unsupported": "Unsupported",
   "settings.browserPreference": "Use browser",

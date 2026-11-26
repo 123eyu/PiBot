@@ -1,3 +1,4 @@
+// Assembles the Simplified Chinese strings for the shared interface.
 import { botBrowserZh, browserDebugZh } from "@pibot/browser-contract/i18n";
 import {
   computerGuardZh,
@@ -223,7 +224,8 @@ const common = {
   "settings.browserUnknown": "未知",
   "settings.browserExtension": "Pi Bot 插件",
   "settings.browserExtensionStatus.connected": "已连接",
-  "settings.browserExtensionStatus.installed": "已安装但未连接",
+  "settings.browserExtensionStatus.installed": "未连接（以前连接过）",
+  "settings.browserExtensionStatus.edgeNotListed": "尚未在 Microsoft Edge 加载项商店上架",
   "settings.browserExtensionStatus.not_installed": "未安装",
   "settings.browserExtensionStatus.unsupported": "不支持",
   "settings.browserPreference": "使用方式",

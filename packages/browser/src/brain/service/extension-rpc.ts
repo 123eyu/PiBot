@@ -1,10 +1,16 @@
+// Keeps browser extension settings and owner reports on the brain RPC boundary.
 import type { CapabilityContext } from "@pibot/brain/kit";
 import {
   type BrowserExtensionStatusSchema,
   RpcError,
   RpcErrorCodes,
 } from "@pibot/browser-contract/full";
-import { ChatNoticesRepo, RunsRepo, SettingsRepo } from "@pibot/storage";
+import {
+  ChatNoticesRepo,
+  DEFAULT_BROWSER_EXTENSION_PREFERENCE,
+  RunsRepo,
+  SettingsRepo,
+} from "@pibot/storage";
 import type { z } from "zod";
 
 type Status = z.infer<typeof BrowserExtensionStatusSchema>;
@@ -19,9 +25,9 @@ export function registerExtensionRpc(
   handle: CapabilityContext["rpc"]["handle"],
   ctx: Pick<CapabilityContext, "db" | "peer" | "logger" | "host" | "local">,
 ) {
+  const settings = new SettingsRepo(ctx.db);
   const preference = () =>
-    // Unset means the Bot browser until the extension is in the stores (maintainers 2026-11-19).
-    new SettingsRepo(ctx.db).get().browserExtensionPreference === "user" ? "user" : "bot";
+    settings.get().browserExtensionPreference ?? DEFAULT_BROWSER_EXTENSION_PREFERENCE;
   const status = async (signal: AbortSignal): Promise<Status> => {
     const host = ctx.host.browser;
     const desktop = host
@@ -31,8 +37,8 @@ export function registerExtensionRpc(
   };
   handle("browserExtension.status", (_params, { signal }) => status(signal));
   handle("browserExtension.setPreference", async ({ preference: next }, { signal }) => {
-    new SettingsRepo(ctx.db).set({ browserExtensionPreference: next });
-    ctx.peer.emit("settings.changed", new SettingsRepo(ctx.db).get());
+    const saved = settings.set({ browserExtensionPreference: next });
+    ctx.peer.emit("settings.changed", saved);
     await ctx.host.browser?.call(
       "host.browser.extensionRegister",
       { enabled: next === "user" },
@@ -42,7 +48,7 @@ export function registerExtensionRpc(
     ctx.peer.emit("browserExtension.changed", value);
     return value;
   });
-  handle("browserExtension.fallback", async ({ botId, runId }) => {
+  handle("browserExtension.fallback", async ({ botId, runId }, { signal }) => {
     const run = new RunsRepo(ctx.db).get(runId);
     if (!run || run.botId !== botId)
       throw new RpcError(RpcErrorCodes.invalidParams, "browser_extension_unknown_run");
@@ -50,7 +56,13 @@ export function registerExtensionRpc(
       conversationId: run.conversationId,
       botId,
     });
-    if (notice) ctx.peer.emit("chat.notice", notice);
+    if (notice) {
+      ctx.peer.emit("chat.notice", notice);
+    } else {
+      // A topic reuses its install card, so refresh it if the extension went away again.
+      const value = await status(AbortSignal.any([signal, AbortSignal.timeout(5_000)]));
+      if (!signal.aborted) ctx.peer.emit("browserExtension.changed", value);
+    }
     return { ok: true as const };
   });
   handle("browserExtension.record", async ({ botId, runId, browser, action, domain }) => {

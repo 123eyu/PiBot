@@ -92,7 +92,16 @@ If the card shows a process without a port, check the output for a port conflict
 
 Background commands run for up to 2 hours by default (Settings › General › Background commands › Total time limit), and also end when you stop them, delete the chat, archive the Bot or quit the app. They may only listen on this computer (127.0.0.1). Starting one always needs your approval.
 
-## The Bot's browser
+## Choose a browser
+
+Pi Bot prefers your browser by default. If you use Chrome or Firefox, install the Pi Bot Browser extension from its store. In Firefox, also allow website access from the extension button.
+
+- [Chrome Web Store](https://chromewebstore.google.com/detail/jfaelafpdicbnlnbngicngehehafpmbk)
+- [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/pibot-browser/)
+
+Once the extension connects, Bots can use your existing sign-ins in dedicated tabs. Site access and form submissions still follow Pi Bot's permissions and approvals. When the extension is disconnected, tasks continue in the Bot browser. The extension is not yet listed in Microsoft Edge Add-ons. To always use the isolated browser, choose **Use only Pi Bot's built-in Bot browser** in Settings › Browser.
+
+### The Bot's browser
 
 Click **Browser** at the top of the chat to open the Bot browser panel and watch the page the Bot is looking at.
 
@@ -103,7 +112,7 @@ Click **Browser** at the top of the chat to open the Bot browser panel and watch
 - The sidebar view updates at up to 2 frames per second, 5 when enlarged or taken over, and none while hidden. Pages close after 10 minutes unused.
 - By default the Bot browser can't open this computer's or private network addresses; a local preview the Bot started itself opens from **Open … in Bot browser** on the background command card.
 
-### View a page, take over, and give control back
+#### View a page, take over, and give control back in the Bot browser
 
 1. Send a public URL in chat and ask the Bot to open it. Review the domain if prompted. For a local preview, use the background command card.
 2. Select Browser at the top of the chat. Check the address, tab and page in the side panel. Use Full screen for a larger view.

@@ -22,6 +22,8 @@ export type Bot = KernelMethodResults["bots.list"][number];
 export type Message = KernelMethodResults["chat.history"][number];
 export type JsonValue = Message["usage"];
 
+export const DEFAULT_BROWSER_EXTENSION_PREFERENCE = "user";
+
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   defaultModel: null,
   auxiliaryModel: null,
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   language: "system",
   theme: "system",
   onboardingCompleted: false,
+  browserExtensionPreference: DEFAULT_BROWSER_EXTENSION_PREFERENCE,
   openAtLogin: false,
   showTrayIcon: true,
   closeToTrayHintShown: false,

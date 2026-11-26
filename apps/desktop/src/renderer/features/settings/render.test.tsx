@@ -1,3 +1,4 @@
+// Checks the desktop welcome and settings surfaces in both UI languages.
 import { createTranslator, type Language } from "@pibot/i18n";
 import { ProviderForm, type Task } from "@pibot/models/ui";
 import type { Provider, Settings } from "@pibot/protocol";
@@ -111,8 +112,8 @@ describe("welcome and settings static rendering", () => {
       const t = createTranslator(language);
       const html = render(<SettingsScreen section="general" onClose={() => {}} />);
       const nav = html.match(/<nav[\s\S]*?<\/nav>/)?.[0] ?? "";
-      // v0.0.3 hides the Browser page until the extension store reviews pass.
-      expect(nav.match(/<button/g)).toHaveLength(6);
+      expect(nav.match(/<button/g)).toHaveLength(7);
+      expect(nav).toContain(t("settings.browser"));
       expect(nav).toContain(t("settings.general"));
       expect(nav).toContain(t("settings.models").replaceAll("&", "&amp;"));
       expect(html).toContain(t("setup.close"));
