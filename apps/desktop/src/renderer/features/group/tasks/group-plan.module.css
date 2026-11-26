@@ -113,6 +113,21 @@
 .step {
   position: relative;
 }
+/* A step task is short Markdown (bullet points); keep it as tight as the card's other lines. */
+.stepTask {
+  overflow-wrap: anywhere;
+}
+.stepTask ul {
+  list-style: disc;
+}
+.stepTask ol {
+  list-style: decimal;
+}
+.stepTask ul,
+.stepTask ol {
+  margin: 4px 0;
+  padding-inline-start: 18px;
+}
 .steps > li > .step {
   margin-top: 8px;
 }

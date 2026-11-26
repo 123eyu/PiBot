@@ -8,6 +8,7 @@ import { visibleTaskText } from "@pibot/protocol-base";
 import { BotAvatar, useRpc, useT } from "@pibot/renderer-kit";
 import { Button, Chip } from "@pibot/ui";
 import { useEffect, useRef, useState } from "react";
+import { Markdown } from "../../chat/messages/Markdown.tsx";
 import { RelaxationDetails } from "../../receipt/RelaxationDetails.tsx";
 import type { GroupSnapshot } from "../data.ts";
 import { GroupPlanProgressView } from "./GroupPlanProgress.tsx";
@@ -63,7 +64,9 @@ function StepItem({
         size={22}
       />
       <b>{step.title}</b> · {owner?.name ?? t("group.member")}
-      <p>{visibleTaskText(step.task)}</p>
+      <div className={styles.stepTask}>
+        <Markdown text={visibleTaskText(step.task)} />
+      </div>
       {!!step.dependsOn.length && (
         <p>
           {t("group.plan.depends", {

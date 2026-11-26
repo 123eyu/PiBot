@@ -117,6 +117,7 @@ export * from "./groups/plan-relaxation.ts";
 export * from "./groups/plan-start-failure.ts";
 export * from "./groups/plan-tool-input.ts";
 export * from "./groups/resources.ts";
+export * from "./groups/task-brief.ts";
 export * from "./groups/topic-workplace.ts";
 export * from "./groups/topics.ts";
 export * from "./groups/verification.ts";

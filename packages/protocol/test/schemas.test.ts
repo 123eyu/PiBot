@@ -1673,6 +1673,12 @@ const methodCases = {
     badParams: {},
     badResult: [],
   },
+  "groups.tasks.brief": {
+    params: { groupId: id, taskId: id },
+    result: null,
+    badParams: { groupId: id },
+    badResult: { step: {} },
+  },
   "groups.tasks.execution": {
     params: { groupId: id, taskId: id },
     result: { items: [], nextBefore: null, checkpoint: null, resultMessageId: null },

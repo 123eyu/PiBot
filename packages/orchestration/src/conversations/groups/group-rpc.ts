@@ -6,6 +6,7 @@ import { GroupAcpRuntime } from "./group-acp-runtime.ts";
 import { planProgress, stopPlan } from "./group-plan-progress.ts";
 import { planTemplateDocument } from "./group-plan-template.ts";
 import type { GroupService } from "./group-service.ts";
+import { taskBrief } from "./group-task-brief.ts";
 
 export function registerGroupRpc(handle: KernelRegisterRpc, groups: GroupService, runs: RunsRepo) {
   const acp = new GroupAcpRuntime(groups);
@@ -137,6 +138,9 @@ export function registerGroupRpc(handle: KernelRegisterRpc, groups: GroupService
     get(params.groupId);
     return new GroupTaskExecutionRepo(groups.deps.db).page(params);
   });
+  handle("groups.tasks.brief", (params, { signal }) =>
+    taskBrief(groups, get(params.groupId), params, signal),
+  );
   handle("groups.tasks.summary", async (params) => {
     get(params.groupId);
     return groups.tasks.summary(params);
