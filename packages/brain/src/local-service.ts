@@ -221,6 +221,9 @@ export class LocalService {
   get memoryExtraction() {
     return this.memoryProvider?.extraction;
   }
+  get memoryImportDistillation() {
+    return this.memoryProvider?.importDistillation;
+  }
   get memory() {
     if (!this.memoryProvider) throw new RpcError(RpcErrorCodes.unsupported, "memory_unavailable");
     return this.memoryProvider.personal;

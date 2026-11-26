@@ -4,6 +4,7 @@ import type { AgentRuntime } from "../../core/types.ts";
 import { commitDraftInstruction, parseCommitDraft } from "../commit-draft.ts";
 import { textTokens } from "../context-estimate.ts";
 import { memoryDraftInstruction, memoryDraftUsage, parseMemoryDraft } from "../memory-draft.ts";
+import { draftLocalMemories } from "../memory-draft-local.ts";
 import { parsePersona, personaInstruction } from "../persona.ts";
 import type { RuntimeContext } from "../runtime.ts";
 import { parseSkillDraft, skillDraftInstruction } from "../skill-draft.ts";
@@ -161,6 +162,7 @@ export function createAuxiliaryOperations({
       const signal = AbortSignal.any([request.signal, AbortSignal.timeout(120_000)]);
       try {
         signal.throwIfAborted();
+        if (request.localOnly) return await draftLocalMemories(request, signal);
         const { runtime } = await buildRuntime();
         const instruction = request.instruction ?? memoryDraftInstruction();
         const inputTokens = textTokens(request.text) + textTokens(instruction) + 64;

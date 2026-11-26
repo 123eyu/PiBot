@@ -1,6 +1,7 @@
 // Registers memory services and owns the lifetime of the maintenance workers.
 import type { BrainCapability } from "@pibot/brain/kit";
 import { registerGroupMemoryRpc } from "./group-memory-service.ts";
+import { createImportDistillation } from "./import-distillation.ts";
 import { MemoryExtractionQueue } from "./memory-extraction-queue.ts";
 import { registerMemoryImport } from "./memory-import.ts";
 import { registerMemoryStatus } from "./memory-maintenance-status.ts";
@@ -26,6 +27,10 @@ export function memoryCapability(): BrainCapability {
       // other as busy. Two parallel model calls would double the burst on a small local model and
       // make the shared daily budget overshoot before either result is written.
       let extraction: MemoryExtractionQueue | undefined;
+      const importDistillation = createImportDistillation(
+        ctx,
+        () => ctx.chat.queue.isIdle() && organization.idle() && (extraction?.idle() ?? true),
+      );
       const healthChanged = () => ctx.peer.emit("inbox.changed", {});
       const organization = new MemoryOrganizationQueue({
         db: ctx.db,
@@ -34,7 +39,8 @@ export function memoryCapability(): BrainCapability {
         memory,
         healthChanged,
         statusChanged,
-        isIdle: () => ctx.chat.queue.isIdle() && (extraction?.idle() ?? true),
+        isIdle: () =>
+          ctx.chat.queue.isIdle() && (extraction?.idle() ?? true) && importDistillation.idle(),
         draftMemories: ctx.agent.draftMemories?.bind(ctx.agent),
       });
       ctx.rpc.handle("memory.sortIntoPlace", async ({ runId }, { signal }) =>
@@ -53,7 +59,7 @@ export function memoryCapability(): BrainCapability {
         memory,
         healthChanged,
         statusChanged,
-        isIdle: () => organization.idle(),
+        isIdle: () => organization.idle() && importDistillation.idle(),
         isBotIdle: (botId, correction) => ctx.chat.queue.isBotIdle(botId, correction),
         onAvailable: (listener) => ctx.chat.queue.onAvailable(listener),
         publishReply: (message, botId) => {
@@ -96,6 +102,7 @@ export function memoryCapability(): BrainCapability {
       const releasePort = ctx.memory.provide({
         personal: memory,
         extraction,
+        importDistillation,
         group: { prompt: (groupId, botId, request) => memory.groupPrompt(groupId, botId, request) },
       });
       const releaseTools = (["memory_add", "memory_update", "memory_remove"] as const).map((tool) =>

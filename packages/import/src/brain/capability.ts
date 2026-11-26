@@ -25,10 +25,31 @@ export function importCapability(): BrainCapability {
         desktop(request.source);
         return jobs.preview(source, request.signal);
       });
-      handle("import.start", ({ importId, botId }: ImportParams<"import.start">, request) => {
+      handle("import.reviewMemories", (params: ImportParams<"import.reviewMemories">, request) => {
         desktop(request.source);
-        return jobs.start(importId, botId);
+        return jobs.reviews.review(params, request.signal);
       });
+      handle(
+        "import.estimateDistillation",
+        (params: ImportParams<"import.estimateDistillation">, request) => {
+          desktop(request.source);
+          return jobs.reviews.estimateDistillation(params);
+        },
+      );
+      handle(
+        "import.reviewProject",
+        ({ importId }: ImportParams<"import.reviewProject">, request) => {
+          desktop(request.source);
+          return jobs.reviews.reviewProject(importId, request.signal);
+        },
+      );
+      handle(
+        "import.start",
+        ({ importId, botId, ...options }: ImportParams<"import.start">, request) => {
+          desktop(request.source);
+          return jobs.start(importId, botId, options);
+        },
+      );
       handle("import.status", ({ importId }: ImportParams<"import.status">, request) => {
         desktop(request.source);
         return jobs.status(importId);

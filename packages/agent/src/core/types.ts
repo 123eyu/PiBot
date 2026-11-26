@@ -324,6 +324,8 @@ export interface SkillDraftRequest {
 /** Conversation text or a note catalog, already redacted by brain. */
 export interface MemoryDraftRequest {
   text: string;
+  /** Explicit import distillation uses the local-only Ollama transport, with no model fallback. */
+  localOnly?: true;
   /** Replaces the extraction instruction; both share the same model and cost path. */
   instruction?: string;
   model: { provider: string; id: string };

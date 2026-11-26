@@ -90,8 +90,14 @@ export function memoryMaintenanceUsage(db: DatabaseSync, since: string) {
       .get(since);
   const extraction = sum("memory_extractions");
   const organization = sum("memory_organizations");
+  const imported = db
+    .prepare("SELECT COALESCE(SUM(tokens),0) AS tokens FROM import_memory_usage WHERE at>=?")
+    .get(since);
   return {
-    tokens: Number(extraction?.tokens ?? 0) + Number(organization?.tokens ?? 0),
+    tokens:
+      Number(extraction?.tokens ?? 0) +
+      Number(organization?.tokens ?? 0) +
+      Number(imported?.tokens ?? 0),
     costUsd: Number(extraction?.costUsd ?? 0) + Number(organization?.costUsd ?? 0),
   };
 }

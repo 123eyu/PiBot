@@ -454,6 +454,19 @@ const methodCases = {
     badResult: {},
   },
   "import.preview": { params: { source: "fixture" }, result: null, badParams: {}, badResult: {} },
+  "import.reviewMemories": {
+    params: { importId: id, botId: id, scope: "user" },
+    result: { reviewId: id, items: [], omitted: 0 },
+    badParams: {},
+    badResult: {},
+  },
+  "import.estimateDistillation": {
+    params: { importId: id, botId: id },
+    result: null,
+    badParams: {},
+    badResult: {},
+  },
+  "import.reviewProject": { params: { importId: id }, result: null, badParams: {}, badResult: {} },
   "import.start": {
     params: { importId: id, botId: id },
     result: importStatus,

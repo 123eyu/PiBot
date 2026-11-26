@@ -177,6 +177,10 @@ describe("database and migrations", () => {
       "image_artifacts",
       "image_workspace_receipts",
       "import_jobs",
+      "import_memories",
+      "import_memory_usage",
+      "import_personas",
+      "import_project_files",
       "knowledge_assignments",
       "knowledge_managed_installations",
       "knowledge_sources",
@@ -264,7 +268,8 @@ describe("database and migrations", () => {
       "worktree_allocations",
     ]);
     const versions = db.prepare("SELECT * FROM schema_migrations").all();
-    expect(versions).toHaveLength(175);
+    expect(versions).toHaveLength(176);
+    expect(versions.at(-1)?.version).toBe(178);
     expect(versions[0]?.version).toBe(1);
     expect(String(versions[0]?.applied_at)).toMatch(/Z$/);
     const bot = new BotsRepo(db).ensureMainBot();

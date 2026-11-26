@@ -1,5 +1,5 @@
 // Desktop clients and the import worker share a content-free preview and progress contract.
-import { IdSchema } from "@pibot/protocol-base";
+import { IdSchema, MemoryCategorySchema, MemorySchema } from "@pibot/protocol-base";
 import { z } from "zod";
 
 export const ImportSourceSchema = z.enum([
@@ -14,6 +14,21 @@ export const ImportSourceSchema = z.enum([
 export type ImportSource = z.infer<typeof ImportSourceSchema>;
 
 const count = z.number().int().nonnegative().safe();
+const memoryScope = z.enum(["user", "bot", "persona"]);
+const memoryChoice = z.strictObject({
+  id: IdSchema,
+  text: MemorySchema.shape.text,
+  category: MemoryCategorySchema,
+  outcome: z.enum(["add", "duplicate", "conflict"]),
+  existingText: MemorySchema.shape.text.optional(),
+});
+const memoryReview = z.strictObject({
+  reviewId: IdSchema,
+  items: z.array(memoryChoice).max(100),
+  omitted: count,
+  personaBefore: z.string().max(100_000).optional(),
+});
+export type ImportMemoryReview = z.infer<typeof memoryReview>;
 export const ImportCountsSchema = z.strictObject({ topics: count, messages: count });
 export type ImportCounts = z.infer<typeof ImportCountsSchema>;
 
@@ -42,6 +57,10 @@ export const ImportStatusSchema = ImportCountsSchema.extend({
   source: ImportSourceSchema,
   state: z.enum(["running", "completed", "cancelled", "failed", "undoing", "undone"]),
   removed: ImportCountsSchema.optional(),
+  memories: count.optional(),
+  persona: z.literal(true).optional(),
+  projectFile: z.enum(["AGENTS.md"]).optional(),
+  keptProjectFile: z.enum(["AGENTS.md"]).optional(),
   reason: z
     .enum([
       "source_changed",
@@ -51,6 +70,10 @@ export const ImportStatusSchema = ImportCountsSchema.extend({
       "limit",
       "interrupted",
       "internal",
+      "memory_conflict",
+      "memory_quota",
+      "distillation",
+      "project",
       "unsupported",
     ])
     .nullable(),
@@ -59,11 +82,53 @@ export type ImportStatus = z.infer<typeof ImportStatusSchema>;
 
 const importId = z.strictObject({ importId: IdSchema });
 const source = z.strictObject({ source: ImportSourceSchema });
+const distillationQuote = z.strictObject({
+  quoteId: IdSchema,
+  modelId: z.string().min(1).max(256),
+  maxTokens: count,
+  costUsd: z.literal(0),
+});
 
 export const ImportMethods = {
   "import.detect": { params: source, result: z.strictObject({ available: z.boolean() }) },
   "import.preview": { params: source, result: preview.nullable() },
-  "import.start": { params: importId.extend({ botId: IdSchema }), result: ImportStatusSchema },
+  "import.reviewMemories": {
+    params: importId.extend({ botId: IdSchema, scope: memoryScope }),
+    result: memoryReview,
+  },
+  "import.estimateDistillation": {
+    params: importId.extend({ botId: IdSchema }),
+    result: distillationQuote.nullable(),
+  },
+  "import.reviewProject": {
+    params: importId,
+    result: z
+      .strictObject({
+        reviewId: IdSchema,
+        file: z.literal("AGENTS.md"),
+        folder: z.string().min(1).max(4096),
+        diff: z.string().max(30_000),
+      })
+      .nullable(),
+  },
+  "import.start": {
+    params: importId.extend({
+      botId: IdSchema,
+      conversations: z.boolean().optional(),
+      distillationQuoteId: IdSchema.optional(),
+      projectReviewId: IdSchema.optional(),
+      memoryReview: z
+        .strictObject({
+          reviewId: IdSchema,
+          selected: z.array(IdSchema).max(100),
+        })
+        .optional(),
+      personaReview: z
+        .strictObject({ reviewId: IdSchema, selected: z.array(IdSchema).max(100) })
+        .optional(),
+    }),
+    result: ImportStatusSchema,
+  },
   "import.status": { params: importId, result: ImportStatusSchema },
   "import.cancel": { params: importId, result: ImportStatusSchema },
   "import.undo": { params: importId, result: ImportStatusSchema },

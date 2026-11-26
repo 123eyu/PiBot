@@ -133,6 +133,7 @@ export function toolFingerprint(prepared: PreparedTool, authorization = prepared
     prepared.secretUses,
     prepared.browserSecretUses,
     prepared.memorySafety,
+    prepared.projectNotesWrite,
     gitConfigurationFingerprint(prepared.gitConfiguration),
     gitHookFingerprint(prepared.gitHook),
     gitEntriesFingerprint(prepared.gitEntries),
@@ -211,8 +212,12 @@ async function prepareToolCurrent(
   await local.endpoints?.prepare?.(input.tool, context, signal);
   local.endpoints?.check(input.tool, context);
   const primary = workplace.boundary.roots.find((root) => root.role === "primary");
+  const projectChange = context.projectNotesChange;
+  if (projectChange && (call.id !== projectChange.callId || input.tool !== "write_file"))
+    throw new RpcError(RpcErrorCodes.invalidParams, "project_notes_invalid");
   const projectEdit =
-    input.tool === "project_notes" ? projectNotesEdit(input.args, context.language) : undefined;
+    projectChange ??
+    (input.tool === "project_notes" ? projectNotesEdit(input.args, context.language) : undefined);
   if (projectEdit && (!primary || workplace.boundary.location?.target.startsWith("acp:")))
     throw new RpcError(RpcErrorCodes.unsupported, "project_notes_unsupported");
   const projectPath =
@@ -996,6 +1001,7 @@ async function prepareToolCurrent(
     browserSecretUses.length,
   );
   return {
+    ...(projectChange ? { projectNotesWrite: { expectedHash: projectChange.expectedHash } } : {}),
     ...(browserSecretUses.length ? { browserSecretUses } : {}),
     ...(gitConfiguration ? { gitConfiguration } : {}),
     ...(gitHook ? { gitHook } : {}),

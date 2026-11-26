@@ -68,6 +68,15 @@ export interface MemoryExtractionPort {
 
 export interface MemoryPort {
   extraction?: MemoryExtractionPort;
+  importDistillation?: ImportDistillationPort;
   personal: PersonalMemoryPort;
   group: GroupMemoryPort;
+}
+
+export interface ImportDistillationPort {
+  estimate(botId: string): { modelId: string; maxTokens: number; costUsd: 0 } | undefined;
+  run(
+    request: { importId: string; botId: string; modelId: string; text: string },
+    signal: AbortSignal,
+  ): Promise<Array<{ text: string; category: NonNullable<Memory["category"]> }>>;
 }

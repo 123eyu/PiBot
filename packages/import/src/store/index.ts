@@ -3,6 +3,10 @@ import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { type ImportStatus, ImportStatusSchema } from "@pibot/import-contract";
 import { AuditRepo, transaction } from "@pibot/storage";
+import { ImportFailure } from "./failure.ts";
+import { ImportMemories } from "./memories.ts";
+import { ImportPersonas } from "./personas.ts";
+import { ImportProjects } from "./projects.ts";
 
 type ImportedTopic = {
   title: string;
@@ -23,12 +27,18 @@ const DELETE_WORK_MS = 18;
 
 export class ImportStore {
   private readonly audit: AuditRepo;
+  readonly memories: ImportMemories;
+  readonly personas: ImportPersonas;
+  readonly projects: ImportProjects;
 
   constructor(
     private readonly db: DatabaseSync,
     redactor: ConstructorParameters<typeof AuditRepo>[1],
   ) {
     this.audit = new AuditRepo(db, redactor);
+    this.memories = new ImportMemories(db, (text) => redactor.redact(text));
+    this.personas = new ImportPersonas(db, (text) => redactor.redact(text));
+    this.projects = new ImportProjects(db);
   }
 
   availableBot(botId: string) {
@@ -41,13 +51,28 @@ export class ImportStore {
         CASE cleanup_phase WHEN 'undoing' THEN 'undoing' WHEN 'discarding' THEN 'running'
           ELSE state END AS state, topics, messages,
         CASE WHEN cleanup_phase='discarding' THEN NULL ELSE reason END AS reason,
-        removed_topics, removed_messages
+        removed_topics, removed_messages, added_memories,
+        EXISTS(SELECT 1 FROM import_personas WHERE import_id=import_jobs.id) AS applied_persona,
+        (SELECT state FROM import_project_files WHERE import_id=import_jobs.id) AS project_file
         FROM import_jobs WHERE id=?`)
       .get(id);
     if (!row) return undefined;
-    const { removed_topics, removed_messages, ...status } = row;
+    const {
+      removed_topics,
+      removed_messages,
+      added_memories,
+      applied_persona,
+      project_file,
+      ...status
+    } = row;
     return ImportStatusSchema.parse({
       ...status,
+      ...(added_memories ? { memories: added_memories } : {}),
+      ...(applied_persona ? { persona: true } : {}),
+      ...(project_file === "pending" && status.state === "completed"
+        ? { projectFile: "AGENTS.md" }
+        : {}),
+      ...(project_file === "kept" ? { keptProjectFile: "AGENTS.md" } : {}),
       ...(status.state === "undoing" || status.state === "undone"
         ? { removed: { topics: removed_topics, messages: removed_messages } }
         : {}),
@@ -65,7 +90,9 @@ export class ImportStore {
   }
 
   unfinished() {
-    return this.db.prepare("SELECT id FROM import_jobs WHERE state='running' LIMIT 1").get()?.id;
+    return this.db
+      .prepare("SELECT id FROM import_jobs WHERE state='running' AND cleanup_phase IS NULL LIMIT 1")
+      .get()?.id;
   }
 
   addTopic(batchId: string, botId: string, source: ImportStatus["source"], topic: ImportedTopic) {
@@ -105,17 +132,26 @@ export class ImportStore {
     });
   }
 
-  complete(id: string) {
-    return transaction(this.db, () => this.finish(id, "completed", null));
+  complete<T>(id: string, apply: () => T) {
+    return transaction(this.db, () => {
+      const change = apply();
+      return { change, status: this.finish(id, "completed", null) };
+    });
   }
 
   beginUndo(id: string) {
     return transaction(this.db, () => {
-      this.db
+      if (this.projects.hasDependents(id)) throw new ImportFailure("project");
+      const changed = this.db
         .prepare(`UPDATE import_jobs SET cleanup_phase='undoing'
         WHERE id=? AND state='completed' AND cleanup_phase IS NULL`)
         .run(id);
-      return this.requiredStatus(id);
+      if (!changed.changes) return { change: [], persona: false, status: this.requiredStatus(id) };
+      const botId = this.target(id);
+      if (typeof botId !== "string") throw new Error("import_job_missing");
+      const change = this.memories.remove(id, botId);
+      const persona = this.personas.undo(id, botId);
+      return { change, persona, status: this.requiredStatus(id) };
     });
   }
 
@@ -133,12 +169,20 @@ export class ImportStore {
       .run();
   }
 
-  nextCleanup() {
+  cleaning(id: string) {
+    return !!this.db
+      .prepare("SELECT 1 FROM import_jobs WHERE id=? AND cleanup_phase IS NOT NULL")
+      .get(id);
+  }
+
+  nextCleanup(after = 0) {
     const row = this.db
-      .prepare(`SELECT id FROM import_jobs
-      WHERE cleanup_phase IS NOT NULL LIMIT 1`)
-      .get();
-    return typeof row?.id === "string" ? row.id : undefined;
+      .prepare(`SELECT id,rowid AS cursor FROM import_jobs
+      WHERE cleanup_phase IS NOT NULL AND rowid>? ORDER BY rowid LIMIT 1`)
+      .get(after);
+    return typeof row?.id === "string" && typeof row.cursor === "number"
+      ? { id: row.id, cursor: row.cursor }
+      : undefined;
   }
 
   cleanupPage(id: string) {
@@ -194,14 +238,24 @@ export class ImportStore {
     const botId = this.target(id);
     if (typeof botId !== "string") throw new Error("import_job_missing");
     const status = this.requiredStatus(id);
-    const { source, topics, messages } = status;
+    const { source, topics, messages, memories, persona, projectFile, keptProjectFile } = status;
     this.audit.append({
       botId,
       kind: "import.changed",
       summary: "Conversation import / 对话导入",
       detail: {
         actor: reason === "interrupted" ? "automatic" : "user",
-        conversationImport: { importId: id, source, state, topics, messages },
+        conversationImport: {
+          importId: id,
+          source,
+          state,
+          topics,
+          messages,
+          ...(memories === undefined ? {} : { memories }),
+          ...(persona ? { persona } : {}),
+          ...(projectFile ? { projectFile } : {}),
+          ...(keptProjectFile ? { keptProjectFile } : {}),
+        },
       },
     });
     return status;

@@ -158,6 +158,7 @@ export type {
 } from "./runtime/memory/port.ts";
 export { memoryProjectPath } from "./runtime/memory/project.ts";
 export type { ModelProvidersPort, ModelSettingsPort } from "./runtime/models/port.ts";
+export { writeReviewedProjectNotes } from "./runtime/notes/reviewed-project-notes.ts";
 export type { WakeSource } from "./runtime/queue/brain-sleep.ts";
 export type { ChatRun } from "./runtime/queue/chat-run.ts";
 export type { QueueInput, RunQueue } from "./runtime/queue/run-queue.ts";

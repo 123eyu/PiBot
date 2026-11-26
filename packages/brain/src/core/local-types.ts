@@ -29,6 +29,15 @@ import type { ToolInput } from "../runtime/tools/tools.ts";
 import type { BrainRedactor } from "./privacy.ts";
 
 export interface ToolRunContext {
+  /** Kernel-issued, single-call project change; never parsed from tool or RPC arguments. */
+  projectNotesChange?: Readonly<{
+    callId: string;
+    workplace: ResolvedWorkplace;
+    diff: string;
+    expectedHash: string;
+    assertSource?(signal: AbortSignal): Promise<void>;
+    assertCurrent?(): void;
+  }>;
   /** Committed delivery paths for this run; never populated from model claims. */
   sentFilePaths?: Set<string>;
   /** Render delegated approval cards in the delegating topic. */
@@ -346,6 +355,8 @@ export interface LocalDependencies {
   logger: Logger;
 }
 export interface PreparedTool {
+  /** Kernel-only optimistic write condition, bound by this call's approval fingerprint. */
+  projectNotesWrite?: { expectedHash: string };
   browserSecretUses?: import("@pibot/protocol-base").BrowserSecretUse[];
   hostSsh?: import("../runtime/tools/host-ssh-prepare.ts").PreparedHostSshCall;
   /**

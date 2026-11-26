@@ -213,6 +213,10 @@ export const AuditDetailSchema = z.strictObject({
       state: z.enum(["completed", "cancelled", "failed", "undone"]),
       topics: count,
       messages: count,
+      memories: count.optional(),
+      persona: z.literal(true).optional(),
+      projectFile: z.literal("AGENTS.md").optional(),
+      keptProjectFile: z.literal("AGENTS.md").optional(),
     })
     .optional(),
   pluginInstall: z

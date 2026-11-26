@@ -76,6 +76,7 @@ type WriteOptions = {
   redactor: BrainRedactor;
   signal: AbortSignal;
   progress: (counts: Pick<ImportStatus, "topics" | "messages">) => void;
+  onMessage?: (text: string, role: "user" | "assistant") => void;
 };
 
 export async function writeRecords(opts: WriteOptions) {
@@ -131,6 +132,7 @@ export async function writeRecords(opts: WriteOptions) {
       });
     } else {
       const text = redactImportText(opts.redactor, item.text);
+      opts.onMessage?.(text, item.role);
       page.push(() => {
         if (!conversationId) throw new ImportFailure("format");
         store.addMessage(importId, botId, conversationId, { ...item, text });
@@ -147,7 +149,7 @@ export async function writeRecords(opts: WriteOptions) {
   flush();
 }
 
-function redactImportText(redactor: BrainRedactor, input: string) {
+export function redactImportText(redactor: BrainRedactor, input: string) {
   return redactor
     .redact(input)
     .replace(

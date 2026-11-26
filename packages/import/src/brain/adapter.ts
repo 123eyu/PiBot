@@ -1,6 +1,9 @@
 // Adapters yield bounded records rather than exposing provider-specific objects to storage.
 import { ExportDetailsSchema, type ImportSource } from "@pibot/import-contract";
 import { z } from "zod";
+
+export { ImportFailure } from "../store/failure.ts";
+
 import { geminiAdapter } from "./local/gemini.ts";
 import { transcriptAdapter } from "./local/transcript.ts";
 
@@ -49,12 +52,6 @@ export interface ImportAdapter {
   preview(input: ImportInput, signal: AbortSignal): AsyncIterable<PreviewRecord>;
   /** Every topic precedes its messages. Topics and messages from different topics never interleave. */
   read(input: ImportInput, signal: AbortSignal): AsyncIterable<ImportRecord>;
-}
-
-export class ImportFailure extends Error {
-  constructor(readonly reason: "source_changed" | "format" | "target" | "limit" | "unsupported") {
-    super(reason);
-  }
 }
 
 export function adapters(
