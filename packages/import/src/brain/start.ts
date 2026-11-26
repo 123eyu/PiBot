@@ -72,8 +72,10 @@ export function startPlan(
       port.estimate(botId)?.modelId !== quote.modelId)
   )
     throw invalid("import_distillation_quote_expired");
-  const distillation =
-    distillationQuoteId && quote && port ? { port, modelId: quote.modelId } : undefined;
+  // Named through CapabilityContext so the exported plan type does not reach into the brain's internals.
+  const distillation:
+    | { port: NonNullable<CapabilityContext["local"]["memoryImportDistillation"]>; modelId: string }
+    | undefined = distillationQuoteId && quote && port ? { port, modelId: quote.modelId } : undefined;
   if (!conversations && !projects.length && !memories.size && !persona)
     throw invalid("import_memory_selection_invalid");
   if (preview.source === "gemini" && preview.topics === 0) throw invalid("import_format_gemini");
