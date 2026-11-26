@@ -165,7 +165,10 @@ export class MemoriesRepo {
         expiresAt,
       });
       this.insert(value);
-      return value;
+      // The stored row, not the input: the insert fills confirmed_at, and an undo snapshot taken
+      // from the input lacked it, so no added note ever matched its snapshot and none could be
+      // undone (the chat's "remembered" card never appeared for a note the Bot saved itself).
+      return this.get(botId, value.id) as Memory;
     });
   }
   // The extra fields are model- or user-written prose like the note itself, so they pass the
@@ -409,9 +412,11 @@ export class MemoriesRepo {
           p.memoryId,
           p.createdAt,
           p.expiresAt ?? null,
-          notes.projectPath ?? null,
-          notes.projectDiff ?? null,
-          notes.projectExpectedHash ?? null,
+          // From the parsed proposal: `notes()` keeps only why/how, so reading the project fields
+          // from it stored every AGENTS.md card without its path, diff and expected hash.
+          p.projectPath ?? null,
+          p.projectDiff ?? null,
+          p.projectExpectedHash ?? null,
           o.scope === "group" || o.scope === "user" ? JSON.stringify(before ?? null) : null,
         );
       return p;
