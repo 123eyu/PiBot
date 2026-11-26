@@ -2,7 +2,11 @@ import type { Logger } from "@pibot/observability";
 import type { CapabilityHandle } from "../../core/capability.ts";
 
 /** Diagnostics never gate readiness; their owners must still drain before capability disposal. */
-export function deferredMaintenance(logger: Logger, warmSdk?: () => Promise<void>) {
+export function deferredMaintenance(
+  logger: Logger,
+  warmSdk?: () => Promise<void>,
+  mark?: (phase: string) => void,
+) {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let work: Promise<void> | undefined;
@@ -43,6 +47,7 @@ export function deferredMaintenance(logger: Logger, warmSdk?: () => Promise<void
           jobs.map(async (run, index) => {
             if (controller.signal.aborted) return;
             const start = performance.now();
+            mark?.(`maintenance.${index}`);
             try {
               // A deadline bounds cooperative hooks; shutdown still waits for them to drain.
               await run(AbortSignal.any([controller.signal, AbortSignal.timeout(25_000)]));

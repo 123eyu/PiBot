@@ -268,6 +268,10 @@ export async function startBrain(opts: {
   backgroundPreferences(value?: BackgroundPreferences): BackgroundPreferences;
   backgroundSleep(input: BrainWakeControl): Promise<BrainWakeResult>;
   backgroundActivity(): boolean;
+  /** Milliseconds since the last user-side request, for work that should wait for a quiet moment. */
+  quietForMs(): number;
+  /** Names a phase for the event-loop stall log (fixed identifiers only). */
+  markPhase(phase: string): void;
   stop(): Promise<void>;
 }> {
   const timingRaw = createStartupTiming();
@@ -395,6 +399,8 @@ export async function startBrain(opts: {
       noteUserActivity: () => {
         lastUserActivity = performance.now();
       },
+      quietForMs: () => performance.now() - lastUserActivity,
+      markPhase: (phase: string) => loopWatch?.mark(phase),
       get startupDiagnostics() {
         return startupDiagnostics;
       },
@@ -1088,7 +1094,7 @@ export async function startBrain(opts: {
     liveActivity.refresh();
     logger.info("Brain ready");
     timing.report(logger);
-    maintenance = deferredMaintenance(logger, sdk.preloadSdk);
+    maintenance = deferredMaintenance(logger, sdk.preloadSdk, (phase) => loopWatch?.mark(phase));
     // A speculative SDK import blocks unrelated navigation while evaluating its module graph.
     // The agent still loads it on demand for model operations.
     maintenance.start(capabilityHandles);
@@ -1099,6 +1105,7 @@ export async function startBrain(opts: {
       load: sdk.loadSdkWhenIdle,
       lastUserActivity: () => lastUserActivity,
       busy: () => startup.interactiveRequests.size > 0,
+      mark: (phase) => loopWatch?.mark(phase),
     });
     sdkPreload.start();
     progress?.stop();

@@ -6,8 +6,12 @@ import { setTimeout as delay } from "node:timers/promises";
 import { resolveDataDir } from "@pibot/storage/data-dir";
 import { app } from "electron";
 import { bundleIdentity, pruneCompileCache } from "../shared/bundle-identity.ts";
+import { guardConsoleStreams } from "../shared/console-guard.ts";
 import { linuxPasswordStore } from "./window/linux-password-store.ts";
 import { captureProviderLinks } from "./window/provider-link-inbox.ts";
+
+// A closed stdout/stderr pipe must never become a crash dialog (see console-guard.ts).
+guardConsoleStreams([process.stdout, process.stderr]);
 
 // Chromium switches, process identity and the role lock must precede every asynchronous import.
 // FeatureList is initialized before per-window renderer arguments can override it.

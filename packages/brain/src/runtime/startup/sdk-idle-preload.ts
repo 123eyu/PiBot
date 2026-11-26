@@ -19,6 +19,7 @@ export function sdkIdlePreload(options: {
   busy: () => boolean;
   delayMs?: number;
   quietMs?: number;
+  mark?: (phase: string) => void;
 }) {
   const { logger, warm, load } = options;
   const quietMs = options.quietMs ?? 2_000;
@@ -46,6 +47,7 @@ export function sdkIdlePreload(options: {
       return;
     }
     done = true;
+    options.mark?.("sdk.preload");
     const started = performance.now();
     try {
       const outcome = await load();
