@@ -50,7 +50,8 @@ export const GroupMethods = {
       coordinatorBotId: IdSchema.optional(),
       announcement: GroupSchema.shape.announcement.optional(),
       autoRoundLimit: GroupSchema.shape.autoRoundLimit.optional(),
-      externalAgentStepContext: GroupSchema.shape.externalAgentStepContext.optional(),
+      // Leave omissions intact through the phone gateway. Group creation applies the default.
+      externalAgentStepContext: z.boolean().optional(),
       workplace: GroupWorkplaceSchema.optional(),
     }),
     result: GroupSchema,
