@@ -1,5 +1,5 @@
 import { FacePicker } from "@pibot/plugins/ui";
-import type { UiNavigation } from "@pibot/protocol";
+import { importedMagpieRoute, type UiNavigation } from "@pibot/protocol";
 import { useNavigation, useT, useWorkspace } from "@pibot/renderer-kit";
 import { Button } from "@pibot/ui";
 import { useEffect, useRef, useState } from "react";
@@ -16,13 +16,20 @@ export function ProviderImportDialog() {
   const close = () => closeDialog(dialog.key);
   return preview.status === "refused" ? (
     <AppDialog
-      title={t("providerImport.refused")}
+      title={
+        preview.name
+          ? t("providerImport.refusedFrom", { name: preview.name })
+          : t("providerImport.refused")
+      }
       kind="provider-import"
       mark={{ icon: "refresh", tone: "violet" }}
       close={close}
     >
-      <p className={styles.intro}>{t("providerImport.refusedNote")}</p>
-      <Button onClick={close}>{t("providerImport.ok")}</Button>
+      <p className={styles.intro}>{t("providerImport.refusedIntro")}</p>
+      <p className={styles.note}>{t("providerImport.refusedNote")}</p>
+      <Button variant="secondary" onClick={close}>
+        {t("providerImport.gotIt")}
+      </Button>
     </AppDialog>
   ) : (
     <ProviderImportReview key={dialog.key} preview={preview} close={close} />
@@ -38,6 +45,8 @@ function ProviderImportReview({
 }) {
   const t = useT();
   const { bots } = useWorkspace();
+  // A local gateway such as Magpie forwards to services set up inside it; the card says so.
+  const gateway = importedMagpieRoute(preview);
   const avatars = new Map(bots.map((bot) => [bot.id, bot.avatarImage]));
   const picker = preview.bots.map((bot) => ({ ...bot, avatarImage: avatars.get(bot.id) }));
   const [selected, setSelected] = useState(() => new Set(preview.initiallySelected));
@@ -93,19 +102,33 @@ function ProviderImportReview({
       canClose={allowDismiss}
       close={dismiss}
     >
-      <p className={styles.intro}>{t("providerImport.intro")}</p>
+      <p className={styles.intro}>{t("providerImport.intro", { name: preview.name })}</p>
       <div className={styles.grid}>
         <section className={styles.card}>
           <h2>{t("providerImport.changes")}</h2>
           <dl className={styles.facts}>
             <dt>{t("providerImport.provider")}</dt>
-            <dd>{preview.name}</dd>
+            <dd>
+              {gateway ? t("providerImport.localGateway", { name: preview.name }) : preview.name}
+            </dd>
             <dt>{t("providerImport.address")}</dt>
-            <dd dir="ltr">{preview.baseUrl}</dd>
+            {gateway ? (
+              <dd>
+                {t("providerImport.localAddress", { url: preview.baseUrl, name: preview.name })}
+              </dd>
+            ) : (
+              <dd dir="ltr">{preview.baseUrl}</dd>
+            )}
             <dt>{t("providerImport.model")}</dt>
             <dd dir="ltr">{preview.model}</dd>
             <dt>{t("providerImport.key")}</dt>
-            <dd>{t(preview.hasKey ? "providerImport.keyIncluded" : "providerImport.noKey")}</dd>
+            <dd>
+              {preview.hasKey
+                ? t("providerImport.keyIncluded")
+                : gateway
+                  ? t("providerImport.gatewayNoKey", { name: preview.name })
+                  : t("providerImport.noKey")}
+            </dd>
           </dl>
         </section>
         <section className={styles.card}>

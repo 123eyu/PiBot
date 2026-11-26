@@ -64,19 +64,22 @@ export function registerProviderImport(ctx: CapabilityContext, providers: Provid
   ctx.rpc.handle("providerImport.stage", (intent: ProviderImportIntent, context) => {
     if (!context.desktopMain) throw invalid();
     drop();
-    if (
-      intent.status !== "review" ||
-      !settings.get().onboardingCompleted ||
-      !previewSafe(ctx, intent.request)
-    )
-      return { status: "refused" as const };
+    // A refusal names the requesting app only when that name is safe to show, like a preview.
+    const shown = (name?: string) =>
+      name && ctx.redactor.redact(name) === name && ctx.redactor.redact(decode(name)) === name
+        ? { status: "refused" as const, name }
+        : { status: "refused" as const };
+    if (intent.status !== "review") return shown(intent.name);
+    if (!previewSafe(ctx, intent.request)) return shown();
+    const refused = shown(intent.request.name);
+    if (!settings.get().onboardingCompleted) return refused;
     const request = intent.request;
     const active = bots.list().filter(eligible);
-    if (!active.length || active.length > MAX_BOTS) return { status: "refused" as const };
+    if (!active.length || active.length > MAX_BOTS) return refused;
     const named = request.scope === "default" ? undefined : request.scope.slice(4);
     const initiallySelected = active.filter((bot) => named === undefined || bot.name === named);
     if (!initiallySelected.length || (named !== undefined && initiallySelected.length !== 1))
-      return { status: "refused" as const };
+      return refused;
 
     const id = randomUUID();
     const { name, baseUrl, model, api, scope, key } = request;

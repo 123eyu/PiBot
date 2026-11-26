@@ -92,7 +92,8 @@ export type ProviderImportRequest = z.infer<typeof ProviderImportRequestSchema>;
 
 export const ProviderImportIntentSchema = z.discriminatedUnion("status", [
   z.strictObject({ status: z.literal("review"), request: ProviderImportRequestSchema }),
-  z.strictObject({ status: z.literal("refused") }),
+  // The requesting app's own name, when the link carried a valid one, so the card can say who.
+  z.strictObject({ status: z.literal("refused"), name: label(120).optional() }),
 ]);
 export type ProviderImportIntent = z.infer<typeof ProviderImportIntentSchema>;
 
@@ -115,7 +116,8 @@ export const ProviderImportPreviewSchema = z.discriminatedUnion("status", [
       .max(500),
     initiallySelected: z.array(IdSchema).max(500),
   }),
-  z.strictObject({ status: z.literal("refused") }),
+  // The requesting app's own name, when the link carried a valid one, so the card can say who.
+  z.strictObject({ status: z.literal("refused"), name: label(120).optional() }),
 ]);
 
 export const ProviderImportDecisionSchema = z.strictObject({
