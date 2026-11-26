@@ -210,6 +210,7 @@ describe("database and migrations", () => {
       "messages",
       "office_render_checks",
       "personal_todos",
+      "pi_dispatches",
       "plugin_access",
       "plugin_installations",
       "plugin_skill_access",
@@ -273,8 +274,8 @@ describe("database and migrations", () => {
       "worktree_allocations",
     ]);
     const versions = db.prepare("SELECT * FROM schema_migrations").all();
-    expect(versions).toHaveLength(178);
-    expect(versions.at(-1)?.version).toBe(180);
+    expect(versions).toHaveLength(179);
+    expect(versions.at(-1)?.version).toBe(181);
     expect(versions[0]?.version).toBe(1);
     expect(String(versions[0]?.applied_at)).toMatch(/Z$/);
     const bot = new BotsRepo(db).ensureMainBot();

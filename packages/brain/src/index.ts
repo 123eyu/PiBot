@@ -218,6 +218,8 @@ export async function startBrain(opts: {
   port: Port;
   /** Source is supplied by the trusted composition root, never decoded from RPC JSON. */
   requestSource?: () => "acp" | "desktop-main" | undefined;
+  /** True while the paired phone's own request is being handled (the remote kernel bridge). */
+  isPhoneRequest?: () => boolean;
   acp?: import("@pibot/protocol-base").AcpAttachmentPort;
   host: BrainHost;
   dataDir: string;
@@ -982,6 +984,12 @@ export async function startBrain(opts: {
       chat.abortRoutine = (id) => owner.abortRun(id);
     };
     capabilities.workplaces.beforeChange = (botId) => chat.queue.pauseBot(botId);
+    // A card's "don't ask again" changed Pi's level; an open permissions tab follows it.
+    capabilities.approvals.levelChanged = (botId) =>
+      void capabilities.permissions
+        .get(botId)
+        .then((value) => peer.emit("permissions.changed", value))
+        .catch(() => logger.warn(JSON.stringify({ module: "permissions", event: "emit_failed" })));
     // Capabilities add their inbox kinds at registration; the inbox reads this list per query.
     const inboxSources: InboxSource[] = [];
     registerNavigationRpc(handle, db, peer, chat, inboxSources, composition.inboxItemSchema);

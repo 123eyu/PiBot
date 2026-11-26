@@ -196,6 +196,7 @@ export class LocalService {
    * schema, policy request and catalog entry are still kernel tables.
    */
   readonly toolExecutors = new Map<string, import("./core/capability.ts").ToolExecutor>();
+  readonly toolCards = new Map<string, import("./core/capability.ts").ToolCardDescriber>();
   /** Owner of unattended runs; undefined when no capability claims it. */
   unattended?: import("./core/capability.ts").UnattendedRunOwner;
   /** Pre-authorization inside unattended runs; asks the owner capability and fails closed. */

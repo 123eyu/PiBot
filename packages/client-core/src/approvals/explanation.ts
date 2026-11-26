@@ -38,6 +38,7 @@ const reasonKeys: Record<string, TranslationKey> = {
   bot_skill: "policy.reason.bot_skill",
   bot_attachment: "policy.reason.bot_attachment",
   category_unavailable: "policy.reason.category_unavailable",
+  pi_manager_main_only: "policy.reason.pi_manager_main_only",
   connector_metadata: "policy.reason.connector_metadata",
   connector_draft_only: "policy.reason.connector_draft_only",
   routine_preauth_unavailable: "policy.reason.routine_preauth_unavailable",

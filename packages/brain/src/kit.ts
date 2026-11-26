@@ -46,6 +46,7 @@ export type { RegisterRpc, RpcRequestContext } from "./core/business-rpc.ts";
 export type {
   BrainCapability,
   CapabilityContext,
+  ToolCardDescriber,
   ToolExecutor,
   UnattendedAuthorization,
   UnattendedSendIntent,
@@ -65,6 +66,7 @@ export { endpoint } from "./core/endpoint.ts";
 export { activeGroup, requireGroupMember, visibleGroupMessage } from "./core/group-access.ts";
 export type { HostCall } from "./core/host-call.ts";
 export type { CollaborationPort, PreparedTool, ToolRunContext } from "./core/local-types.ts";
+export { mainDirectRun } from "./core/main-direct.ts";
 export type {
   ExecutionCleanupPort,
   ExecutionPort,

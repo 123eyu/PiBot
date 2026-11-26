@@ -85,6 +85,15 @@ const requestSchema = z.discriminatedUnion("category", [
     agent: z.string().min(1).max(200).optional(),
   }),
   z.strictObject({
+    category: z.literal("bot_management"),
+    operation: z.enum(["list", "change"]),
+    mainDirect: z.boolean().optional(),
+  }),
+  z.strictObject({
+    category: z.literal("work_dispatch"),
+    mainDirect: z.boolean().optional(),
+  }),
+  z.strictObject({
     category: z.literal("memory"),
     operation: z.enum(["add", "update", "remove"]),
     text: z.string().max(16000).optional(),

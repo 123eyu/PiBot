@@ -18,7 +18,10 @@ interface StartupContext {
   loopWatch?: { mark(phase: string): void };
   stopping: boolean;
   waitForContent(signal: AbortSignal): Promise<void>;
-  opts?: { requestSource?: () => "acp" | "desktop-main" | undefined };
+  opts?: {
+    requestSource?: () => "acp" | "desktop-main" | undefined;
+    isPhoneRequest?: () => boolean;
+  };
   sleep: BrainSleep | undefined;
   interactiveAttached: boolean;
   offlineAllowed: Set<string>;
@@ -83,6 +86,7 @@ export function registerBusinessRpc<K extends keyof typeof KernelMethods>(
       ...context,
       source: source === "acp" ? source : undefined,
       desktopMain: source === "desktop-main",
+      ...(ctx.opts?.isPhoneRequest?.() ? { phone: true } : {}),
     };
     context.signal.throwIfAborted();
     if (ctx.stopping) throw new RpcError(-32001, "Brain stopping");

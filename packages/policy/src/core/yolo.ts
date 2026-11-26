@@ -33,7 +33,11 @@ export function applyYolo(
     (yoloMustAsk(result) && !explicitUnisolated) ||
     // Owner decision 2026-10-23: spending money is never implied by "stop asking"; only a
     // remembered paid_image grant or a routine pre-approval skips the paid card.
-    result.reason === "paid_generation_confirmation";
+    result.reason === "paid_generation_confirmation" ||
+    // Owner decision 2026-11-24: only Pi's own "always" level skips a management or dispatch
+    // card; a conversation's YOLO switch never creates or archives Bots or hands out work.
+    result.category === "bot_management" ||
+    result.category === "work_dispatch";
   const last = result.explanation?.findLast((step) => step.effect !== "info");
   if (unchanged && last?.effect === result.decision) return result;
   // Brain can still supply legacy results (phase one). Never copy its free-form reason text.

@@ -245,6 +245,8 @@ const permissions: MethodResults["permissions.get"] = {
   levels: {
     connector: "ask",
     agent_delegation: "ask",
+    bot_management: "ask",
+    work_dispatch: "ask",
     run_command: "ask",
     computer: "never",
     read_file: "always",
@@ -2004,6 +2006,12 @@ const methodCases = {
   "search.removeConfig": {
     params: {},
     result: { ok: true },
+    badParams: { unexpected: true },
+    badResult: { unexpected: true },
+  },
+  "teams.dispatches": {
+    params: { messageId: id },
+    result: [],
     badParams: { unexpected: true },
     badResult: { unexpected: true },
   },
@@ -4061,6 +4069,7 @@ const eventCases = {
     bad: { items: [{ key: "x", botId: id, kind: "busy" }] },
   },
   "bots.changed": { payload: { botId: id, reason: "created" }, bad: { unexpected: true } },
+  "teams.dispatch.changed": { payload: { messageId: id }, bad: { unexpected: true } },
   "groups.changed": { payload: { groupId: id, reason: "created" }, bad: { unexpected: true } },
   "group.task": { payload: { task }, bad: { unexpected: true } },
   "group.paused": {

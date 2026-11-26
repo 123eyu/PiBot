@@ -534,6 +534,16 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* A message the default Pi sent on the person's request: a quiet label above the bubble. */
+.fromPi {
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px -4px;
+  color: var(--text2);
+  font-size: 12px;
+}
 /* The first line beside the avatar is always content, with or without a group sender line. */
 .assistant {
   display: grid;

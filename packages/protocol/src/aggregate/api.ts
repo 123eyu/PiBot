@@ -167,7 +167,13 @@ import {
   TeachMethods,
   WorkflowMethods,
 } from "@pibot/skills-contract";
-import { BuiltinMethods, RoleCatalogMethods, TeamMethods } from "@pibot/teams-contract";
+import {
+  BuiltinMethods,
+  PiDispatchEvents,
+  PiDispatchMethods,
+  RoleCatalogMethods,
+  TeamMethods,
+} from "@pibot/teams-contract";
 import {
   ChangesEvents,
   ChangesMethods,
@@ -229,6 +235,7 @@ export const Events = {
   ...GoogleCompatEvents,
   ...AutoCheckEvents,
   ...BotHooksEvents,
+  ...PiDispatchEvents,
   "ui.navigate": UiNavigationSchema,
   "chat.delta": z.strictObject({
     ...ChatRouteFields,
@@ -268,6 +275,7 @@ export const EventEnvelopeSchema = z.discriminatedUnion("method", [
   eventSchema("import.progress"),
   eventSchema("capabilities.changed"),
   eventSchema("botHooks.changed"),
+  eventSchema("teams.dispatch.changed"),
   eventSchema("devices.changed"),
   eventSchema("endpoints.changed"),
   eventSchema("remote.state"),
@@ -503,6 +511,7 @@ Omit<typeof KernelMethods, keyof typeof InboxMethods | keyof typeof AppMethods> 
   typeof RoutineMethods &
   typeof ModelProviderMethods &
   typeof TeamMethods &
+  typeof PiDispatchMethods &
   typeof ComputerMethods &
   typeof BrowserMethods &
   typeof BrowserExtensionMethods &
@@ -576,6 +585,7 @@ Omit<typeof KernelMethods, keyof typeof InboxMethods | keyof typeof AppMethods> 
   ...SearchMethods,
   ...ModelProviderMethods,
   ...TeamMethods,
+  ...PiDispatchMethods,
   ...ComputerMethods,
   ...BrowserMethods,
   ...BrowserExtensionMethods,

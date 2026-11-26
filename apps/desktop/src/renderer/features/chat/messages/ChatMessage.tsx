@@ -14,12 +14,14 @@ import {
   backgroundRestartUsage,
   isBackgroundRestart,
   type Message,
+  messageDispatch,
   messageFailureCode,
+  PI_DISPATCH_TOOLS,
 } from "@pibot/protocol";
 import { BotAvatar, botAvatarLook, useSettings, useT } from "@pibot/renderer-kit";
 import { MessageRoutineProposals } from "@pibot/routines/ui";
 import { MessageSkillProposals, TeachTrialReturn } from "@pibot/skills/ui";
-import { Button, Card } from "@pibot/ui";
+import { Button, Card, Icon } from "@pibot/ui";
 import { GitInstallCard, TurnCard } from "@pibot/workspaces/ui";
 import { type CSSProperties, memo, type ReactNode, useCallback, useMemo, useState } from "react";
 import { RunReceipt } from "../../receipt/RunReceipt.tsx";
@@ -31,6 +33,7 @@ import { ModelRecovery } from "../status/ModelRecovery.tsx";
 import { RunActivityLine } from "../status/RunActivityLine.tsx";
 import { useBackgroundRun } from "../status/use-background-run.ts";
 import type { ApprovalDecision } from "../tools/ApprovalCard.tsx";
+import { DispatchReceipts } from "../tools/DispatchReceipts.tsx";
 import type { ActivityState } from "../tools/local-activity.ts";
 import { ToolActivity } from "../tools/ToolActivity.tsx";
 import { MessageSelectionToggle, MessageTranslation } from "./MessageActionParts.tsx";
@@ -209,27 +212,36 @@ export const ChatMessage = memo(function ChatMessage({
   if (message.role === "user") {
     // FORWARD-DISPLAY: a forward shows the user's note; its material lives in the card below.
     const text = messageBubbleText(message, t);
+    const dispatch = messageDispatch(message);
     return (
-      <article
-        {...replyMenu}
-        className={`${styles.user} ${highlighted ? styles.messageFocus : ""}`}
-        data-message-id={message.id}
-        data-selecting={(!preview && messageActions?.selecting) || undefined}
-        data-selected={messageActions?.selected.has(message.id) || undefined}
-        aria-label={t("chat.you")}
-      >
-        {!preview && <MessageSelectionToggle message={message} name={name} />}
-        <QuotedMessage message={message} />
-        {mentionNames ? mentionText(text, mentionNames, styles.mentionText ?? "") : text}
-        <MessageForwardCard message={message} />
-        <MessageAttachments
-          attachments={message.attachments}
-          messageId={message.id}
-          readOnly={preview}
-        />
-        {userFooter}
-        {!preview && <MessageTranslation message={message} />}
-      </article>
+      <>
+        {dispatch && (
+          <div className={styles.fromPi}>
+            <Icon name="arrow" size={12} />
+            {t("chat.fromPi", { name: dispatch.from })}
+          </div>
+        )}
+        <article
+          {...replyMenu}
+          className={`${styles.user} ${highlighted ? styles.messageFocus : ""}`}
+          data-message-id={message.id}
+          data-selecting={(!preview && messageActions?.selecting) || undefined}
+          data-selected={messageActions?.selected.has(message.id) || undefined}
+          aria-label={t("chat.you")}
+        >
+          {!preview && <MessageSelectionToggle message={message} name={name} />}
+          <QuotedMessage message={message} />
+          {mentionNames ? mentionText(text, mentionNames, styles.mentionText ?? "") : text}
+          <MessageForwardCard message={message} />
+          <MessageAttachments
+            attachments={message.attachments}
+            messageId={message.id}
+            readOnly={preview}
+          />
+          {userFooter}
+          {!preview && <MessageTranslation message={message} />}
+        </article>
+      </>
     );
   }
   const paidImage =
@@ -325,6 +337,8 @@ export const ChatMessage = memo(function ChatMessage({
             mentionNames={mentionNames}
             botId={botId}
             streaming={streaming}
+            // A run paused on a card is not typing: no caret on its own line under the text.
+            paused={!!waiting}
             generating={generating}
           />
         )}
@@ -376,6 +390,15 @@ export const ChatMessage = memo(function ChatMessage({
               messageId={message.id}
             />
           )}
+        {!preview &&
+          (message.tools?.some((tool) =>
+            (PI_DISPATCH_TOOLS as readonly string[]).includes(tool.tool),
+          ) ||
+            activity?.tools.some(
+              (tool) =>
+                tool.messageId === message.id &&
+                (PI_DISPATCH_TOOLS as readonly string[]).includes(tool.tool),
+            )) && <DispatchReceipts messageId={message.id} />}
         {!preview && runId && (message.botId ?? botId) && (
           <TeachTrialReturn botId={(message.botId ?? botId) as string} runId={runId} />
         )}

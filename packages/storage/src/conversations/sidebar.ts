@@ -57,6 +57,28 @@ export class SidebarRepo {
       .run(key, kind === "dm" ? (id as string) : null, kind === "group" ? (id as string) : null);
     return this.get(key) as SidebarEntry;
   }
+  /**
+   * Active Bots and groups without a sidebar row (written straight into the database by an older
+   * path or a test fixture) never showed up anywhere. One idempotent statement each, keyed by the
+   * primary key; hidden rows keep their hidden state. Returns how many rows were added.
+   */
+  repairMissing(): number {
+    return transaction(this.db, () => {
+      const bots = this.db
+        .prepare(`INSERT INTO sidebar_entries(conversation_key,bot_id,chat_group_id)
+          SELECT 'dm:' || b.id, b.id, NULL FROM bots b WHERE b.archived_at IS NULL
+          AND NOT EXISTS (SELECT 1 FROM sidebar_entries e WHERE e.conversation_key='dm:' || b.id)
+          ON CONFLICT DO NOTHING`)
+        .run().changes;
+      const groups = this.db
+        .prepare(`INSERT INTO sidebar_entries(conversation_key,bot_id,chat_group_id)
+          SELECT 'group:' || g.id, NULL, g.id FROM groups g WHERE g.archived_at IS NULL
+          AND NOT EXISTS (SELECT 1 FROM sidebar_entries e WHERE e.conversation_key='group:' || g.id)
+          ON CONFLICT DO NOTHING`)
+        .run().changes;
+      return Number(bots) + Number(groups);
+    });
+  }
   update(
     key: string,
     patch: Partial<Pick<SidebarEntry, "pinnedAt" | "groupId" | "hiddenAt" | "unread">>,

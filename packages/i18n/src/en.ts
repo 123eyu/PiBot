@@ -14,7 +14,7 @@ import { connectionsEn, connectorsEn, knowledgeEn } from "@pibot/plugins-contrac
 import { remoteEn } from "@pibot/remote-contract/i18n";
 import { routineProposalsEn, routinesEn } from "@pibot/routines-contract/i18n";
 import { skillsEn, teachEn, workflowsEn } from "@pibot/skills-contract/i18n";
-import { builtinEn, teamsEn } from "@pibot/teams-contract/i18n";
+import { builtinEn, piManagerEn, teamsEn } from "@pibot/teams-contract/i18n";
 import { changesEn, managedResourcesEn } from "@pibot/workspaces-contract/i18n";
 import { mergeTranslations } from "./merge-translations.ts";
 import { activityEn } from "./sections/activity.ts";
@@ -388,6 +388,7 @@ export const enSections = {
   networkEn,
   groupEn,
   teamsEn,
+  piManagerEn,
   builtinEn,
   activityEn,
   providerAuthEn,

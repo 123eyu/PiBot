@@ -190,6 +190,11 @@ export const AuditKindSchema = z.enum([
   "external_agent.prewarmed",
   "external_agent.permission",
   "external_agent.finished",
+  // The default Pi created, changed, archived or restored a Bot or group (action code, names,
+  // changed field names), or handed work to one (target name, the task's short title and the
+  // receipt's status). Never personas, task text or replies.
+  "pi.managed",
+  "pi.dispatched",
 ]);
 export const AuditAuthEventSchema = z.enum([
   "oauth.connected",

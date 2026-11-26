@@ -1,0 +1,54 @@
+import { BotsRepo, ConversationsRepo, MessagesRepo, RunsRepo } from "@pibot/storage";
+import type { LocalService } from "../local-service.ts";
+import type { ToolRunContext } from "./local-types.ts";
+
+/**
+ * Owner decision 2026-11-24: the default Pi's management and dispatch tools are hard-wired to
+ * one place, Pi's own direct chat with a message the person typed on this computer. The kernel
+ * answers this from its own records, so no capability, model text or other Bot can claim it:
+ * - only the main Bot (never an agent Bot, never any other Bot);
+ * - only a visible DM topic of that Bot (no group, task thread, routine, sub-task, review,
+ *   external-agent hand-off or internal task session);
+ * - only a turn whose user message came from the desktop app ("user"): a phone or ACP editor
+ *   message, a forwarded or dispatched message and any message the brain wrote itself are out.
+ * A dispatched run therefore can never dispatch again (the loop guard's first half).
+ */
+export function mainDirectRun(local: LocalService, context: ToolRunContext): boolean {
+  if (
+    context.groupId ||
+    context.threadId ||
+    context.executionTaskId ||
+    context.permissionGroupId ||
+    context.routineRunId ||
+    context.routineSource ||
+    context.routineWorkplace ||
+    context.auditSource ||
+    context.delegatedHome ||
+    context.endpointPhoneId ||
+    !context.conversationId
+  )
+    return false;
+  const { db } = local.deps;
+  const bot = new BotsRepo(db).get(context.botId);
+  if (!bot?.isMain || bot.kind === "agent" || bot.archivedAt) return false;
+  if (local.reviews.profile(context)) return false;
+  const conversations = new ConversationsRepo(db);
+  const topic = conversations.get(context.conversationId);
+  if (topic?.kind !== "dm" || topic.botId !== bot.id || conversations.isInternal(topic.id))
+    return false;
+  const run = new RunsRepo(db).get(context.runId);
+  if (!run || run.botId !== bot.id || run.groupId || run.kind !== "chat" || !run.userMessageId)
+    return false;
+  const message = new MessagesRepo(db).get(run.userMessageId);
+  const usage = message?.usage;
+  return (
+    message?.role === "user" &&
+    !!usage &&
+    typeof usage === "object" &&
+    !Array.isArray(usage) &&
+    (usage as Record<string, unknown>).inputOrigin === "user" &&
+    !("forward" in usage) &&
+    !("dispatch" in usage) &&
+    !("systemEvent" in usage)
+  );
+}

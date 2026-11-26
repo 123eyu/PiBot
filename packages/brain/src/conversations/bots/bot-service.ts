@@ -457,6 +457,11 @@ export class BotService {
     return topic;
   }
   start() {
+    const repaired = new SidebarRepo(this.deps.db).repairMissing();
+    if (repaired)
+      this.deps.logger.info(
+        JSON.stringify({ module: "bots", event: "sidebar_rows_repaired", count: repaired }),
+      );
     return this.cleanup.start();
   }
   async stop() {

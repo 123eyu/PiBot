@@ -170,6 +170,8 @@ const kindGroups: Record<AuditKind, readonly [AuditGroup, ...AuditGroup[]]> = {
   "runtime.commands_paused": ["run"],
   "execution.task.changed": ["run"],
   "team.created": ["collaboration"],
+  "pi.managed": ["collaboration"],
+  "pi.dispatched": ["collaboration"],
   "team.exported": ["collaboration"],
   "builtin.updated": ["run"],
   "builtin.catalog": ["run"],
@@ -639,6 +641,13 @@ export function auditSummary(
       });
     case "browser.local_opened":
       return t("botBrowser.audit.localOpened", { target: detail.target ?? "localhost" });
+    case "pi.managed":
+      return t(piManagedKey(detail.reasonCode), { target: safeAuditText(detail.target) });
+    case "pi.dispatched":
+      return t("audit.pi.dispatched", {
+        target: safeAuditText(detail.target),
+        title: safeAuditText(detail.taskTitle),
+      });
     case "team.created":
     case "team.exported": {
       const counts = {
@@ -946,6 +955,8 @@ export function auditResult(
     return { text: t("botBrowser.audit.localOpenedResult"), tone: "muted" };
   if (
     entry.kind === "skill.changed" ||
+    entry.kind === "pi.managed" ||
+    entry.kind === "pi.dispatched" ||
     entry.kind === "team.created" ||
     entry.kind === "team.exported"
   )
@@ -1089,4 +1100,21 @@ const skillAuditReasons = [
 function skillAuditKey(reason: string | undefined): TranslationKey {
   const known = skillAuditReasons.find((value) => value === reason);
   return known ? `skills.audit.${known}` : "skills.audit.changed";
+}
+
+const PI_MANAGED = [
+  "bot_created",
+  "bot_updated",
+  "bot_archived",
+  "bot_restored",
+  "group_created",
+  "group_members_added",
+  "group_members_removed",
+  "group_archived",
+  "group_restored",
+] as const;
+function piManagedKey(code: string | undefined): TranslationKey {
+  return (PI_MANAGED as readonly string[]).includes(code ?? "")
+    ? (`audit.pi.${code as (typeof PI_MANAGED)[number]}` as const)
+    : "audit.pi.changed";
 }

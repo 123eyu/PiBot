@@ -62,6 +62,14 @@ export type PolicyRequest =
     }
   /** Hand one piece of work to an external agent Bot (`agent` = its display name). */
   | { category: "agent_delegation"; agent?: string }
+  /**
+   * The default Pi manages Bots and groups ("list" reads metadata only). `mainDirect` is set by
+   * the kernel, never by the capability or the model: true only in Pi's own direct chat typed by
+   * the person on this computer. Absent or false is refused.
+   */
+  | { category: "bot_management"; operation: "list" | "change"; mainDirect?: boolean }
+  /** The default Pi sends a message or task to another Bot or a group (`mainDirect` as above). */
+  | { category: "work_dispatch"; mainDirect?: boolean }
   | ({
       category: "memory";
       operation: "add" | "update" | "remove";

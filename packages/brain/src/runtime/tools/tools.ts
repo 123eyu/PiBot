@@ -880,6 +880,13 @@ export function toolSummary(
     .slice(0, 1000);
 }
 export function blockedReason(reason: string, category?: PolicyRequest["category"]): string {
+  if (reason === "pi_manager_main_only")
+    return "只有默认 Pi 在和用户的私聊里能用这个工具 / Only the default Pi can use this tool, in its own chat with the person";
+  if (
+    reason === "permission_never" &&
+    (category === "bot_management" || category === "work_dispatch")
+  )
+    return "用户在 Pi 的权限页把这一项设为不允许；不要换别的办法去做，告诉用户可以在 Pi 资料 › 权限里改 / The person set this to Never on Pi's permissions tab. Do not try another way; tell them they can change it in Pi's profile > Permissions.";
   if (reason === "permission_never" && category) {
     const labels: Partial<Record<PolicyRequest["category"], string>> = {
       send_out: "对外发送 / Send out",

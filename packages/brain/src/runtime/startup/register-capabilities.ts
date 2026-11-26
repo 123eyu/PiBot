@@ -110,6 +110,9 @@ export async function registerCapabilities(ctx: StartupContext) {
       bots: {
         introduce: (botId) => ctx.botBusiness.introduce(botId),
         update: (params) => ctx.botBusiness.update(params),
+        create: (params) => ctx.botBusiness.create(params),
+        archive: (botId) => ctx.botBusiness.archive(botId),
+        restore: (botId) => ctx.botBusiness.restore(botId),
         newTopic: (botId) => ctx.botBusiness.newTopic(botId),
         updateTopicWorkplace: (params, signal) => {
           ctx.botBusiness.active(params.botId);
@@ -121,6 +124,17 @@ export async function registerCapabilities(ctx: StartupContext) {
           ctx.groups.confirmNotice(groupId, conversationId, botId, text, confirmation, display),
         update: (params) => ctx.groups.update(params),
         addMember: (groupId, botId) => ctx.groups.addMember(groupId, botId),
+        create: (params) => ctx.groups.create(params),
+        removeMember: (groupId, botId) => ctx.groups.removeMember(groupId, botId),
+        archive: (groupId) => ctx.groups.archive(groupId),
+        restore: (groupId) => ctx.groups.restore(groupId),
+        send: (groupId, conversationId, text, display) =>
+          ctx.groups.send(
+            { groupId, topicId: conversationId, text },
+            undefined,
+            undefined,
+            display,
+          ),
         newTopic: (groupId) => ctx.groups.topics.create({ groupId, inheritWorkspace: true }),
         sendWorkflow: (groupId, botId, workflow, conversationId) =>
           workflow.contract.planTemplate
@@ -226,6 +240,16 @@ export async function registerCapabilities(ctx: StartupContext) {
       tools: {
         executor: (tool, run) => registerToolExecutor(tool, run, false),
         delegateKernel: (tool, run) => registerToolExecutor(tool, run, true),
+        card: (tool, describe) => {
+          if (isKernelToolName(tool))
+            throw new Error(`Capability ${capability.id} cannot describe kernel tool: ${tool}`);
+          if (ctx.capabilities.toolCards.has(tool)) throw new Error(`Tool card taken: ${tool}`);
+          ctx.capabilities.toolCards.set(tool, describe);
+          return () => {
+            if (ctx.capabilities.toolCards.get(tool) === describe)
+              ctx.capabilities.toolCards.delete(tool);
+          };
+        },
       },
       sleep: {
         participate: (participant) => ctx.sleepParticipants.push(participant),

@@ -14,7 +14,7 @@ import { connectionsZh, connectorsZh, knowledgeZh } from "@pibot/plugins-contrac
 import { remoteZh } from "@pibot/remote-contract/i18n";
 import { routineProposalsZh, routinesZh } from "@pibot/routines-contract/i18n";
 import { skillsZh, teachZh, workflowsZh } from "@pibot/skills-contract/i18n";
-import { builtinZh, teamsZh } from "@pibot/teams-contract/i18n";
+import { builtinZh, piManagerZh, teamsZh } from "@pibot/teams-contract/i18n";
 import { changesZh, managedResourcesZh } from "@pibot/workspaces-contract/i18n";
 import { mergeTranslations } from "./merge-translations.ts";
 import { activityZh } from "./sections/activity.ts";
@@ -355,6 +355,7 @@ export const zhSections = {
   networkZh,
   groupZh,
   teamsZh,
+  piManagerZh,
   builtinZh,
   activityZh,
   providerAuthZh,
