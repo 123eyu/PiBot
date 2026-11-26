@@ -1,3 +1,4 @@
+// Keeps saved provider configuration and credentials consistent.
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import {
@@ -11,6 +12,8 @@ import {
   type CustomProvider,
   type CustomProviderInfo,
   CustomProviderSchema,
+  MAGPIE_PROVIDER,
+  magpiePort,
   RpcError,
   RpcErrorCodes,
 } from "@pibot/models-contract/full";
@@ -19,6 +22,16 @@ import { type SecretStore, transaction } from "@pibot/storage";
 import { ProvidersRepo } from "../../store/index.ts";
 
 export const providerScope = (id: string) => `provider:${id}`;
+
+function validMagpieConfig(config: Omit<CustomProvider, "apiKey">): boolean {
+  return (
+    magpiePort(config.baseUrl) !== undefined &&
+    config.api === "openai-completions" &&
+    !config.headers &&
+    !config.imageApi &&
+    !config.imageModels?.length
+  );
+}
 
 // Async cipher work finishes before a synchronous SQLite transaction. RPCs never hold a
 // database transaction over an await, and failed encryption cannot partially replace a provider.
@@ -71,6 +84,7 @@ export class ProviderStore {
   }
 
   async requireCredentials(id: string): Promise<void> {
+    if (id === MAGPIE_PROVIDER.id) return;
     await this.secrets.get(providerScope(id), "apiKey");
     if (this.lockedHeaders.has(id)) {
       const headers = await this.readHeaders(id);
@@ -116,7 +130,9 @@ export class ProviderStore {
     for (const row of this.repo.list()) {
       if (row.kind !== "custom") continue;
       const cfg = CustomProviderSchema.omit({ apiKey: true }).parse(row.config);
-      if (this.secrets.has(providerScope(row.id), "headers")) this.lockedHeaders.add(row.id);
+      if (row.id === MAGPIE_PROVIDER.id && !validMagpieConfig(cfg)) continue;
+      if (row.id !== MAGPIE_PROVIDER.id && this.secrets.has(providerScope(row.id), "headers"))
+        this.lockedHeaders.add(row.id);
       this.custom.set(row.id, { ...cfg, id: row.id });
     }
     // No plaintext enters memory at startup. Reads register keys and individual header
@@ -145,6 +161,7 @@ export class ProviderStore {
   }
 
   async setKey(id: string, value: string): Promise<void> {
+    if (id === MAGPIE_PROVIDER.id) throw new RpcError(-32602, "magpie_requires_local_setup");
     this.assertWritable(id);
     assertSupportedCredential(value);
     await this.secrets.set(providerScope(id), "apiKey", value);
@@ -173,6 +190,8 @@ export class ProviderStore {
       throw new RpcError(-32602, "subscription_unsupported");
     if (this.catalog.some((p) => p.id === id && p.auth !== "custom"))
       throw new RpcError(-32602, "Cannot replace a builtin provider");
+    if (id === MAGPIE_PROVIDER.id && (!validMagpieConfig(input) || input.apiKey !== undefined))
+      throw new RpcError(-32602, "magpie_requires_local_setup");
     const { apiKey, headers, ...publicConfig } = input;
     assertSupportedCredential(apiKey);
     assertSupportedHeaders(headers);

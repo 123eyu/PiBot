@@ -1,3 +1,4 @@
+// Defines shared provider and model RPC contracts.
 import {
   AgentErrorCodeSchema,
   ApiSchema,
@@ -25,6 +26,7 @@ const count = z.number().int().nonnegative().safe();
 const ok = z.strictObject({ ok: z.literal(true) });
 const noParams = z.union([z.undefined(), z.strictObject({})]);
 const providerId = z.strictObject({ providerId: name });
+const magpiePort = z.number().int().min(1).max(65535);
 const models = z.array(z.strictObject({ id: name }));
 const headers = z.record(
   name,
@@ -149,6 +151,22 @@ export const ModelProviderMethods = {
   "models.images": {
     params: ImageModelPageSchema,
     result: z.array(ImageModelInfoSchema).max(200),
+  },
+  "local.detectMagpie": {
+    params: z.strictObject({ port: magpiePort.optional() }),
+    result: z.discriminatedUnion("running", [
+      z.strictObject({ running: z.literal(false) }),
+      z.strictObject({
+        running: z.literal(true),
+        port: magpiePort,
+        version: z.string().min(1).max(80),
+      }),
+    ]),
+  },
+  "local.configureMagpie": {
+    timeoutMs: 15_000,
+    params: z.strictObject({ port: magpiePort }),
+    result: z.strictObject({ count: count.positive().max(10000) }),
   },
   "local.detectOllama": {
     params: noParams,

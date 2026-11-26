@@ -1,4 +1,5 @@
-import { type Provider, providerFamily } from "@pibot/models-contract/full";
+// Displays searchable provider tiles and configured providers.
+import { MAGPIE_PROVIDER, type Provider, providerFamily } from "@pibot/models-contract/full";
 import { setupStyles as styles, useT } from "@pibot/renderer-kit";
 import { useState } from "react";
 import { providerIdentity } from "../../setup/operations.ts";
@@ -18,17 +19,24 @@ export function ProviderCatalog({
   disabled,
   onSelect,
   initialGroup = "common",
+  magpieDetected = false,
 }: {
   providers: Provider[];
   selection?: string;
   disabled: boolean;
   onSelect(provider: Provider, button: HTMLElement): void;
   initialGroup?: (typeof groups)[number];
+  magpieDetected?: boolean;
 }) {
   const t = useT();
   const [group, setGroup] = useState(initialGroup);
   const [search, setSearch] = useState("");
-  const named = namedProviders(providers, t("chatgpt.title"), t("chatgpt.codex.title"));
+  const named = namedProviders(
+    providers,
+    t("chatgpt.title"),
+    t("chatgpt.codex.title"),
+    t("models.magpie.name"),
+  );
   const catalog = groupedProviderCatalog(
     providerCatalog(named, t("setup.customLabel"), t("models.payAsYouGo")),
   );
@@ -36,12 +44,14 @@ export function ProviderCatalog({
     .filter((provider) => provider.configured)
     .sort((a, b) => a.name.localeCompare(b.name, "en"));
   const query = search.trim().toLowerCase();
-  const visible = catalog.filter((provider) =>
-    query
-      ? `${provider.id} ${provider.name} ${t(`models.auth.${provider.auth}`)}`
-          .toLowerCase()
-          .includes(query)
-      : group === "all" || provider.group === group,
+  const visible = catalog.filter(
+    (provider) =>
+      (provider.id !== MAGPIE_PROVIDER.id || magpieDetected) &&
+      (query
+        ? `${provider.id} ${provider.name} ${t(`models.auth.${provider.auth}`)}`
+            .toLowerCase()
+            .includes(query)
+        : group === "all" || provider.group === group),
   );
   const renderProvider = (provider: Provider, saved = false) => (
     <button

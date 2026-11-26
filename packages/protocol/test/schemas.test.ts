@@ -1,3 +1,4 @@
+// Checks the shared RPC schema matrix at the protocol boundary.
 // Keep the published RPC schemas covered by the existing contract fixtures.
 import { DEFAULT_EXECUTION_LIMITS } from "@pibot/protocol-base";
 import { describe, expect, it } from "vitest";
@@ -2877,6 +2878,18 @@ const methodCases = {
     result: [envelope],
     badParams: { afterSeq: -1 },
     badResult: [{ ...envelope, params: { ...envelope.params, seq: 0 } }],
+  },
+  "local.detectMagpie": {
+    params: {},
+    result: { running: true, port: 43210, version: "0.1.0" },
+    badParams: { port: 65536 },
+    badResult: { running: true, port: 43210 },
+  },
+  "local.configureMagpie": {
+    params: { port: 43210 },
+    result: { count: 1 },
+    badParams: { port: 0 },
+    badResult: { count: 0 },
   },
   "local.detectOllama": {
     params: undefined,

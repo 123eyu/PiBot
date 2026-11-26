@@ -1,5 +1,11 @@
+// Coordinates model selection and provider management in Settings.
 import { readMainBot } from "@pibot/client-core";
-import type { Bot, ModelInfo, Provider } from "@pibot/models-contract/full";
+import {
+  type Bot,
+  MAGPIE_PROVIDER,
+  type ModelInfo,
+  type Provider,
+} from "@pibot/models-contract/full";
 import {
   SettingsBack,
   setupStyles as styles,
@@ -13,6 +19,8 @@ import type { ReactNode } from "react";
 import { useCallback, useId, useLayoutEffect, useRef, useState } from "react";
 import { providerIdentity, requirePeer } from "../setup/operations.ts";
 import modelStyles from "./models.module.css";
+import { MagpieDiscovery } from "./providers/magpie.tsx";
+import { useMagpieDetection } from "./providers/magpie-detection.ts";
 import { ProviderCatalog } from "./providers/ProviderCatalog.tsx";
 import { ProviderModels } from "./providers/ProviderModels.tsx";
 import { ProviderRegion } from "./providers/ProviderRegion.tsx";
@@ -25,16 +33,19 @@ import { ModelCatalogRefresh } from "./selection/ModelCatalogRefresh.tsx";
 import { ModelHealthNotice, useModelHealth } from "./selection/model-health.tsx";
 
 export function ModelsSettings({
+  active = true,
   target,
   onDirtyChange,
   searchSettings,
 }: {
+  active?: boolean;
   target?: "pi-model";
   searchSettings?: ReactNode;
   onDirtyChange?(dirty: boolean): void;
 }) {
   const t = useT();
   const { peer } = useRpc();
+  const magpieDetection = useMagpieDetection(active);
   const [selection, setSelection] = useState<string>();
   const task = useTask(selection);
   const modelTask = useTask();
@@ -111,11 +122,26 @@ export function ModelsSettings({
     void refresh();
   });
   const catalog = providerCatalog(
-    namedProviders(providers, t("chatgpt.title"), t("chatgpt.codex.title")),
+    namedProviders(
+      providers,
+      t("chatgpt.title"),
+      t("chatgpt.codex.title"),
+      t("models.magpie.name"),
+    ),
     t("setup.customLabel"),
     t("models.payAsYouGo"),
   );
+  const magpie = catalog.find((provider) => provider.id === MAGPIE_PROVIDER.id);
+  const magpieDetected = magpieDetection.result?.running === true;
+  // Discovery gates new entry points, not a configuration draft the user already opened.
   const chosen = catalog.find((provider) => providerIdentity(provider) === selection);
+  function selectProvider(provider: Provider, button: HTMLElement) {
+    selectedButton.current = button;
+    listPosition.current =
+      root.current?.closest<HTMLElement>("[data-settings-scroll]")?.scrollTop ?? 0;
+    setSelection(providerIdentity(provider));
+  }
+
   const chosenIdentity = chosen && providerIdentity(chosen);
   // A saved model that has left the catalog cannot be tested; fall back to the provider default for
   // both the request and the label so they always name the same model.
@@ -148,6 +174,12 @@ export function ModelsSettings({
       )}
       <div hidden={!!chosen}>
         <div className={modelStyles.modelsList}>
+          <MagpieDiscovery
+            provider={magpie}
+            result={magpieDetection.result}
+            disabled={task.busy || modelTask.busy || auxiliaryTask.busy}
+            open={selectProvider}
+          />
           {!loadError && (health.default || health.auxiliary) && (
             <div className={modelStyles.health}>
               <ModelHealthNotice
@@ -162,7 +194,7 @@ export function ModelsSettings({
               />
             </div>
           )}
-          {/* 默认模型 first, then 辅助模型, the providers, 联网搜索. */}
+          {/* Keep model selection above the provider catalog and search settings. */}
           <DefaultModelSettings
             pickerId={defaultPickerId}
             health={health.default}
@@ -182,14 +214,10 @@ export function ModelsSettings({
           />
           <ProviderCatalog
             providers={providers}
+            magpieDetected={magpieDetected}
             selection={selection}
             disabled={task.busy || modelTask.busy || auxiliaryTask.busy}
-            onSelect={(provider, button) => {
-              selectedButton.current = button;
-              listPosition.current =
-                root.current?.closest<HTMLElement>("[data-settings-scroll]")?.scrollTop ?? 0;
-              setSelection(providerIdentity(provider));
-            }}
+            onSelect={selectProvider}
           />
           {searchSettings}
         </div>

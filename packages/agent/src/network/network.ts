@@ -1,8 +1,9 @@
-// Keep provider transport, proxying, and diagnostics scoped to the current request.
+// Scope SDK transport, local endpoint checks, and diagnostics to the current request.
 import { AsyncLocalStorage } from "node:async_hooks";
 import { isIP } from "node:net";
 import type { Api, Model, Provider, StreamOptions, TranscriptContext } from "@earendil-works/pi-ai";
 import { AssistantMessageEventStream } from "@earendil-works/pi-ai/utils/event-stream";
+import { MAGPIE_PROVIDER, magpieBaseUrl, magpiePort } from "@pibot/protocol-base/provider-catalog";
 import { AgentError, mapAgentError } from "../core/errors.ts";
 import { cacheRequestFields } from "./cache-request-fields.ts";
 
@@ -45,6 +46,7 @@ export function installAgentNetwork(
   const ownership = Symbol.for("pibot.agent.network");
   if (Reflect.get(original, ownership)) throw new AgentError("internal");
   const scope = new AsyncLocalStorage<{
+    magpieOrigin?: string;
     proxyFailure?: "proxy_unavailable" | "proxy_credentials_unavailable" | "proxy_auth_failed";
     response?(response: Response): Promise<void>;
   }>();
@@ -61,7 +63,10 @@ export function installAgentNetwork(
       }
       // Local model servers (Ollama, LM Studio, vLLM) and local MCP servers stay on this machine.
       // A followed redirect would leave loopback without the proxy, so it fails instead.
-      if (enabled() && isLoopbackHost(url.hostname)) {
+      const magpieOrigin = scope.getStore()?.magpieOrigin;
+      if (magpieOrigin && (url.origin !== magpieOrigin || url.username || url.password))
+        throw new AgentError("provider_error");
+      if (magpieOrigin || (enabled() && isLoopbackHost(url.hostname))) {
         const response = await original(input, {
           ...init,
           redirect: init?.redirect === "manual" ? "manual" : "error",
@@ -131,10 +136,21 @@ export function installAgentNetwork(
         throw new AgentError("proxy_unsupported");
       const bedrock =
         enabled() && model.api === "bedrock-converse-stream" ? bedrockProxy() : undefined;
+      const magpie = model.provider === MAGPIE_PROVIDER.id;
+      const base = magpie ? model.baseUrl.replace(/\/$/, "") : undefined;
+      // URL canonicalization removes an explicit HTTP port 80 from the SDK's base URL.
+      if (
+        base !== undefined &&
+        magpiePort(base) === undefined &&
+        base !== new URL(magpieBaseUrl(80)).href
+      )
+        throw new AgentError("provider_error");
       const state: {
+        magpieOrigin?: string;
         proxyFailure?: "proxy_unavailable" | "proxy_credentials_unavailable" | "proxy_auth_failed";
         response?(response: Response): Promise<void>;
       } = {
+        ...(magpie ? { magpieOrigin: new URL(model.baseUrl).origin } : {}),
         // SDKs can flatten HTTP errors before onResponse runs. Forward only Retry-After,
         // scoped to this provider attempt; never retain headers or share a process-wide value.
         async response(response) {

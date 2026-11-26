@@ -142,6 +142,7 @@ export function SettingsScreen({
               {(modelsVisited || section === "models") && (
                 <div hidden={section !== "models"}>
                   <ModelsSettings
+                    active={section === "models"}
                     searchSettings={<SearchSettings />}
                     target={section === "models" && target === "pi-model" ? target : undefined}
                     onDirtyChange={setDirty}

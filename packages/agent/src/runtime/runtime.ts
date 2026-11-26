@@ -1,3 +1,4 @@
+// Builds the pi runtime using Pi Bot configuration and credential ports.
 import { resolve } from "node:path";
 import type { Provider } from "@earendil-works/pi-ai";
 import type { ModelRuntime } from "@earendil-works/pi-coding-agent";
@@ -7,6 +8,8 @@ import {
   CHATGPT_PLAN_PROVIDER,
   CHATGPT_PLAN_PROVIDERS,
   isChatGPTPlanProvider,
+  MAGPIE_PROVIDER,
+  magpiePort,
 } from "@pibot/protocol-base/provider-catalog";
 import { assertSafeSecretValue } from "@pibot/secrets";
 import { cloudAuth, oauthStore } from "../auth/auth-adapter.ts";
@@ -90,12 +93,22 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
         ids.has(parsed.data.id)
       )
         throw new AgentError("internal");
+      if (
+        parsed.data.id === MAGPIE_PROVIDER.id &&
+        (magpiePort(parsed.data.baseUrl) === undefined ||
+          parsed.data.api !== "openai-completions" ||
+          parsed.data.headers ||
+          parsed.data.imageApi ||
+          parsed.data.imageModels?.length)
+      )
+        throw new AgentError("internal");
       ids.add(parsed.data.id);
       return { ...parsed.data, id: parsed.data.id };
     });
   }
 
   async function injectKey(runtime: ModelRuntime, id: string): Promise<void> {
+    if (id === MAGPIE_PROVIDER.id) return;
     if (isChatGPTPlanProvider(id)) {
       // The ChatGPT plan authenticates through its stored OAuth credential, never an API key.
       if (chatGPTSubscriptionAccess.available) return;
@@ -293,7 +306,14 @@ export function createRuntimeContext(deps: AgentRuntimeDeps) {
               }
             : {}),
           auth: {
-            apiKey: literalAuth(true, () => deps.hasApiKey(config.id), true, config.headers),
+            apiKey: literalAuth(
+              true,
+              () => deps.hasApiKey(config.id),
+              true,
+              config.id === MAGPIE_PROVIDER.id
+                ? { authorization: `Bearer ${MAGPIE_PROVIDER.attribution}` }
+                : config.headers,
+            ),
           },
         },
         config,

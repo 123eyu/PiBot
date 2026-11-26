@@ -1,3 +1,22 @@
+// Shares Pi Bot provider identities and routing defaults across packages.
+export const MAGPIE_PROVIDER = {
+  id: "magpie",
+  name: "Magpie",
+  defaultPort: 3425,
+  attribution: "magpie-pibot",
+} as const;
+
+export function magpieBaseUrl(port: number): string {
+  return `http://127.0.0.1:${port}/v1`;
+}
+
+/** Stored preset endpoints must use the literal IPv4 loopback and canonical version path. */
+export function magpiePort(baseUrl: string): number | undefined {
+  const match = /^http:\/\/127\.0\.0\.1:([1-9]\d{0,4})\/v1$/.exec(baseUrl);
+  const port = Number(match?.[1]);
+  return port <= 65535 && magpieBaseUrl(port) === baseUrl ? port : undefined;
+}
+
 /**
  * The ChatGPT plan (official Sign in with ChatGPT) is its own provider,
  * listed under 订阅 beside OpenAI's API-key provider, so a Bot picks either and both work at once.

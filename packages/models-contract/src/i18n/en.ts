@@ -1,6 +1,25 @@
+// Provides English model settings strings.
 import type { providersZh } from "./zh.ts";
 
 export const providersEn: { [K in keyof typeof providersZh]: string } = {
+  "models.magpie.name": "Magpie (local gateway)",
+  "models.magpie.discoveryTitle": "Magpie detected",
+  "models.magpie.discoveryNote": "Local gateway · {version} · Add its models to Pi Bot.",
+  "models.magpie.addAction": "Add",
+  "models.magpie.notNow": "Not now",
+  "models.magpie.welcomeTitle": "Use Magpie's models",
+  "models.magpie.welcomeNote": "Local gateway detected. Magpie forwards model requests.",
+  "models.magpie.checking": "Checking for Magpie…",
+  "models.magpie.detected": "Magpie detected · {version}",
+  "models.magpie.notDetected": "Magpie was not detected. You can enter its port manually.",
+  "models.magpie.detect": "Detect Magpie",
+  "models.magpie.add": "Add Magpie",
+  "models.magpie.refresh": "Refresh Magpie models",
+  "models.magpie.port": "Magpie port",
+  "models.magpie.portHint": "Connects to 127.0.0.1. The default port is 3425.",
+  "models.magpie.saved": "Saved {count} Magpie models",
+  "models.magpie.modelsUnavailable":
+    "Could not get Magpie models. Check the port and make sure the gateway has models available.",
   "models.health.unavailable": "This model is unavailable now: {reason}",
   "models.health.change": "Choose another",
   "models.health.notFound": "This model is missing from the current catalog.",
