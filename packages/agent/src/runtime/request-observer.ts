@@ -20,8 +20,8 @@ const tokenUsageSchema = z.object({
 });
 const usageSchema = tokenUsageSchema.extend({
   totalTokens: amount.optional(),
-  // `reported`: the provider billed this total itself (patched pi-ai, OpenRouter's usage.cost).
-  cost: z.object({ total: amount, reported: z.boolean().optional() }).optional(),
+  // `totalFromProvider` distinguishes the provider's billed total from a catalog estimate.
+  cost: z.object({ total: amount, totalFromProvider: z.boolean().optional() }).optional(),
 });
 /** result() is the SDK's shared final promise; observing it does not consume streaming events. */
 export class RequestAccounting {
@@ -99,7 +99,7 @@ export class RequestAccounting {
         // Aborted/error SDK messages can carry billed partial usage, or merely default zeroes.
         const knownTokens = tokens !== undefined && (complete || tokens > 0);
         const reportedCost =
-          pricingKnown || usage?.cost?.reported === true ? usage?.cost?.total : undefined;
+          pricingKnown || usage?.cost?.totalFromProvider === true ? usage?.cost?.total : undefined;
         const partialCost =
           !complete && knownTokens && usage && pricingKnown
             ? (usage.input * model.cost.input +

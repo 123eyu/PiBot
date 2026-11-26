@@ -70,6 +70,7 @@ export const providerFamilies = [
       ["qwen-token-plan", "global"],
       ["qwen-token-plan-cn", "china"],
       ["qwen-token-plan-individual", "individual"],
+      ["qwen-token-plan-individual-cn", "individualChina"],
     ],
   },
   {
@@ -89,7 +90,7 @@ export function providerFamily(id: string) {
 export function providerPlan(id: string): { name: string; alternative?: string } | undefined {
   if (id === "zai" || id === "zai-coding-cn")
     return { name: "Z.ai GLM Coding Plan", alternative: "Z.ai API" };
-  if (["qwen-token-plan", "qwen-token-plan-cn", "qwen-token-plan-individual"].includes(id))
+  if (providerFamily(id)?.name === "Qwen Coding Plan")
     return { name: "Qwen Coding Plan", alternative: "Qwen API" };
   if (["xiaomi-token-plan-ams", "xiaomi-token-plan-sgp", "xiaomi-token-plan-cn"].includes(id))
     return { name: "Xiaomi Token Plan" };

@@ -32,6 +32,7 @@ export const providersZh = {
   "models.region.europe": "欧洲（阿姆斯特丹）",
   "models.region.singapore": "新加坡",
   "models.region.individual": "个人套餐",
+  "models.region.individualChina": "中国大陆个人套餐",
   "models.region.custom": "自定义地址",
   "models.regionNote": "各区域的密钥和模型分别保存。请先保存或清空输入，再切换区域。",
   "models.payAsYouGo": "按量",

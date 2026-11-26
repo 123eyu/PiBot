@@ -50,7 +50,7 @@ interface Usage {
   cacheRead?: number;
   cacheWrite?: number;
   totalTokens?: number;
-  cost?: { total?: number; reported?: boolean };
+  cost?: { total?: number; totalFromProvider?: boolean };
 }
 
 /** Same accounting as a run: reported cost first, catalog price only when it is known. */
@@ -65,7 +65,7 @@ export function memoryDraftUsage(
       ? (usage.input ?? 0) + (usage.output ?? 0) + (usage.cacheRead ?? 0) + (usage.cacheWrite ?? 0)
       : 0);
   const reported = usage?.cost?.total;
-  if (reported !== undefined && (reported > 0 || usage?.cost?.reported)) {
+  if (reported !== undefined && (reported > 0 || usage?.cost?.totalFromProvider)) {
     return { tokens, costUsd: reported };
   }
   const priced = Object.values(model.cost).some((value) => Number.isFinite(value) && value > 0);

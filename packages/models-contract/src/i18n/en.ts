@@ -37,6 +37,7 @@ export const providersEn: { [K in keyof typeof providersZh]: string } = {
   "models.region.europe": "Europe (Amsterdam)",
   "models.region.singapore": "Singapore",
   "models.region.individual": "Individual plan",
+  "models.region.individualChina": "Mainland China individual plan",
   "models.region.custom": "Custom URL",
   "models.regionNote":
     "Each region keeps its own keys and models. Save or clear your inputs before switching regions.",

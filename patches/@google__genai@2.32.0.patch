@@ -1,7 +1,7 @@
 diff --git a/dist/index.cjs b/dist/index.cjs
 --- a/dist/index.cjs
 +++ b/dist/index.cjs
-@@ -8434,6 +8434,14 @@
+@@ -8506,10 +8506,21 @@
                          const eventString = buffer.substring(0, delimiterIndex);
                          buffer = buffer.substring(delimiterIndex + delimiterLength);
                          const trimmedEvent = eventString.trim();
@@ -16,10 +16,26 @@ diff --git a/dist/index.cjs b/dist/index.cjs
                          if (trimmedEvent.startsWith(dataPrefix)) {
                              const processedChunkString = trimmedEvent
                                  .substring(dataPrefix.length)
-@@ -8657,6 +8665,11 @@
+                                 .trim();
++                            // Prefer the real HTTP status and a bounded error envelope.
++                            const error = readGoogleStreamError(processedChunkString);
++                            if (error) throw googleStreamError(response.status, error);
+                             throwIfStreamErrorChunk(processedChunkString);
+                             try {
+                                 const partialResponse = new Response(processedChunkString, {
+@@ -8758,6 +8769,20 @@
+             throw e;
          }
-         return uploadUrl;
      }
++}
++function readGoogleStreamError(data) {
++    try {
++        return JSON.parse(data)?.error;
++    }
++    catch {
++        // Let the SDK handle non-JSON chunks as before.
++        return undefined;
++    }
 +}
 +// Preserve the HTTP status of the stream rather than treating a provider's application code as HTTP.
 +function googleStreamError(status, error) {
@@ -28,7 +44,7 @@ diff --git a/dist/index.cjs b/dist/index.cjs
  }
  async function throwErrorIfNotOK(response) {
      var _a;
-@@ -22102,7 +22115,10 @@
+@@ -25272,7 +25297,10 @@
                              _c = apiResponse_2_1.value;
                              _d = false;
                              const chunk = _c;
@@ -43,7 +59,7 @@ diff --git a/dist/index.cjs b/dist/index.cjs
 diff --git a/dist/index.mjs b/dist/index.mjs
 --- a/dist/index.mjs
 +++ b/dist/index.mjs
-@@ -8432,6 +8432,14 @@
+@@ -8504,10 +8504,21 @@
                          const eventString = buffer.substring(0, delimiterIndex);
                          buffer = buffer.substring(delimiterIndex + delimiterLength);
                          const trimmedEvent = eventString.trim();
@@ -58,10 +74,26 @@ diff --git a/dist/index.mjs b/dist/index.mjs
                          if (trimmedEvent.startsWith(dataPrefix)) {
                              const processedChunkString = trimmedEvent
                                  .substring(dataPrefix.length)
-@@ -8655,6 +8663,11 @@
+                                 .trim();
++                            // Prefer the real HTTP status and a bounded error envelope.
++                            const error = readGoogleStreamError(processedChunkString);
++                            if (error) throw googleStreamError(response.status, error);
+                             throwIfStreamErrorChunk(processedChunkString);
+                             try {
+                                 const partialResponse = new Response(processedChunkString, {
+@@ -8756,6 +8767,20 @@
+             throw e;
          }
-         return uploadUrl;
      }
++}
++function readGoogleStreamError(data) {
++    try {
++        return JSON.parse(data)?.error;
++    }
++    catch {
++        // Let the SDK handle non-JSON chunks as before.
++        return undefined;
++    }
 +}
 +// Preserve the HTTP status of the stream rather than treating a provider's application code as HTTP.
 +function googleStreamError(status, error) {
@@ -70,7 +102,7 @@ diff --git a/dist/index.mjs b/dist/index.mjs
  }
  async function throwErrorIfNotOK(response) {
      var _a;
-@@ -22100,7 +22113,10 @@
+@@ -25270,7 +25295,10 @@
                              _c = apiResponse_2_1.value;
                              _d = false;
                              const chunk = _c;
@@ -85,7 +117,7 @@ diff --git a/dist/index.mjs b/dist/index.mjs
 diff --git a/dist/node/index.cjs b/dist/node/index.cjs
 --- a/dist/node/index.cjs
 +++ b/dist/node/index.cjs
-@@ -13863,6 +13863,14 @@
+@@ -14062,10 +14062,21 @@
                          const eventString = buffer.substring(0, delimiterIndex);
                          buffer = buffer.substring(delimiterIndex + delimiterLength);
                          const trimmedEvent = eventString.trim();
@@ -100,10 +132,26 @@ diff --git a/dist/node/index.cjs b/dist/node/index.cjs
                          if (trimmedEvent.startsWith(dataPrefix)) {
                              const processedChunkString = trimmedEvent
                                  .substring(dataPrefix.length)
-@@ -14086,6 +14094,11 @@
+                                 .trim();
++                            // Prefer the real HTTP status and a bounded error envelope.
++                            const error = readGoogleStreamError(processedChunkString);
++                            if (error) throw googleStreamError(response.status, error);
+                             throwIfStreamErrorChunk(processedChunkString);
+                             try {
+                                 const partialResponse = new Response(processedChunkString, {
+@@ -14314,6 +14325,20 @@
+             throw e;
          }
-         return uploadUrl;
      }
++}
++function readGoogleStreamError(data) {
++    try {
++        return JSON.parse(data)?.error;
++    }
++    catch {
++        // Let the SDK handle non-JSON chunks as before.
++        return undefined;
++    }
 +}
 +// Preserve the HTTP status of the stream rather than treating a provider's application code as HTTP.
 +function googleStreamError(status, error) {
@@ -112,7 +160,7 @@ diff --git a/dist/node/index.cjs b/dist/node/index.cjs
  }
  async function throwErrorIfNotOK(response) {
      var _a;
-@@ -15857,7 +15870,10 @@
+@@ -16754,7 +16779,10 @@
                              _c = apiResponse_2_1.value;
                              _d = false;
                              const chunk = _c;
@@ -127,7 +175,7 @@ diff --git a/dist/node/index.cjs b/dist/node/index.cjs
 diff --git a/dist/node/index.mjs b/dist/node/index.mjs
 --- a/dist/node/index.mjs
 +++ b/dist/node/index.mjs
-@@ -13841,6 +13841,14 @@
+@@ -14040,10 +14040,21 @@
                          const eventString = buffer.substring(0, delimiterIndex);
                          buffer = buffer.substring(delimiterIndex + delimiterLength);
                          const trimmedEvent = eventString.trim();
@@ -142,10 +190,26 @@ diff --git a/dist/node/index.mjs b/dist/node/index.mjs
                          if (trimmedEvent.startsWith(dataPrefix)) {
                              const processedChunkString = trimmedEvent
                                  .substring(dataPrefix.length)
-@@ -14064,6 +14072,11 @@
+                                 .trim();
++                            // Prefer the real HTTP status and a bounded error envelope.
++                            const error = readGoogleStreamError(processedChunkString);
++                            if (error) throw googleStreamError(response.status, error);
+                             throwIfStreamErrorChunk(processedChunkString);
+                             try {
+                                 const partialResponse = new Response(processedChunkString, {
+@@ -14292,6 +14303,20 @@
+             throw e;
          }
-         return uploadUrl;
      }
++}
++function readGoogleStreamError(data) {
++    try {
++        return JSON.parse(data)?.error;
++    }
++    catch {
++        // Let the SDK handle non-JSON chunks as before.
++        return undefined;
++    }
 +}
 +// Preserve the HTTP status of the stream rather than treating a provider's application code as HTTP.
 +function googleStreamError(status, error) {
@@ -154,7 +218,7 @@ diff --git a/dist/node/index.mjs b/dist/node/index.mjs
  }
  async function throwErrorIfNotOK(response) {
      var _a;
-@@ -15835,7 +15848,10 @@
+@@ -16732,7 +16757,10 @@
                              _c = apiResponse_2_1.value;
                              _d = false;
                              const chunk = _c;
@@ -169,7 +233,7 @@ diff --git a/dist/node/index.mjs b/dist/node/index.mjs
 diff --git a/dist/web/index.mjs b/dist/web/index.mjs
 --- a/dist/web/index.mjs
 +++ b/dist/web/index.mjs
-@@ -13833,6 +13833,14 @@
+@@ -14032,10 +14032,21 @@
                          const eventString = buffer.substring(0, delimiterIndex);
                          buffer = buffer.substring(delimiterIndex + delimiterLength);
                          const trimmedEvent = eventString.trim();
@@ -184,10 +248,26 @@ diff --git a/dist/web/index.mjs b/dist/web/index.mjs
                          if (trimmedEvent.startsWith(dataPrefix)) {
                              const processedChunkString = trimmedEvent
                                  .substring(dataPrefix.length)
-@@ -14056,6 +14064,11 @@
+                                 .trim();
++                            // Prefer the real HTTP status and a bounded error envelope.
++                            const error = readGoogleStreamError(processedChunkString);
++                            if (error) throw googleStreamError(response.status, error);
+                             throwIfStreamErrorChunk(processedChunkString);
+                             try {
+                                 const partialResponse = new Response(processedChunkString, {
+@@ -14284,6 +14295,20 @@
+             throw e;
          }
-         return uploadUrl;
      }
++}
++function readGoogleStreamError(data) {
++    try {
++        return JSON.parse(data)?.error;
++    }
++    catch {
++        // Let the SDK handle non-JSON chunks as before.
++        return undefined;
++    }
 +}
 +// Preserve the HTTP status of the stream rather than treating a provider's application code as HTTP.
 +function googleStreamError(status, error) {
@@ -196,7 +276,7 @@ diff --git a/dist/web/index.mjs b/dist/web/index.mjs
  }
  async function throwErrorIfNotOK(response) {
      var _a;
-@@ -15827,7 +15840,10 @@
+@@ -16724,7 +16749,10 @@
                              _c = apiResponse_2_1.value;
                              _d = false;
                              const chunk = _c;
