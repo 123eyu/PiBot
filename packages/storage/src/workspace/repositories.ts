@@ -37,6 +37,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   memoryExtractionDailyTokens: 2_000_000,
   language: "system",
   theme: "system",
+  chatFontSize: "medium",
   onboardingCompleted: false,
   browserExtensionPreference: DEFAULT_BROWSER_EXTENSION_PREFERENCE,
   openAtLogin: false,

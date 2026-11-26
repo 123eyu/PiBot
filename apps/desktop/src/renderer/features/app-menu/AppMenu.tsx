@@ -1,3 +1,4 @@
+import { ChatFontSizeSchema } from "@pibot/protocol";
 import { useNavigation, useRpc, useSettings } from "@pibot/renderer-kit";
 import { Avatar, Button, type IconName, IconTile, SegmentedControl, type Tone } from "@pibot/ui";
 import { useRef, useState } from "react";
@@ -96,6 +97,19 @@ export function AppMenu() {
                   label: t(`theme.${value}`),
                 }))}
                 onValueChange={(theme) => void update({ theme })}
+              />
+            </div>
+            <div className={styles.pref}>
+              <span>{t("chatFont.label")}</span>
+              <SegmentedControl
+                label={t("chatFont.label")}
+                disabled={!peer}
+                value={settings?.chatFontSize ?? "medium"}
+                options={ChatFontSizeSchema.options.map((value) => ({
+                  value,
+                  label: t(`chatFont.${value}`),
+                }))}
+                onValueChange={(chatFontSize) => void update({ chatFontSize })}
               />
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { SecretsPage } from "@pibot/credentials/ui";
 import { ConnectorsPage } from "@pibot/plugins/ui";
-import { useNavigation, useRpc, useT } from "@pibot/renderer-kit";
+import { useNavigation, useRpc, useSettings } from "@pibot/renderer-kit";
 import { RoutinesPage } from "@pibot/routines/ui";
 import { SkillCopyEditor, SkillDetailExtras, SkillWriter, TeachPage } from "@pibot/skills/ui";
 import { useRef } from "react";
@@ -20,13 +20,13 @@ export function ChatScreen() {
   const groupScope = useRef({ peer, revision: 0 });
   if (groupScope.current.peer !== peer)
     groupScope.current = { peer, revision: groupScope.current.revision + 1 };
-  const t = useT();
+  const { t, settings } = useSettings();
   const retainedDm = view.name === "chat" && !view.groupId;
   const retainedPeer = useRef(peer);
   if (peer) retainedPeer.current = peer;
   const target = { botId: view.botId, topicId: view.topicId, draftId: view.draftId };
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} data-chat-font={settings?.chatFontSize ?? "medium"}>
       <Sidebar />
       {retainedPeer.current && retainedDm && (
         <div className={styles.chatViewport} hidden={view.name !== "chat"}>

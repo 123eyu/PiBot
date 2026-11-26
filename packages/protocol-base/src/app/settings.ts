@@ -11,6 +11,9 @@ import { DefaultModelSchema } from "../providers/providers.ts";
 export { DesktopStateSchema } from "./desktop-state.ts";
 
 const name = z.string().min(1);
+/** Reading size of the conversation view only; the rest of the app keeps its own type scale. */
+export const ChatFontSizeSchema = z.enum(["small", "medium", "large"]);
+export type ChatFontSize = z.infer<typeof ChatFontSizeSchema>;
 export const SettingsSchema = z.strictObject({
   personalTodoView: z.enum(["list", "calendar"]).optional(),
   /** Open / Completed filter shared by the list and the calendar; at least one stays on. */
@@ -46,6 +49,8 @@ export const SettingsSchema = z.strictObject({
   memoryExtractionDailyTokens: z.number().int().min(0).max(100_000_000).optional(),
   language: z.enum(["system", "zh", "en"]),
   theme: z.enum(["system", "light", "dark"]),
+  /** Optional so a brain or settings row written before the option still parses. */
+  chatFontSize: ChatFontSizeSchema.optional(),
   onboardingCompleted: z.boolean(),
   openAtLogin: z.boolean(),
   showTrayIcon: z.boolean(),
