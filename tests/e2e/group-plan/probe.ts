@@ -592,12 +592,18 @@ async function scenario(root: string, kind: Kind) {
       modelProvider: provider,
       modelId: "coordinator",
       thinkingLevel: "off",
+      memoryExtraction: false,
     });
     f.researcher = await f.client.call("bots.update", {
       botId: analyst.id,
       modelProvider: provider,
       modelId: "researcher",
       thinkingLevel: "off",
+      memoryExtraction: false,
+    });
+    f.writer = await f.client.call("bots.update", {
+      botId: f.writer.id,
+      memoryExtraction: false,
     });
     f.group = await f.client.call("groups.addMember", { groupId, botId: f.writer.id });
     if (kind === "parallel-writers") repo = gitRepository(f.root);
