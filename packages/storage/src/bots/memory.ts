@@ -37,7 +37,7 @@ const sourceColumns = ["id", "group_id", "title"]
   )
   .join(",");
 const proposalColumns =
-  "id,scope,owner_id AS ownerId,bot_id AS botId,text,category,message_id AS messageId,CASE WHEN action='remove' AND move_target_bot_id IS NOT NULL THEN 'move' ELSE action END AS action,memory_id AS memoryId,resolved_memory_id AS resolvedMemoryId,status,created_at AS createdAt,expires_at AS expiresAt,project_path AS projectPath,project_diff AS projectDiff,project_expected_hash AS projectExpectedHash,move_target_bot_id AS moveTargetBotId,(SELECT b.name FROM bots WHERE id=move_target_bot_id) AS moveTargetBotName,move_target_memory_id AS moveTargetMemoryId,move_target_text AS moveTargetText,move_target_why AS moveTargetWhy,move_target_how AS moveTargetHow," +
+  "id,scope,owner_id AS ownerId,bot_id AS botId,text,category,message_id AS messageId,CASE WHEN action='remove' AND move_target_bot_id IS NOT NULL THEN 'move' ELSE action END AS action,memory_id AS memoryId,resolved_memory_id AS resolvedMemoryId,status,created_at AS createdAt,expires_at AS expiresAt,project_path AS projectPath,project_diff AS projectDiff,project_expected_hash AS projectExpectedHash,move_target_bot_id AS moveTargetBotId,(SELECT b.name FROM bots b WHERE b.id=scoped_memory_proposals.move_target_bot_id) AS moveTargetBotName,move_target_memory_id AS moveTargetMemoryId,move_target_text AS moveTargetText,move_target_why AS moveTargetWhy,move_target_how AS moveTargetHow," +
   sourceColumns;
 /** Optional prose stored next to a note; undefined leaves the stored value untouched. */
 export type MemoryNote = {
@@ -393,7 +393,7 @@ export class MemoriesRepo {
       const notes = this.notes(note);
       this.db
         .prepare(
-          "INSERT INTO scoped_memory_proposals(id,scope,owner_id,bot_id,text,category,why,how,message_id,action,memory_id,status,created_at,expires_at,project_path,project_diff,project_expected_hash,before_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,'pending',?,?,?,?,?)",
+          "INSERT INTO scoped_memory_proposals(id,scope,owner_id,bot_id,text,category,why,how,message_id,action,memory_id,status,created_at,expires_at,project_path,project_diff,project_expected_hash,before_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,'pending',?,?,?,?,?,?)",
         )
         .run(
           p.id,
