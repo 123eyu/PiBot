@@ -79,6 +79,19 @@ export const groupZh = {
   "group.plan.verdict.pass": "通过",
   "group.plan.verdict.repaired": "已修复，复验通过（{step}）",
   "group.plan.verdict.skipped": "已由你跳过（{step}）",
+  "group.plan.verdict.accepted": "不通过，已由你按现状接受（{step}）",
+  "group.plan.choice.title": "等你选择",
+  "group.plan.choice.replanLimit":
+    "重新规划次数已用完，已完成的步骤和产物都保留。可以不再重新规划，按剩下的步骤继续；或者结束这个计划，再新开一个。",
+  "group.plan.choice.replanLimitVerdicts": "按剩下的步骤继续时，{steps} 的不通过结论按现状保留。",
+  "group.plan.choice.continue": "按剩下的步骤继续",
+  "group.plan.choice.newPlan": "新开计划",
+  "group.plan.choice.newPlanDone":
+    "这个计划已结束，产物都保留。在群里说明接下来要做什么，统筹会按新的请求出计划。",
+  "group.plan.choice.fixSkipped":
+    "修复已跳过，不会自动复验；{steps} 保持不通过。按现状接受后继续后面的步骤，或者停止计划。",
+  "group.plan.choice.accept": "按现状接受",
+  "group.plan.choice.failed": "没能提交你的选择，请刷新后再试。",
   "group.plan.verdict.fail": "不通过（{count} 项）",
   "group.plan.progress": "进度 {done}/{total}",
   "group.plan.spent": "已花费 US$ {cost}",
@@ -314,6 +327,12 @@ export const groupZh = {
     "这一步已用完修复轮次，协调者也没能处置。请核对上面的固定事实，再选择重试、跳过、改派或确认通过。",
   "group.workflow.attempt": "第 {count} 次尝试",
   "group.workflow.retry": "重试",
+  "group.workflow.contextFullHelp":
+    "上下文装不下：正在读 {files}。一次读入的内容太多，同样重试还会停在这里。缩小范围重试时，会提醒成员大文件先搜索、只读需要的片段。",
+  "group.workflow.contextFullFiles": "大文件和工具结果",
+  "group.workflow.retryNarrower": "缩小范围重试",
+  "group.taskState.contextFull": "上下文装不下",
+  "group.taskContextFull": "上下文装不下：正在读 {files}",
   "group.workflow.accept": "我已核对，确认通过",
   "group.workflow.finalReviewHelp":
     "计划的步骤已执行完。请核对以下人工项，然后一次确认；确认前计划不会标为已完成。",
@@ -573,6 +592,20 @@ export const groupEn: Record<keyof typeof groupZh, string> = {
   "group.plan.verdict.pass": "PASS",
   "group.plan.verdict.repaired": "Fixed, recheck passed ({step})",
   "group.plan.verdict.skipped": "Skipped by you ({step})",
+  "group.plan.verdict.accepted": "FAIL, accepted as is by you ({step})",
+  "group.plan.choice.title": "Your choice",
+  "group.plan.choice.replanLimit":
+    "No replans left; completed steps and outputs are kept. Continue with the remaining steps without replanning, or end this plan and start a new one.",
+  "group.plan.choice.replanLimitVerdicts":
+    "If you continue with the remaining steps, the FAIL verdicts of {steps} are kept as they are.",
+  "group.plan.choice.continue": "Continue with the remaining steps",
+  "group.plan.choice.newPlan": "Start a new plan",
+  "group.plan.choice.newPlanDone":
+    "This plan has ended and its outputs are kept. Tell the group what to do next and the coordinator will plan the new request.",
+  "group.plan.choice.fixSkipped":
+    "The repair was skipped, so there is no automatic recheck; {steps} keeps its FAIL verdict. Accept it as is and go on with the remaining steps, or stop the plan.",
+  "group.plan.choice.accept": "Accept as is",
+  "group.plan.choice.failed": "Your choice could not be sent. Refresh and try again.",
   "group.plan.verdict.fail": "FAIL ({count} items)",
   "group.plan.progress": "Progress {done}/{total}",
   "group.plan.spent": "Spent US$ {cost}",
@@ -832,6 +865,12 @@ export const groupEn: Record<keyof typeof groupZh, string> = {
     "This step used up its fix rounds and the coordinator could not dispose of it. Review the fixed facts above, then retry, skip, reassign, or accept.",
   "group.workflow.attempt": "Attempt {count}",
   "group.workflow.retry": "Retry",
+  "group.workflow.contextFullHelp":
+    "Context full: it was reading {files}. It read too much at once, so the same retry would stop here again. A narrower retry tells the member to search large files first and read only the parts it needs.",
+  "group.workflow.contextFullFiles": "large files and tool results",
+  "group.workflow.retryNarrower": "Retry with a narrower scope",
+  "group.taskState.contextFull": "Context full",
+  "group.taskContextFull": "Context full: reading {files}",
   "group.workflow.accept": "I checked it; accept",
   "group.workflow.finalReviewHelp":
     "The plan steps have finished executing. Review these human checks and confirm them together. The plan stays pending until you confirm.",

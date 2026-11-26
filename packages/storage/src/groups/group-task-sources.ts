@@ -52,6 +52,7 @@ export class GroupTaskSourcesRepo {
         String(row.groupId),
         String(row.assigneeBotId),
         String(row.threadConversationId),
+        row.status === "open",
       ),
       source: source
         ? { ...source, available: source.available === 1 }
@@ -86,7 +87,13 @@ export class GroupTaskSourcesRepo {
   hasPendingChildren(taskId: string) {
     return this.hasPendingAssignments(taskId) || this.hasPendingExecutions(taskId);
   }
-  private activity(taskId: string, groupId: string, botId: string, threadId: string) {
+  private activity(
+    taskId: string,
+    groupId: string,
+    botId: string,
+    threadId: string,
+    open: boolean,
+  ) {
     const waiting = this.db
       .prepare(`SELECT c.bot_id FROM runs c JOIN runs p ON p.id=c.parent_run_id
       WHERE p.task_id=? AND c.group_id=? AND c.kind='wake' AND c.trigger_key LIKE 'tool:%'
@@ -94,7 +101,7 @@ export class GroupTaskSourcesRepo {
       .get(taskId, groupId);
     if (waiting) return { state: "waiting", waitingForBotId: String(waiting.bot_id) };
     const run = this.db
-      .prepare(`SELECT id,status,automatic,error_code FROM runs WHERE task_id=? AND group_id=?
+      .prepare(`SELECT id,status,automatic,error_code,message_id FROM runs WHERE task_id=? AND group_id=?
       ORDER BY (status='running') DESC,(status='queued') DESC,created_at DESC,id DESC LIMIT 1`)
       .get(taskId, groupId);
     const approval =
@@ -130,7 +137,34 @@ export class GroupTaskSourcesRepo {
             code: AgentErrorCodeSchema.safeParse(run.error_code).data ?? "internal",
           },
         }
-      : { state: "open" };
+      : open && run?.status === "done"
+        ? this.contextFull(taskId, String(run.message_id))
+        : { state: "open" };
+  }
+  /** An open task whose last turn stopped with a full context says so, with its plan step. */
+  private contextFull(taskId: string, messageId: string) {
+    const pause = this.db
+      .prepare(`SELECT json_extract(usage,'$.executionPause.observation') AS observation,
+        json_extract(usage,'$.executionPause.reads') AS reads FROM messages WHERE id=?`)
+      .get(messageId);
+    if (pause?.observation !== "compaction_no_progress") return { state: "open" };
+    const step = this.db
+      .prepare(
+        "SELECT workflow_run_id,step_id FROM group_workflow_steps WHERE task_id=? AND status='blocked' LIMIT 1",
+      )
+      .get(taskId);
+    return {
+      state: "open",
+      stop: {
+        code: "context_full",
+        ...(typeof pause.reads === "string" && pause.reads
+          ? { reading: pause.reads.slice(0, 300) }
+          : {}),
+        ...(step
+          ? { workflowRunId: String(step.workflow_run_id), stepId: String(step.step_id) }
+          : {}),
+      },
+    };
   }
   summary(
     params: KernelMethodParams["groups.tasks.summary"],

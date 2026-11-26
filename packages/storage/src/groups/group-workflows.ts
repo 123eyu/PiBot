@@ -258,6 +258,18 @@ export class GroupWorkflowsRepo {
   }
 
   /**
+   * Open tasks of every attempt of one step. Each attempt's first run carries the step's trigger
+   * (`group-workflow:<run>:<step>:<attempt>[:<previous run>]`); later runs of a task share its id.
+   */
+  openStepTasks(workflowRunId: string, stepId: string): string[] {
+    return this.db
+      .prepare(`SELECT DISTINCT t.id FROM runs r JOIN group_tasks t ON t.id=r.task_id
+        WHERE r.trigger_key GLOB ? AND t.status='open' ORDER BY t.created_at,t.id LIMIT 50`)
+      .all(`group-workflow:${workflowRunId}:${stepId}:*`)
+      .map((row) => String(row.id));
+  }
+
+  /**
    * Scalar facts only: retries and inherited passed steps count once per logical step. A plan the
    * user stopped before a later plan of the same request is not part of what this reply did.
    */

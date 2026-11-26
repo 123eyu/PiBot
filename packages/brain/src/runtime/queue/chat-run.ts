@@ -1512,11 +1512,27 @@ export async function generateRun(
     if ((stalledCompaction || questionPause) && !cancelled) {
       replies.flush();
       let pause = questionPause;
+      // A group step that stops here is told apart from one that simply did not finish, so its
+      // card can say what did not fit and offer a narrower retry.
+      let stopped: { observation: "compaction_no_progress"; reads?: string } | undefined;
       if (!pause) {
         abortRun(run, { code: "compaction_no_progress" });
         const reading = deps.redactor
           .redact((toolContext.compactionProgress?.reads ?? []).join(", "))
           .slice(0, 300);
+        // File names, not absolute paths: the card has one line for them (PROGRESS.md, CODEMAP.md).
+        const names = deps.redactor
+          .redact(
+            [
+              ...new Set(
+                (toolContext.compactionProgress?.reads ?? []).map(
+                  (path) => path.split(/[\\/]/).at(-1) || path,
+                ),
+              ),
+            ].join(", "),
+          )
+          .slice(0, 300);
+        stopped = { observation: "compaction_no_progress", ...(names ? { reads: names } : {}) };
         pause = {
           reason: "blocked",
           summary:
@@ -1536,7 +1552,7 @@ export async function generateRun(
           }),
         );
       deps.local?.noteParentContinuation(toolContext);
-      replies.pause(pause);
+      replies.pause({ ...pause, ...stopped });
       tools?.finish();
       const updates = transaction(deps.db, () => {
         const updates = replies.finish("done", {

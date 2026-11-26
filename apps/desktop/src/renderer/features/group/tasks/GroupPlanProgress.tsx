@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { BudgetRaise } from "../../receipt/RunReceipt.tsx";
 import { useRunReceipt } from "../../receipt/receipt-store.ts";
 import type { GroupSnapshot } from "../data.ts";
+import { GroupPlanChoice } from "./GroupPlanChoice.tsx";
 import styles from "./group-plan.module.css";
 
 /** Step events are not all broadcast; a slow poll covers them only while the plan is live. */
@@ -44,6 +45,7 @@ export function GroupPlanProgressView({
   const [failed, setFailed] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [stopping, setStopping] = useState(false);
+  const [newPlan, setNewPlan] = useState(false);
   const [revision, setRevision] = useState(0);
   const stopRequest = useRef<AbortController | undefined>(undefined);
   useEffect(() => {
@@ -139,7 +141,10 @@ export function GroupPlanProgressView({
       ? progress.stoppedReason === "user_stopped"
         ? t("group.plan.run.stopped")
         : t("group.plan.run.ended", { reason: t(stopReasonKey(progress.stoppedReason)) })
-      : t(`group.plan.run.${progress.status}`);
+      : progress.choice
+        ? t("group.plan.choice.title")
+        : t(`group.plan.run.${progress.status}`);
+  const choice = progress.choice && live(progress) ? progress.choice : undefined;
   const ownerIds = new Map(card.owners.map((entry) => [entry.stepId, entry.botId]));
   const owner = (stepId: string) => bots?.get(ownerIds.get(stepId) ?? "");
   const share = progress.total ? Math.round((progress.passed / progress.total) * 100) : 0;
@@ -171,7 +176,9 @@ export function GroupPlanProgressView({
               state={
                 step.verdictResolution?.kind === "repaired"
                   ? dots.passed
-                  : step.verdictResolution?.kind === "skipped"
+                  : // A FAIL kept as it is reads like a skip: settled by the user, not passed.
+                    step.verdictResolution?.kind === "skipped" ||
+                      step.verdictResolution?.kind === "accepted"
                     ? dots.skipped
                     : step.verdict?.verdict === "fail"
                       ? "failed"
@@ -237,7 +244,22 @@ export function GroupPlanProgressView({
           </li>
         ))}
       </ul>
+      {choice && (
+        <GroupPlanChoice
+          groupId={card.groupId}
+          progress={{ ...progress, choice }}
+          titles={titles}
+          changed={(value, chosen) => {
+            setProgress(value);
+            if (chosen === "new_plan") setNewPlan(true);
+          }}
+        />
+      )}
+      {newPlan && !live(progress) && (
+        <p className={styles.note}>{t("group.plan.choice.newPlanDone")}</p>
+      )}
       {live(progress) &&
+        !choice &&
         (confirming ? (
           <div className={styles.modify}>
             <p>{t("group.plan.stopConfirm")}</p>
