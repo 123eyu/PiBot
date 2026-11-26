@@ -61,6 +61,13 @@ for (const page of pages) {
   }
 }
 if (logins.size === 0) throw new Error("No linked GitHub contributors found");
+// GitHub serves cached contributor data for hours after a merge; a name already listed (added by
+// hand right after a merge, or by an earlier run) is never removed by a stale response.
+for (const match of readme.slice(from + start.length, to).matchAll(/^- \[@([^\]]+)\]/gm)) {
+  const login = match[1];
+  if (login && githubLogin.test(login) && !logins.has(login.toLowerCase()))
+    logins.set(login.toLowerCase(), login);
+}
 
 const list = [...logins.values()]
   .map((login) => `- [@${login}](https://github.com/${login})`)
