@@ -12,6 +12,7 @@ import {
 import { withToolDiscovery } from "../../../tools/fake-llm/tool-discovery.ts";
 import { toolLoadGroup } from "../product-tool-groups.ts";
 import { deliveryCorrectionScenario } from "./delivery-correction.ts";
+import { opcWeeklyReviewScenario } from "./opc-weekly-review.ts";
 import { verdictRepairScenario } from "./verdict-repair.ts";
 import type { Reply, Scenario } from "../../../tools/fake-llm/scenario.ts";
 import { type Fixture, fixture, until } from "../chat/harness.ts";
@@ -988,6 +989,7 @@ export async function runGroupPlanProbe(
   };
   if (selected === "delivery-correction") return report(selected, () => deliveryCorrectionScenario(root));
   if (selected === "verdict-repair") return report(selected, () => verdictRepairScenario(root));
+  if (selected === "opc-weekly-review") return report(selected, () => opcWeeklyReviewScenario(root));
   if (selected && isKind(selected)) return report(selected, () => scenario(root, selected));
   return {
     scenario: "动态调研报告",
@@ -1006,5 +1008,6 @@ export async function runGroupPlanProbe(
     userStop: await report("user-stop", () => scenario(root, "user-stop")),
     stringPlan: await report("string-plan", () => scenario(root, "string-plan")),
     parallelWriters: await report("parallel-writers", () => scenario(root, "parallel-writers")),
+    opcWeeklyReview: await report("opc-weekly-review", () => opcWeeklyReviewScenario(root)),
   };
 }

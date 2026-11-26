@@ -284,6 +284,11 @@ export interface EvaluationInput {
   /** Trusted provenance for already-merged settings; explanation only, never an authority input. */
   permissionSources?: Partial<Record<Category, PolicyStep["source"]>>;
   botOverrides?: BotPermissionOverrides;
+  /**
+   * Brain's fact from the Bot's own row (`confirmEverySend`), passed separately because a group
+   * run's settings come from the group and must not drop it. Only send_out reads it.
+   */
+  confirmEverySend?: boolean;
   grants?: Grant[];
   /**
    * In-memory grants of this run only (a folder allowed once outside the workplace is

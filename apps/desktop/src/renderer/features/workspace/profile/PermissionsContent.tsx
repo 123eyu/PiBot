@@ -135,6 +135,10 @@ export function PermissionsContent({
                   />
                 ))}
               </div>
+              {/* Read-only by owner decision 2026-11-24: the mark comes with the role. */}
+              {state.data.overrides?.confirmEverySend && (
+                <p className={styles.note}>{t("permissions.confirmEverySend")}</p>
+              )}
             </section>
           </>
         ))}

@@ -187,6 +187,8 @@ function hasControlCharacters(value: string): boolean {
 export function parseInput(input: EvaluationInput, platform: Platform): EvaluationInput {
   if (input.commandIsolation !== undefined && typeof input.commandIsolation !== "function")
     throw new PolicyInputError("Invalid command isolation probe");
+  if (input.confirmEverySend !== undefined && typeof input.confirmEverySend !== "boolean")
+    throw new PolicyInputError("Invalid send confirmation fact");
   const settings = PermissionsSettingsSchema.parse(input.settings);
   const botOverrides = BotPermissionOverridesSchema.parse(input.botOverrides ?? {});
   const gitConfiguration =

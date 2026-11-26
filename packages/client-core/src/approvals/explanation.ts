@@ -112,6 +112,7 @@ const reasonKeys: Record<string, TranslationKey> = {
   connector_read: "policy.reason.connector_read",
   connector_write_draft: "policy.reason.connector_write_draft",
   user_send_confirmation: "policy.reason.user_send_confirmation",
+  bot_send_confirmation: "policy.reason.bot_send_confirmation",
   search_disclosure_required: "policy.reason.search_disclosure_required",
   search_provider_disclosure_required: "policy.reason.search_provider_disclosure_required",
   search_disclosed: "policy.reason.search_disclosed",
@@ -224,6 +225,7 @@ export function approvalExplanation(
       "connector_draft_only",
       "connector_write_draft",
       "user_send_confirmation",
+      "bot_send_confirmation",
       "draft_confirmation_required",
     ].includes(step.code)
       ? t("draft.calendar.confirmation")

@@ -128,6 +128,7 @@ export const permissionsZh = {
   "permissions.windowsAlwaysUnavailable":
     "Windows 命令没有系统隔离，不能设为总是允许；YOLO 自动批准需单独开启",
   "permissions.connectionsAndSending": "连接与发送",
+  "permissions.confirmEverySend": "这个 Bot 每次对外发送都要你确认",
   "approval.connection": "插件",
   "approval.connectedTool": "本次操作",
   "approval.connectionId": "连接 ID",
@@ -612,6 +613,7 @@ export const permissionsEn: { [K in keyof typeof permissionsZh]: string } = {
   "permissions.windowsAlwaysUnavailable":
     "Windows commands have no system isolation and cannot be set to Always; YOLO auto-approval must be enabled separately",
   "permissions.connectionsAndSending": "Connections and sending",
+  "permissions.confirmEverySend": "This Bot asks you before every send",
   "approval.connection": "Connected app",
   "approval.connectedTool": "This operation",
   "approval.connectionId": "Connection ID",

@@ -17,6 +17,14 @@ import { connectorPreauthIssue } from "../../runtime/unattended/connector-preaut
 import { fail } from "./draft-content.ts";
 import { hasRememberedConnectionTool } from "./draft-tool-grants.ts";
 
+/**
+ * The Bot's own `confirmEverySend` mark (owner decision 2026-11-24). Read from the Bot row, not the
+ * run's settings: a group run takes the group's levels, which must not drop this.
+ */
+export function confirmsEverySend(local: LocalService, botId: string): boolean {
+  return local.permissions.overrides(botId).confirmEverySend === true;
+}
+
 function routineGrant(
   local: LocalService,
   context: ToolRunContext,
@@ -61,6 +69,9 @@ export function automaticDraftAllowed(
     true,
   );
   if (confirmation === "blocked") return false;
+  // Before remembered tool consent, routine pre-approval, YOLO and target grants: none of them
+  // answers for a Bot that confirms every send; only the person's answer to this call does.
+  if (confirmsEverySend(local, context.botId)) return confirmedNow;
   // Nothing remembered, no YOLO and no pre-authorization stands in for "ask every time"; only
   // the person's answer to this very call does.
   if (confirmation === "ask_now") return confirmedNow;
@@ -116,6 +127,7 @@ export async function evaluateDraft(
     },
     settings: permissions,
     permissionSources: runPermissionSources(local, context),
+    confirmEverySend: confirmsEverySend(local, context.botId),
     grants: local.grants(context.botId, context),
     workplace: { home: local.deps.dataDir, folders: [], currentId: "home" },
     yolo: runYolo(local, context),

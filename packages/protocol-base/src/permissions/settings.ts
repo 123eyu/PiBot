@@ -51,6 +51,13 @@ export const NetworkSettingsSchema = z.strictObject({
 });
 export const BotPermissionOverridesSchema = PermissionOverridesSchema.extend({
   network: NetworkSettingsSchema.optional(),
+  /**
+   * Owner decision 2026-11-24: every outward send of this Bot asks the person, whatever grants,
+   * connection consent, routine pre-approval or YOLO say, and its card never offers "remember".
+   * Read from the Bot's own row even in a group (group overrides cannot remove it). Optional so
+   * rows saved before it still parse; only `true` is stored.
+   */
+  confirmEverySend: z.literal(true).optional(),
 });
 export const IsolationSchema = z.strictObject({ available: z.boolean(), reason: text.optional() });
 export const DockerRuntimeSchema = z.enum(["disabled", "orbstack", "desktop", "engine"]);
