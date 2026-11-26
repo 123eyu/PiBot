@@ -51,7 +51,7 @@ const desktopOnly = args.includes("--desktop-only");
 // --update-only: an urgent fix ships only as an in-app update. The macOS disk images (download
 // only) are not uploaded, and stable.json and the website's buttons keep the published version;
 // the electron-updater feeds and the files they name (mac zips, the Windows installer, the
-// AppImage, blockmaps) are what installed apps fetch.
+// AppImage and the .deb latest-linux.yml also lists, blockmaps) are what installed apps fetch.
 const updateOnly = args.includes("--update-only");
 if (updateOnly && launch) throw new Error("--update-only cannot be combined with --launch");
 const version = JSON.parse(readFileSync(join(root, "apps/desktop/package.json"), "utf8")).version;
@@ -84,8 +84,11 @@ const artifacts = [
   ["darwin-x64", "mac-x64", "mac-x64", `PiBot-${version}-mac-x64.dmg`],
   ["win32-x64", "windows", "win-x64", `PiBot-${version}-win-x64.exe`],
   ["linux-x64", "linux", "linux-x64", `PiBot-${version}-linux-x86_64.AppImage`],
+  // Ubuntu 24.04+ needs the .deb's AppArmor profile. It is a download button only: installed apps
+  // parse the manifest's downloads strictly, and its single linux-x64 entry stays the AppImage.
+  [undefined, "linux-deb", "linux-x64", `PiBot-${version}-linux-amd64.deb`, "Linux · .deb"],
 ]
-  .map(([platform, button, folder, name]) => ({ platform, button, folder, name }))
+  .map(([platform, button, folder, name, label]) => ({ platform, button, folder, name, label }))
   .map((artifact) => ({ ...artifact, path: locate(artifact.folder, artifact.name) }))
   .filter((artifact) => artifact.path);
 if (!artifacts.length) throw new Error(`No installers for ${version} in ${dist}`);
@@ -327,7 +330,7 @@ for (const [name, path] of uploads) {
 
 const downloads = {};
 for (const artifact of artifacts)
-  downloads[artifact.platform] = `${origin}/${version}/${artifact.name}`;
+  if (artifact.platform) downloads[artifact.platform] = `${origin}/${version}/${artifact.name}`;
 const releases = JSON.parse(readFileSync(join(web, "public/releases.json"), "utf8"));
 releases.status = "available";
 releases.version = version;
@@ -342,8 +345,9 @@ if (android)
   };
 for (const artifact of artifacts) {
   releases.platforms[artifact.button] = {
+    ...(artifact.label ? { label: artifact.label } : {}),
     ...releases.platforms[artifact.button],
-    url: downloads[artifact.platform],
+    url: `${origin}/${version}/${artifact.name}`,
     detail: `v${version}`,
     version,
     ...(releases.platforms[artifact.button]?.version !== version ? { status: "testing" } : {}),

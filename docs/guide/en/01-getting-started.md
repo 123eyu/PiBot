@@ -16,7 +16,7 @@ On this page:
 |---|---|---|
 | macOS | `.dmg` (one for Apple silicon, one for Intel) | Requires macOS 13 Ventura or later; in-app updates need Pi Bot in the Applications folder |
 | Windows | `.exe` installer | 64-bit Windows 10 / 11 |
-| Linux | `.AppImage` (also `.tar.gz`) | Command isolation needs `bubblewrap` and `socat`; only the AppImage updates in-app |
+| Linux | `.deb` (Debian / Ubuntu), `.AppImage` (also `.tar.gz`) | 64-bit x86; use the `.deb` on Ubuntu 24.04 and later. Command isolation needs `bubblewrap` and `socat`; only the AppImage updates in-app |
 
 You also need a model: an API key for an online provider, a ChatGPT plan, or a model running on your computer (such as Ollama). See [9 · Models and keys](09-models-and-keys.md).
 
@@ -43,13 +43,22 @@ Uninstalling keeps your data (chats and keys live in the data folder, see [12 ·
 
 ### Linux
 
+**Debian / Ubuntu (`.deb`, recommended on Ubuntu 24.04 and later)**
+
+1. Install it with apt, which also installs the command isolation tools (`bubblewrap`, `socat`): `sudo apt install ./PiBot-*.deb`
+2. Open Pi Bot from the applications menu, or run `pi-bot` as a regular user (not with `sudo` or as root).
+
+The package installs to `/opt/Pi Bot` and adds an AppArmor profile, `/etc/apparmor.d/pi-bot`. Ubuntu 24.04 and later restrict unprivileged user namespaces by default; the profile lets Pi Bot, and the programs it starts, create the user namespaces its process sandbox needs, the way the Chrome and VS Code profiles do. It changes no system settings. `sudo apt remove pibot` removes the profile with the app; your data stays. The `.deb` doesn't update in-app: install the new version's `.deb` the same way.
+
+**AppImage (other distributions)**
+
 1. Make the AppImage executable: `chmod +x PiBot-*.AppImage`, then run it.
 2. Install the command isolation tools (used when Bots run commands):
    - Debian / Ubuntu: `sudo apt install bubblewrap socat`
    - Fedora: `sudo dnf install bubblewrap socat`
 3. Run it as a regular user: not with `sudo` or as root, and without `--no-sandbox`.
 
-Ubuntu 24.04 and later restrict unprivileged user namespaces by default. If Pi Bot can't start safely, it shows a page with the AppArmor profile to add; follow it, then open Pi Bot again.
+If the AppImage can't start safely because of the user namespace restriction, it shows a page that points to the `.deb` and gives the AppArmor profile to add by hand; follow one of them, then open Pi Bot again.
 
 ## First launch: the welcome flow
 

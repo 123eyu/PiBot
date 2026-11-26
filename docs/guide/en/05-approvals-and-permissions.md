@@ -136,7 +136,7 @@ Windows (PowerShell; adjust the installation path; the pipeline waits for the re
 & "$env:LOCALAPPDATA\Programs\Pi Bot\Pi Bot.exe" --sandbox-doctor | Out-String
 ```
 
-Linux (from the extracted app directory, or substitute your downloaded AppImage filename):
+Linux (`pi-bot` after installing the `.deb`; otherwise from the extracted app directory, or substitute your downloaded AppImage filename):
 
 ```sh
 ./pi-bot --sandbox-doctor

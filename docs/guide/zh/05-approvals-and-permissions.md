@@ -136,7 +136,7 @@ Windows（PowerShell，按安装位置调整路径；管道让 PowerShell 等待
 & "$env:LOCALAPPDATA\Programs\Pi Bot\Pi Bot.exe" --sandbox-doctor | Out-String
 ```
 
-Linux（在解压的应用目录运行，或将文件名换成下载的 AppImage）：
+Linux（装了 `.deb` 直接运行 `pi-bot`；否则在解压的应用目录运行，或将文件名换成下载的 AppImage）：
 
 ```sh
 ./pi-bot --sandbox-doctor

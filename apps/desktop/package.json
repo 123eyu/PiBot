@@ -2,6 +2,8 @@
   "name": "@pibot/desktop",
   "version": "0.0.3",
   "private": true,
+  "homepage": "https://pibot.space",
+  "license": "Apache-2.0",
   "pibot": {
     "layer": "L5"
   },
