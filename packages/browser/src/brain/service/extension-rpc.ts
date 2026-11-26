@@ -36,12 +36,13 @@ export function registerExtensionRpc(
     return { ...desktop, preference: preference() };
   };
   handle("browserExtension.status", (_params, { signal }) => status(signal));
-  handle("browserExtension.setPreference", async ({ preference: next }, { signal }) => {
+  handle("browserExtension.setPreference", async ({ preference: next, takeOver }, { signal }) => {
     const saved = settings.set({ browserExtensionPreference: next });
     ctx.peer.emit("settings.changed", saved);
+    // A choice made in this instance's settings is explicit; only "connect here" takes over.
     await ctx.host.browser?.call(
       "host.browser.extensionRegister",
-      { enabled: next === "user" },
+      { enabled: next === "user", explicit: true, ...(takeOver ? { takeOver: true } : {}) },
       signal,
     );
     const value = await status(signal);

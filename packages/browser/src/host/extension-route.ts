@@ -49,8 +49,9 @@ export interface UserBrowser {
     } | null;
     supported: boolean;
     extension: "connected" | "installed" | "not_installed" | "unsupported";
+    registration?: "separate_data_dir" | "other_instance";
   }>;
-  register(enabled: boolean): Promise<void>;
+  register(enabled: boolean, options?: { explicit?: boolean; takeOver?: boolean }): Promise<void>;
 }
 
 type Page = {

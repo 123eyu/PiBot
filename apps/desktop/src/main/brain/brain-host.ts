@@ -38,6 +38,7 @@ import {
 import { createUserBrowser } from "../browser-extension/user-browser.ts";
 import { registerHostRpc } from "../host/host-rpc.ts";
 import { createLinkBridge } from "../link-bridge/index.ts";
+import { loginItemSyncEnabled } from "../window/login-item-scope.ts";
 import { createBackgroundControl } from "./background-control.ts";
 import { forkBrainProcess } from "./brain-process.ts";
 import { createBrainWakeBridge } from "./brain-wake-bridge.ts";
@@ -115,6 +116,8 @@ export function startBrainHost(options: BrainHostOptions) {
   let userBrowser: Awaited<ReturnType<typeof createUserBrowser>> | undefined;
   const userBrowserReady = createUserBrowser({
     dataDir: options.dataDir,
+    // Same rule as login items: only the platform default folder acts for the whole account.
+    defaultDataDir: loginItemSyncEnabled({ dev: options.dev, env: options.originalEnv }),
     executable: process.execPath,
     ...(app.isPackaged ? {} : { entry: app.getAppPath() }),
     logger: options.logger,
@@ -148,8 +151,8 @@ export function startBrainHost(options: BrainHostOptions) {
         supported: false,
         extension: "unsupported",
       },
-    register: async (enabled) => {
-      await (await userBrowserReady)?.register(enabled);
+    register: async (enabled, request) => {
+      await (await userBrowserReady)?.register(enabled, request);
     },
   };
   let policy = new RestartPolicy();
@@ -765,7 +768,11 @@ export function startBrainHost(options: BrainHostOptions) {
         }
       }
       stopped = true;
-      void userBrowserReady.then((value) => value?.close());
+      // Started now, awaited last: a separate copy removes its own native host manifests before
+      // it exits, without holding up the brain's retirement.
+      const browserClosed = userBrowserReady
+        .then((value) => value?.close())
+        .catch(() => undefined);
       if (!options.storage) storage.dispose();
       remotePower.end();
       options.routines?.end();
@@ -787,6 +794,7 @@ export function startBrainHost(options: BrainHostOptions) {
       toolbars.dispose();
       await connectorImports.dispose();
       logins.clear();
+      await browserClosed;
     },
   };
 }

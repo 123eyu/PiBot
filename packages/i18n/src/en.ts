@@ -252,6 +252,11 @@ const common = {
   "settings.browserExtensionStatus.edgeNotListed": "Not yet listed in Microsoft Edge Add-ons",
   "settings.browserExtensionStatus.not_installed": "Not installed",
   "settings.browserExtensionStatus.unsupported": "Unsupported",
+  "settings.browserExtensionStatus.separate_data_dir":
+    "This Pi Bot uses a separate data folder and has not taken over the browser extension. Choose Connect here to switch the extension to this copy; your main Pi Bot loses it until this copy quits.",
+  "settings.browserExtensionStatus.other_instance":
+    "The browser extension is connected to another Pi Bot. Choose Connect here to switch it to this one.",
+  "settings.browserExtensionConnectHere": "Connect here",
   "settings.browserPreference": "Use browser",
   "settings.browserPreferenceUser": "Prefer your browser (use your sign-in)",
   "settings.browserPreferenceBot": "Use only Pi Bot's built-in Bot browser",

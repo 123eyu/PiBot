@@ -234,6 +234,11 @@ const common = {
   "settings.browserExtensionStatus.edgeNotListed": "尚未在 Microsoft Edge 加载项商店上架",
   "settings.browserExtensionStatus.not_installed": "未安装",
   "settings.browserExtensionStatus.unsupported": "不支持",
+  "settings.browserExtensionStatus.separate_data_dir":
+    "这个 Pi Bot 使用单独的数据目录，没有接管浏览器扩展。点「在这里连接」后，扩展改为连接这里，主程序会连不上扩展，直到这里退出。",
+  "settings.browserExtensionStatus.other_instance":
+    "浏览器扩展已连接到另一个 Pi Bot。点「在这里连接」可改为连接这里。",
+  "settings.browserExtensionConnectHere": "在这里连接",
   "settings.browserPreference": "使用方式",
   "settings.browserPreferenceUser": "优先用你的浏览器（用你的登录）",
   "settings.browserPreferenceBot": "只用 Pi Bot 自带的 Bot 浏览器",

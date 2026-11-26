@@ -10,7 +10,7 @@ import {
   useT,
   useTask,
 } from "@pibot/renderer-kit";
-import { SegmentedControl } from "@pibot/ui";
+import { Button, SegmentedControl } from "@pibot/ui";
 import { useEffect, useState } from "react";
 import type { z } from "zod";
 
@@ -59,12 +59,18 @@ export function BrowserSettings() {
     setStatus((current) => current && { ...current, preference: browserExtensionPreference });
   });
   const disabled = !peer || task.busy || !status;
-  const change = (preference: "user" | "bot") => {
+  const change = (preference: "user" | "bot", takeOver?: true) => {
     if (!peer) return;
     void task.run(async () => {
-      setStatus(await peer.call("browserExtension.setPreference", { preference }));
+      setStatus(
+        await peer.call("browserExtension.setPreference", {
+          preference,
+          ...(takeOver ? { takeOver } : {}),
+        }),
+      );
     });
   };
+  const registration = status?.preference === "user" ? status.registration : undefined;
   const extension: ExtensionState = status?.extension ?? "unsupported";
   const extensionLabel = {
     connected: t("settings.browserExtensionStatus.connected"),
@@ -94,6 +100,17 @@ export function BrowserSettings() {
           }
           dot={STATUS_TONES[extension]}
         />
+        {registration && (
+          <SettingsRow
+            icon="plug"
+            tone="amber"
+            label={t(`settings.browserExtensionStatus.${registration}`)}
+          >
+            <Button variant="secondary" disabled={disabled} onClick={() => change("user", true)}>
+              {t("settings.browserExtensionConnectHere")}
+            </Button>
+          </SettingsRow>
+        )}
         <SettingsRow icon="shield" tone="violet" label={t("settings.browserPreference")}>
           <SegmentedControl
             label={t("settings.browserPreference")}
