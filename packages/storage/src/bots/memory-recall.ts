@@ -174,7 +174,7 @@ function shortMemoryIds(
   if (!terms.length) return [];
   const result: RecallId[] = [];
   const query = db.prepare(`WITH recent AS MATERIALIZED (
-    SELECT id,scope,owner_id,archived_at,category,normalized_text
+    SELECT id,scope,owner_id,archived_at,category,expires_at,normalized_text
     FROM scoped_memories WHERE scope=? AND owner_id=?
     ORDER BY created_at DESC,id DESC LIMIT ?
   ) SELECT id,scope,owner_id AS ownerId FROM recent
