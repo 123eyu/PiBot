@@ -31,6 +31,7 @@ export function registerModelProviderRpc(
   handle("models.health", ({ models }) => recordedModelHealth(ctx.db, models));
   handle("providers.list", async () => {
     const envNames = new Set(await ctx.host.env.detect());
+    // Use the same catalog as the model picker, including retirement and snapshot overlays.
     const modelCounts = new Map<string, number>();
     for (const model of await agent.listModels())
       modelCounts.set(model.provider, (modelCounts.get(model.provider) ?? 0) + 1);
@@ -44,7 +45,7 @@ export function registerModelProviderRpc(
             ...(entry.id === MAGPIE_PROVIDER.id ? { baseUrl: custom.baseUrl } : {}),
             modelCount: custom.models.length + (custom.imageModels?.length ?? 0),
           }
-        : entry.id === "openrouter"
+        : entry.auth !== "custom"
           ? { ...entry, modelCount: modelCounts.get(entry.id) ?? entry.modelCount }
           : entry;
     });
