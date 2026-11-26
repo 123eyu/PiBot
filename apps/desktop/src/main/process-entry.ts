@@ -23,6 +23,8 @@ export async function startMain(options: {
   compileCache?: Promise<{ status: number; durationMs: number } | undefined>;
   signal: AbortSignal;
   providerLinks: ProviderLinkInbox;
+  /** The role's file logger, for work the entry point schedules later (the compile-cache flush). */
+  onLogger?(logger: { info(message: string): void; warn(message: string): void }): void;
   bootstrap: {
     entryAtMs: number;
     cacheMs: number;
@@ -42,6 +44,7 @@ export async function startMain(options: {
     redactor,
     dev,
   });
+  options.onLogger?.(logger);
   logger[
     bootstrap.cacheDeferred || bootstrap.status === 0 || bootstrap.status === 1 ? "info" : "warn"
   ](
