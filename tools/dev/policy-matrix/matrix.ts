@@ -87,6 +87,9 @@ function inputs(platform: Platform) {
     phone_data: { category: "phone_data", operation: "media" },
     background: { category: "background", operation: "list" },
     browser_tabs: { category: "browser_tabs" },
+    // The default Pi in its own direct chat (the kernel sets mainDirect); other callers below.
+    bot_management: { category: "bot_management", operation: "change", mainDirect: true },
+    work_dispatch: { category: "work_dispatch", mainDirect: true },
   } satisfies Record<PolicyRequest["category"], PolicyRequest>;
   const extra: Record<string, PolicyRequest> = {
     "read_file/outside": { category: "read_file", path: targets.outside },
@@ -108,6 +111,9 @@ function inputs(platform: Platform) {
     "web/private": { category: "web", url: "http://127.0.0.1/" },
     "web/unlisted": { category: "web", url: "https://example.org/" },
     "web/invalid": { category: "web", url: "not-a-url" },
+    "bot_management/list": { category: "bot_management", operation: "list", mainDirect: true },
+    "bot_management/not_main": { category: "bot_management", operation: "change" },
+    "work_dispatch/not_main": { category: "work_dispatch", mainDirect: false },
   };
   const base = {
     botId: id,

@@ -9,8 +9,10 @@ import type { ToolRunContext } from "./local-types.ts";
  * - only the main Bot (never an agent Bot, never any other Bot);
  * - only a visible DM topic of that Bot (no group, task thread, routine, sub-task, review,
  *   external-agent hand-off or internal task session);
- * - only a turn whose user message came from the desktop app ("user"): a phone or ACP editor
- *   message, a forwarded or dispatched message and any message the brain wrote itself are out.
+ * - only a turn whose user message the person wrote in the desktop app ("user") or on the paired
+ *   phone through this computer ("phone", owner decision 2026-11-25); an ACP editor message, a
+ *   forwarded or dispatched message and any message the brain wrote itself are out. The phone's
+ *   own offline model never gets these tools (its fixed tool list and portable policy).
  * A dispatched run therefore can never dispatch again (the loop guard's first half).
  */
 export function mainDirectRun(local: LocalService, context: ToolRunContext): boolean {
@@ -24,7 +26,6 @@ export function mainDirectRun(local: LocalService, context: ToolRunContext): boo
     context.routineWorkplace ||
     context.auditSource ||
     context.delegatedHome ||
-    context.endpointPhoneId ||
     !context.conversationId
   )
     return false;
@@ -46,7 +47,7 @@ export function mainDirectRun(local: LocalService, context: ToolRunContext): boo
     !!usage &&
     typeof usage === "object" &&
     !Array.isArray(usage) &&
-    (usage as Record<string, unknown>).inputOrigin === "user" &&
+    ["user", "phone"].includes(String((usage as Record<string, unknown>).inputOrigin)) &&
     !("forward" in usage) &&
     !("dispatch" in usage) &&
     !("systemEvent" in usage)

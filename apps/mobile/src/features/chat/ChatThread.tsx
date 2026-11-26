@@ -34,6 +34,7 @@ import { OfflineDivider } from "../offline/OfflineHistory.tsx";
 import { changesTarget } from "./controls/scope.ts";
 import { messageQuestion } from "./controls/use-question.ts";
 import { ApprovalInlineCard, QuestionCard } from "./messages/cards.tsx";
+import { DispatchReceiptCards, handedOut } from "./messages/DispatchReceiptCard.tsx";
 import { MessageItem } from "./messages/MessageItem.tsx";
 import { RunChangesCard, wroteFiles } from "./messages/RunChangesCard.tsx";
 import {
@@ -165,6 +166,7 @@ const ThreadRow = memo(
             )
           }
         />
+        {handedOut(message) && <DispatchReceiptCards messageId={message.id} />}
         {changes && settled && turnWrote ? (
           <RunChangesCard
             runId={message.runId}

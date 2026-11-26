@@ -173,14 +173,14 @@ export function registerLocalRpc(handle: KernelRegisterRpc, local: LocalService)
     }
     return result;
   });
-  handle("permissions.set", (params, { source, phone }) => {
-    // Pi's management and dispatch levels are the person's own switch on this computer; an ACP
-    // editor or the paired phone cannot widen them.
+  handle("permissions.set", (params, { source }) => {
+    // Pi's management and dispatch levels are the person's own switch (this computer or the
+    // paired phone); an ACP editor cannot widen them.
     if (
-      (source === "acp" || phone) &&
+      source === "acp" &&
       PI_MANAGER_CATEGORIES.some((category) => params.levels?.[category] !== undefined)
     )
-      throw new RpcError(-32602, "pi_manager_desktop_only");
+      throw new RpcError(-32602, "pi_manager_no_acp");
     return savePermissions(params);
   });
   handle("approvals.pending", async (params) => approvals.repo.pending(params));
@@ -202,19 +202,20 @@ export function registerLocalRpc(handle: KernelRegisterRpc, local: LocalService)
         allowSession,
         conversationId,
       },
-      { source, phone },
+      { source },
     ) => {
       const approval = approvals.repo.get(id);
       if (conversationId && approval?.conversationId !== conversationId)
         throw new RpcError(-32602, "Approval conversation changed");
-      // "Don't ask again" on Pi's cards changes Pi's own level: the person's switch on this computer.
+      // "Don't ask again" on Pi's cards changes Pi's own level: the person's switch, on this
+      // computer or the paired phone, never an ACP editor's.
       if (
         remember &&
-        (source === "acp" || phone) &&
+        source === "acp" &&
         approval &&
         PI_MANAGER_CATEGORIES.some((category) => category === approval.category)
       )
-        throw new RpcError(-32602, "pi_manager_desktop_only");
+        throw new RpcError(-32602, "pi_manager_no_acp");
       if (approval?.draft) throw new RpcError(-32602, "Use drafts.resolve for send drafts");
       return approvals.resolve(
         id,

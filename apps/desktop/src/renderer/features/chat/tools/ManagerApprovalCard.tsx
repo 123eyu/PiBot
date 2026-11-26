@@ -110,7 +110,7 @@ export function ManagerApprovalCard({
         )}
         <div className={styles.actions}>
           <Button variant="secondary" disabled={busy} onClick={() => void resolve("deny")}>
-            {t("approval.piDeny")}
+            {t("approval.deny")}
           </Button>
           <Button loading={busy} onClick={() => void resolve("allow")}>
             {t("approval.allow")}
