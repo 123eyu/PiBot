@@ -76,6 +76,10 @@ pnpm dev        # start the desktop app in development
 
 エージェントカーネルは [pi](https://github.com/earendil-works/pi) で、npm の依存関係としてバージョンを固定し、`packages/agent` でのみ使用しています。頭脳は Electron に依存しないため、同じコードがヘッドレスでも動作します。
 
+## コミュニティ
+
+Pi Bot の Telegram グループで、質問や使い方の共有、新しいリリースの情報をどうぞ：[t.me/+zzEe3q-8QflkOTJl](https://t.me/+zzEe3q-8QflkOTJl)
+
 ## コントリビューション
 
 Issue とプルリクエストを歓迎します。まず [CONTRIBUTING.md](CONTRIBUTING.md) と [AGENTS.md](AGENTS.md) のルールをお読みください。セキュリティの問題は公開の Issue ではなく、[SECURITY.md](SECURITY.md) に記載の方法で報告してください。

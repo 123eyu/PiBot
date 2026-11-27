@@ -82,6 +82,10 @@ pnpm dev        # 开发模式启动桌面应用
 agent 内核是 [pi](https://github.com/earendil-works/pi)，作为锁定版本的 npm 依赖，只在 `packages/agent`
 里使用。大脑不依赖 Electron，同一份代码也能无界面运行。
 
+## 交流群
+
+欢迎加入 Pi Bot 的 Telegram 群：提问、分享你的 Bot 在做什么，第一时间看到新版本。[t.me/+zzEe3q-8QflkOTJl](https://t.me/+zzEe3q-8QflkOTJl)
+
 ## 参与贡献
 
 欢迎提 Issue 和 PR。请先读 [CONTRIBUTING.md](CONTRIBUTING.md) 和 [AGENTS.md](AGENTS.md) 里的规则；
